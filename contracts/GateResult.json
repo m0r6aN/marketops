@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GateResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["allowed", "packet"],
+  "properties": {
+    "allowed": { "type": "boolean" },
+    "denialCode": { "type": ["string", "null"] },
+    "denialMessage": { "type": ["string", "null"] },
+    "failureStage": {
+      "type": ["string", "null"],
+      "enum": ["precheck", "keon-decision", "evidence-pack", "verify", "exception", null]
+    },
+    "packetHashSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "packet": { "$ref": "PublishPacket.json" },
+    "keon": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "receiptId": { "type": "string" },
+        "decisionOutcome": { "type": "string" },
+        "decidedAtUtc": { "type": "string", "format": "date-time" },
+        "receiptCanonicalPath": { "type": "string" },
+        "evidencePackZipPath": { "type": "string" },
+        "verifyReportSummary": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "isValid": { "type": "boolean" },
+            "phase": { "type": "integer" },
+            "errorCodes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "allowed": { "const": false } } },
+      "then": { "required": ["denialCode", "denialMessage", "failureStage"] }
+    }
+  ]
+}

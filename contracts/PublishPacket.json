@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PublishPacket",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifactId",
+    "artifactType",
+    "createdAtUtc",
+    "tenantId",
+    "correlationId",
+    "actorId",
+    "sourceRefs",
+    "payloadRef",
+    "destinations"
+  ],
+  "properties": {
+    "artifactId": { "type": "string", "minLength": 1 },
+    "artifactType": { "type": "string", "minLength": 1 },
+    "createdAtUtc": { "type": "string", "format": "date-time" },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "correlationId": { "type": "string", "minLength": 1 },
+    "actorId": { "type": "string", "minLength": 1 },
+    "sourceRefs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "payloadRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["file", "repoPath", "artifactStore"]
+        },
+        "path": { "type": "string", "minLength": 1 },
+        "contentType": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "destinations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "keon": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "receiptId": { "type": "string" },
+        "decisionOutcome": { "type": "string" },
+        "decidedAtUtc": { "type": "string", "format": "date-time" },
+        "receiptCanonicalPath": { "type": "string" },
+        "evidencePackZipPath": { "type": "string" },
+        "verifyReportSummary": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "isValid": { "type": "boolean" },
+            "phase": { "type": "integer" },
+            "errorCodes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

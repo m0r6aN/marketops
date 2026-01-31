@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketOps\MarketOps.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Keon.Canonicalization\Keon.Canonicalization.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Keon.Contracts\Keon.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Keon.Sdk\Keon.Sdk.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Keon.Verification\Keon.Verification.csproj" />
+  </ItemGroup>
+
+</Project>
