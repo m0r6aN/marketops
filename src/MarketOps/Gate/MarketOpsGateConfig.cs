@@ -30,16 +30,16 @@ public sealed record MarketOpsGateConfig(
 {
     public static MarketOpsGateConfig Build(MarketOpsGateOverrides? overrides, Action<string>? auditLog = null)
     {
-        var tenantId = "keon-public";
+        var tenantId = "federation-public";
         var actorId = "operator-marketops";
         var allowlist = new List<string>
         {
-            "keon.systems/site-docs",
-            "keon.systems/public-artifacts",
-            "github:keon-systems/docs",
-            "github:keon-systems/specs",
-            "github:keon-systems/sdk-releases",
-            "diagrams:keon-systems/public"
+            "federation.systems/site-docs",
+            "federation.systems/public-artifacts",
+            "github:federation/docs",
+            "github:federation/specs",
+            "github:federation/sdk-releases",
+            "diagrams:federation/public"
         };
         var capability = "marketops.publish";
         var auditRoot = ".";

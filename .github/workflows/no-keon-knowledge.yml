@@ -1,0 +1,59 @@
+name: No Keon Knowledge
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan active code for forbidden Keon knowledge
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Active paths (must not contain Keon knowledge)
+          PATHS=(
+            "src/MarketOps"
+            "src/MarketOps.Cli"
+            "src/MarketOps.OmegaSdk"
+            "contracts"
+            "docs"
+          )
+
+          # Excluded paths (allowed to mention Keon for archaeology/reporting)
+          EXCLUDES=(
+            "src/legacy"
+            "REPORT"
+            "artifacts"
+          )
+
+          # Forbidden patterns (doctrinal hard-fail)
+          PATTERN='(\bKeon\b|keon\.|/compliance/evidence-packs|KeonDecisionClient|KeonExecutionClient)'
+
+          # Build ripgrep exclude args
+          RG_EXCLUDES=()
+          for ex in "${EXCLUDES[@]}"; do
+            RG_EXCLUDES+=(--glob "!${ex}/**")
+          done
+
+          echo "Scanning for forbidden Keon knowledge in active paths..."
+          echo "Paths: ${PATHS[*]}"
+          echo "Excludes: ${EXCLUDES[*]}"
+          echo "Pattern: ${PATTERN}"
+
+          # If any match found, fail and print receipts (file:line:match)
+          if rg -n --hidden --no-ignore-vcs "${PATTERN}" "${PATHS[@]}" "${RG_EXCLUDES[@]}"; then
+            echo
+            echo "❌ Forbidden Keon knowledge detected in active paths."
+            echo "MarketOps must have ZERO knowledge of Keon. Remove these references."
+            exit 1
+          else
+            echo "✅ No forbidden Keon knowledge found in active paths."
+          fi

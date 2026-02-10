@@ -10,11 +10,11 @@
     "denialMessage": { "type": ["string", "null"] },
     "failureStage": {
       "type": ["string", "null"],
-      "enum": ["precheck", "keon-decision", "evidence-pack", "verify", "exception", null]
+    "enum": ["precheck", "decision", "hash", "audit", "evidence-pack", "verify", "exception", null]
     },
     "packetHashSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
     "packet": { "$ref": "PublishPacket.json" },
-    "keon": {
+    "governance": {
       "type": ["object", "null"],
       "additionalProperties": false,
       "properties": {
@@ -23,7 +23,7 @@
         "decidedAtUtc": { "type": "string", "format": "date-time" },
         "receiptCanonicalPath": { "type": "string" },
         "evidencePackZipPath": { "type": "string" },
-        "verifyReportSummary": {
+        "verificationSummary": {
           "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {

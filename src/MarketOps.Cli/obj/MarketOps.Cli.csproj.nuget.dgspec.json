@@ -39,8 +39,8 @@
               "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj": {
                 "projectPath": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj"
               },
-              "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
-                "projectPath": "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj"
+              "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
+                "projectPath": "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj"
               }
             }
           }
@@ -386,8 +386,8 @@
               "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj": {
                 "projectPath": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj"
               },
-              "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
-                "projectPath": "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj"
+              "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
+                "projectPath": "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj"
               }
             }
           }
@@ -1041,14 +1041,14 @@
         }
       }
     },
-    "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
+    "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj",
+        "projectUniqueName": "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj",
         "projectName": "Omega.Sdk",
-        "projectPath": "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\Omega.Sdk.csproj",
+        "projectPath": "D:\\Repos\\marketops\\src\\Omega.Sdk\\Omega.Sdk.csproj",
         "packagesPath": "C:\\Users\\clint\\.nuget\\packages\\",
-        "outputPath": "D:\\Repos\\OMEGA\\sdks\\omega-sdk-csharp\\src\\Omega.Sdk\\obj\\",
+        "outputPath": "D:\\Repos\\marketops\\src\\Omega.Sdk\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1073,7 +1073,9 @@
           }
         },
         "warningProperties": {
-          "allWarningsAsErrors": true
+          "warnAsError": [
+            "NU1605"
+          ]
         },
         "restoreAuditProperties": {
           "enableAudit": "true",
@@ -1085,28 +1087,6 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "dependencies": {
-            "Microsoft.Extensions.DependencyInjection.Abstractions": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "Microsoft.Extensions.Http": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "Microsoft.Extensions.Options": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "Polly": {
-              "target": "Package",
-              "version": "[8.5.0, )"
-            },
-            "Polly.Extensions.Http": {
-              "target": "Package",
-              "version": "[3.0.0, )"
-            }
-          },
           "imports": [
             "net461",
             "net462",

@@ -49,7 +49,12 @@ public sealed class OmegaGate : IMarketOpsGate
             if (validation != null)
                 return GateResult.Deny(FailureStage.Precheck, validation.Value.Code, validation.Value.Message, packet);
 
-            string? packetHashSha256 = null; // SDK GAP: No canonicalization
+            var packetHashSha256 = packet.PayloadRef.Sha256;
+            if (string.IsNullOrWhiteSpace(packetHashSha256))
+            {
+                _auditLog?.Invoke("HASH_MISSING");
+                return GateResult.Deny(FailureStage.Hash, "CANONICAL_HASH_MISSING", "Canonical hash is required but unavailable.", packet);
+            }
 
             if (!string.Equals(packet.TenantId, _config.TenantId, StringComparison.Ordinal))
                 return GateResult.Deny(FailureStage.Precheck, "TENANT_MISMATCH", "Tenant mismatch", packet, packetHashSha256);
@@ -67,6 +72,62 @@ public sealed class OmegaGate : IMarketOpsGate
             if (!decisionResult.Success || decisionResult.Outcome != "approved")
                 return GateResult.Deny(FailureStage.Decision, "DECISION_NOT_APPROVED", decisionResult.ErrorMessage ?? "Not approved", packet, packetHashSha256);
 
+            var auditResult = await _auditWriter.WriteReceiptAndPackAsync(
+                new GovernanceReceiptData(decisionResult.ReceiptId ?? "unknown", packet.TenantId, packet.CorrelationId,
+                    decisionResult.Outcome ?? "unknown", decisionResult.DecidedAtUtc ?? DateTimeOffset.UtcNow, new { }),
+                packet.ArtifactId, ct: ct);
+
+            if (!auditResult.Success)
+            {
+                _auditLog?.Invoke($"AUDIT_FAILED {auditResult.ErrorCode}");
+                return GateResult.Deny(
+                    FailureStage.Audit,
+                    auditResult.ErrorCode ?? "AUDIT_UNAVAILABLE",
+                    auditResult.ErrorMessage ?? "Audit writer failed to produce receipt or evidence.",
+                    packet,
+                    packetHashSha256);
+            }
+
+            if (string.IsNullOrWhiteSpace(auditResult.EvidencePackZipPath))
+            {
+                _auditLog?.Invoke("AUDIT_NO_EVIDENCE_PATH");
+                return GateResult.Deny(
+                    FailureStage.Audit,
+                    "AUDIT_NO_EVIDENCE_PATH",
+                    "Audit writer did not produce an evidence pack.",
+                    packet,
+                    packetHashSha256);
+            }
+
+            var verification = await _evidenceVerifier.VerifyAsync(
+                packetHashSha256,
+                packet.TenantId,
+                packet.ActorId,
+                packet.CorrelationId,
+                ct);
+
+            if (!verification.Success)
+            {
+                _auditLog?.Invoke($"VERIFY_FAILED {verification.ErrorMessage}");
+                return GateResult.Deny(
+                    FailureStage.Verify,
+                    verification.ErrorCodes?.FirstOrDefault() ?? "EVIDENCE_VERIFICATION_FAILED",
+                    verification.ErrorMessage ?? "Evidence verification failed.",
+                    packet,
+                    packetHashSha256);
+            }
+
+            if (!verification.IsValid)
+            {
+                _auditLog?.Invoke("VERIFY_INVALID");
+                return GateResult.Deny(
+                    FailureStage.Verify,
+                    verification.Verdict ?? "EVIDENCE_INVALID",
+                    "Evidence verifier reported an invalid pack.",
+                    packet,
+                    packetHashSha256);
+            }
+
             if (_executionClient != null && decisionResult.ReceiptId != null)
             {
                 var execReq = BuildExecutionRequest(packet, decisionResult.ReceiptId, packetHashSha256);
@@ -75,13 +136,10 @@ public sealed class OmegaGate : IMarketOpsGate
                     return GateResult.Deny(FailureStage.Exception, "EXECUTION_FAILED", execRes.ErrorMessage ?? "Execution failed", packet, packetHashSha256);
             }
 
-            var auditResult = await _auditWriter.WriteReceiptAndPackAsync(
-                new GovernanceReceiptData(decisionResult.ReceiptId ?? "unknown", packet.TenantId, packet.CorrelationId,
-                    decisionResult.Outcome ?? "unknown", decisionResult.DecidedAtUtc ?? DateTimeOffset.UtcNow, new { }),
-                packet.ArtifactId, ct: ct);
-
-            if (!auditResult.Success)
-                _auditLog?.Invoke($"AUDIT_FAILED {auditResult.ErrorCode}");
+            var verificationSummary = new VerificationSummary(
+                verification.IsValid,
+                verification.Phase ?? 0,
+                verification.ErrorCodes ?? Array.Empty<string>());
 
             var governance = new GovernanceEvidence(
                 decisionResult.ReceiptId ?? "unknown",
@@ -89,9 +147,9 @@ public sealed class OmegaGate : IMarketOpsGate
                 decisionResult.DecidedAtUtc ?? DateTimeOffset.UtcNow,
                 auditResult.ReceiptPath ?? "unavailable",
                 auditResult.EvidencePackZipPath ?? "unavailable",
-                null);
+                verificationSummary);
 
-            return GateResult.Allow(packet, packetHashSha256 ?? "unavailable", governance);
+            return GateResult.Allow(packet, packetHashSha256, governance);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -168,4 +226,3 @@ public sealed class OmegaGate : IMarketOpsGate
         return !segments.Any(s => s == ".." || s.Contains(':'));
     }
 }
-

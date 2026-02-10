@@ -10,7 +10,9 @@ namespace MarketOps.Contracts;
 public enum FailureStage
 {
     Precheck,
-    Decision,           // Renamed from "keon-decision"
+    Decision,
+    Hash,
+    Audit,
     EvidencePack,
     Verify,
     Exception
@@ -27,7 +29,7 @@ public sealed record GateResult(
     FailureStage? FailureStage,
     string? PacketHashSha256,
     PublishPacket Packet,
-    GovernanceEvidence? Governance)  // Renamed from "keon"
+    GovernanceEvidence? Governance)
 {
     /// <summary>
     /// Factory method for creating denial results.
@@ -71,7 +73,7 @@ public sealed record GateResult(
 
 /// <summary>
 /// Governance evidence for gate evaluation.
-/// Generic replacement for Keon-specific evidence types.
+/// Vendor-agnostic representation of decision receipts and artifacts.
 /// </summary>
 public sealed record GovernanceEvidence(
     string ReceiptId,
@@ -89,4 +91,3 @@ public sealed record VerificationSummary(
     bool IsValid,
     int Phase,
     IReadOnlyList<string> ErrorCodes);
-

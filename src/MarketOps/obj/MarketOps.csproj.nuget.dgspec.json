@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj": {}
+    "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj": {}
   },
   "projects": {
-    "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj": {
+    "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj",
+        "projectUniqueName": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj",
         "projectName": "MarketOps",
-        "projectPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj",
+        "projectPath": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj",
         "packagesPath": "C:\\Users\\clint\\.nuget\\packages\\",
-        "outputPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\obj\\",
+        "outputPath": "D:\\Repos\\marketops\\src\\MarketOps\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -36,7 +36,6 @@
           }
         },
         "warningProperties": {
-          "allWarningsAsErrors": true,
           "warnAsError": [
             "NU1605"
           ]

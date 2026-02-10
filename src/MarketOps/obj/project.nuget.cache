@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "tKYWAkECsOE=",
+  "dgSpecHash": "yX16IcYAu5o=",
   "success": true,
-  "projectFilePath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj",
+  "projectFilePath": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

@@ -9,12 +9,12 @@ namespace MarketOps.OmegaSdk.Adapters;
 
 /// <summary>
 /// Adapter for governance decisions using omega-sdk-csharp.
-/// Invokes "keon.decide" tool via Tools.InvokeAsync.
+/// Invokes the governance decision tool via Tools.InvokeAsync.
 /// </summary>
 public sealed class OmegaDecisionClient : IGovernanceDecisionClient
 {
     private readonly OmegaClient _client;
-    private const string DecisionToolId = "keon.decide";
+    private const string DecisionToolId = "governance.decide";
 
     public OmegaDecisionClient(OmegaClient client)
     {
@@ -43,7 +43,7 @@ public sealed class OmegaDecisionClient : IGovernanceDecisionClient
                 cancellationToken: ct);
 
             // Extract receipt from result
-            var receiptId = result.Audit?.KeonReceiptId;
+            var receiptId = result.Audit?.ReceiptId;
 
             return new GovernanceDecisionResult(
                 Success: true,
@@ -63,4 +63,3 @@ public sealed class OmegaDecisionClient : IGovernanceDecisionClient
         }
     }
 }
-

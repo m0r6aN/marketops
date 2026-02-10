@@ -1,0 +1,70 @@
+name: Drift Register Integrity
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "artifacts/drift-map/DRIFT_REGISTER.md"
+      - "REPORT/DRIFT_REGISTER.md"
+      - ".github/workflows/drift-register-integrity.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "artifacts/drift-map/DRIFT_REGISTER.md"
+      - "REPORT/DRIFT_REGISTER.md"
+      - ".github/workflows/drift-register-integrity.yml"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required files exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f artifacts/drift-map/DRIFT_REGISTER.md || (echo "Missing canonical: artifacts/drift-map/DRIFT_REGISTER.md" && exit 1)
+          test -f REPORT/DRIFT_REGISTER.md || (echo "Missing snapshot: REPORT/DRIFT_REGISTER.md" && exit 1)
+
+      - name: Fail if snapshot contains placeholders
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -n '<TO_BE_FILLED_AT_COMMIT>|<UTC TIMESTAMP>' REPORT/DRIFT_REGISTER.md; then
+            echo "❌ Snapshot contains placeholder tokens. Fill SHA-256 + timestamp."
+            exit 1
+          fi
+          echo "✅ No placeholder tokens in snapshot."
+
+      - name: Compute canonical SHA-256
+        id: hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANON_HASH="$(sha256sum artifacts/drift-map/DRIFT_REGISTER.md | awk '{print $1}')"
+          echo "canon_hash=$CANON_HASH" >> "$GITHUB_OUTPUT"
+          echo "Canonical SHA-256: $CANON_HASH"
+
+      - name: Verify snapshot contains canonical SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANON_HASH="${{ steps.hash.outputs.canon_hash }}"
+          if ! rg -q "$CANON_HASH" REPORT/DRIFT_REGISTER.md; then
+            echo "❌ Snapshot does not contain canonical SHA-256."
+            echo "Expected to find: $CANON_HASH"
+            exit 1
+          fi
+          echo "✅ Snapshot contains canonical SHA-256."
+
+      - name: Verify snapshot has Snapshot Created line
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! rg -q '^\*\*Snapshot Created:\*\* ' REPORT/DRIFT_REGISTER.md; then
+            echo "❌ Snapshot missing '**Snapshot Created:** ' line."
+            exit 1
+          fi
+          echo "✅ Snapshot contains Snapshot Created line."

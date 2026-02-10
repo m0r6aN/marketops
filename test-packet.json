@@ -1,0 +1,14 @@
+{
+  "artifactId": "test-artifact-001",
+  "artifactType": "technical",
+  "createdAtUtc": "2026-02-01T00:00:00Z",
+  "tenantId": "keon-public",
+  "correlationId": "t:keon-public|c:test-001",
+  "actorId": "operator-marketops",
+  "sourceRefs": ["github:test/repo#main"],
+  "payloadRef": {
+    "kind": "file",
+    "path": "test/file.txt"
+  },
+  "destinations": ["keon.systems/site-docs"]
+}

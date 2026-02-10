@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MarketOps.Cli")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a04d0c17e48336bee8e2b4dda0851d5dd9fbfe5e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e806da34bce3b30d05663b840389b16686ab48af")]
 [assembly: System.Reflection.AssemblyProductAttribute("MarketOps.Cli")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MarketOps.Cli")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

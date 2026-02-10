@@ -156,6 +156,8 @@ public static class Program
             FailureStage.Precheck => ExitDenied,
             FailureStage.Decision => ExitDenied,
             FailureStage.Exception => ExitSystemError,
+            FailureStage.Hash => ExitDeniedFailClosed,
+            FailureStage.Audit => ExitDeniedFailClosed,
             FailureStage.EvidencePack => ExitDeniedFailClosed,
             FailureStage.Verify => ExitDeniedFailClosed,
             _ => ExitDenied

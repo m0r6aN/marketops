@@ -30,7 +30,7 @@ public sealed record PayloadRef(
 
 /// <summary>
 /// Generic governance audit information.
-/// Replaces Keon-specific PublishPacketKeon.
+/// Nullable metadata on decision receipts and evidence details.
 /// </summary>
 public sealed record GovernanceAuditInfo(
     string DecisionReceiptId,

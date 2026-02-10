@@ -5,7 +5,7 @@ namespace MarketOps.OmegaSdk.Ports;
 
 /// <summary>
 /// Port for governance decision operations.
-/// Generic interface - no Keon-specific types.
+/// Generic interface - no vendor-specific types.
 /// </summary>
 public interface IGovernanceDecisionClient
 {
@@ -35,4 +35,3 @@ public sealed record GovernanceDecisionResult(
     DateTimeOffset? DecidedAtUtc,
     string? ErrorCode = null,
     string? ErrorMessage = null);
-

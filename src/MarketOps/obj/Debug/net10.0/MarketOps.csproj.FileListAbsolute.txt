@@ -10,3 +10,15 @@ D:\Repos\keon-systems\omega-core\modules\marketops\src\MarketOps\obj\Debug\net10
 D:\Repos\keon-systems\omega-core\modules\marketops\src\MarketOps\obj\Debug\net10.0\refint\MarketOps.dll
 D:\Repos\keon-systems\omega-core\modules\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.pdb
 D:\Repos\keon-systems\omega-core\modules\marketops\src\MarketOps\obj\Debug\net10.0\ref\MarketOps.dll
+D:\Repos\marketops\src\MarketOps\bin\Debug\net10.0\MarketOps.deps.json
+D:\Repos\marketops\src\MarketOps\bin\Debug\net10.0\MarketOps.dll
+D:\Repos\marketops\src\MarketOps\bin\Debug\net10.0\MarketOps.pdb
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.GeneratedMSBuildEditorConfig.editorconfig
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.AssemblyInfoInputs.cache
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.AssemblyInfo.cs
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.csproj.CoreCompileInputs.cache
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.sourcelink.json
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.dll
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\refint\MarketOps.dll
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\MarketOps.pdb
+D:\Repos\marketops\src\MarketOps\obj\Debug\net10.0\ref\MarketOps.dll

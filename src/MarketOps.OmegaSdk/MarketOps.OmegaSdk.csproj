@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketOps\MarketOps.csproj" />
-    <ProjectReference Include="..\..\..\OMEGA\sdks\omega-sdk-csharp\src\Omega.Sdk\Omega.Sdk.csproj" />
+    <ProjectReference Include="..\Omega.Sdk\Omega.Sdk.csproj" />
   </ItemGroup>
 
 </Project>

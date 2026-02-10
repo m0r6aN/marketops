@@ -45,16 +45,17 @@
       "items": { "type": "string", "minLength": 1 },
       "minItems": 1
     },
-    "keon": {
+    "governance": {
       "type": ["object", "null"],
       "additionalProperties": false,
       "properties": {
-        "receiptId": { "type": "string" },
+        "decisionReceiptId": { "type": "string" },
         "decisionOutcome": { "type": "string" },
         "decidedAtUtc": { "type": "string", "format": "date-time" },
-        "receiptCanonicalPath": { "type": "string" },
-        "evidencePackZipPath": { "type": "string" },
-        "verifyReportSummary": {
+        "receiptPath": { "type": "string" },
+        "evidencePackId": { "type": ["string", "null"] },
+        "evidencePackPath": { "type": ["string", "null"] },
+        "verification": {
           "type": ["object", "null"],
           "additionalProperties": false,
           "properties": {

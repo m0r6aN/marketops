@@ -9,12 +9,12 @@ namespace MarketOps.OmegaSdk.Adapters;
 
 /// <summary>
 /// Adapter for governance execution using omega-sdk-csharp.
-/// Invokes "keon.execute" tool via Tools.InvokeAsync.
+/// Invokes the governance execution tool via Tools.InvokeAsync.
 /// </summary>
 public sealed class OmegaExecutionClient : IGovernanceExecutionClient
 {
     private readonly OmegaClient _client;
-    private const string ExecutionToolId = "keon.execute";
+    private const string ExecutionToolId = "governance.execute";
 
     public OmegaExecutionClient(OmegaClient client)
     {
@@ -67,4 +67,3 @@ public sealed class OmegaExecutionClient : IGovernanceExecutionClient
         }
     }
 }
-

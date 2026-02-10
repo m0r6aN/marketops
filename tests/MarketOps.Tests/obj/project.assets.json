@@ -2,51 +2,6 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "libsodium/1.0.19": {
-        "type": "package",
-        "runtimeTargets": {
-          "runtimes/linux-arm/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-arm"
-          },
-          "runtimes/linux-arm64/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-arm64"
-          },
-          "runtimes/linux-musl-arm/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-musl-arm"
-          },
-          "runtimes/linux-musl-arm64/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-musl-arm64"
-          },
-          "runtimes/linux-musl-x64/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-musl-x64"
-          },
-          "runtimes/linux-x64/native/libsodium.so": {
-            "assetType": "native",
-            "rid": "linux-x64"
-          },
-          "runtimes/osx-arm64/native/libsodium.dylib": {
-            "assetType": "native",
-            "rid": "osx-arm64"
-          },
-          "runtimes/osx-x64/native/libsodium.dylib": {
-            "assetType": "native",
-            "rid": "osx-x64"
-          },
-          "runtimes/win-x64/native/libsodium.dll": {
-            "assetType": "native",
-            "rid": "win-x64"
-          },
-          "runtimes/win-x86/native/libsodium.dll": {
-            "assetType": "native",
-            "rid": "win-x86"
-          }
-        }
-      },
       "Microsoft.CodeCoverage/17.14.1": {
         "type": "package",
         "compile": {
@@ -337,18 +292,6 @@
           }
         }
       },
-      "NSec.Cryptography/24.4.0": {
-        "type": "package",
-        "dependencies": {
-          "libsodium": "[1.0.19, 1.0.20)"
-        },
-        "compile": {
-          "lib/net6.0/NSec.Cryptography.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/NSec.Cryptography.dll": {}
-        }
-      },
       "xunit/2.9.3": {
         "type": "package",
         "dependencies": {
@@ -445,66 +388,6 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
-      "Keon.Canonicalization/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/Keon.Canonicalization.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Keon.Canonicalization.dll": {}
-        }
-      },
-      "Keon.Contracts/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/Keon.Contracts.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Keon.Contracts.dll": {}
-        }
-      },
-      "Keon.Sdk/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "dependencies": {
-          "Keon.Contracts": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Keon.Sdk.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Keon.Sdk.dll": {}
-        }
-      },
-      "Keon.Verification/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "dependencies": {
-          "Keon.Verify": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Keon.Verification.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Keon.Verification.dll": {}
-        }
-      },
-      "Keon.Verify/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "dependencies": {
-          "Keon.Canonicalization": "1.0.0",
-          "NSec.Cryptography": "24.4.0"
-        },
-        "compile": {
-          "bin/placeholder/Keon.Verify.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Keon.Verify.dll": {}
-        }
-      },
       "MarketOps/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -515,50 +398,33 @@
           "bin/placeholder/MarketOps.dll": {}
         }
       },
-      "MarketOps.Keon/1.0.0": {
+      "MarketOps.OmegaSdk/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "Keon.Canonicalization": "1.0.0",
-          "Keon.Contracts": "1.0.0",
-          "Keon.Sdk": "1.0.0",
-          "Keon.Verification": "1.0.0",
-          "MarketOps": "1.0.0"
+          "MarketOps": "1.0.0",
+          "Omega.Sdk": "1.0.0"
         },
         "compile": {
-          "bin/placeholder/MarketOps.Keon.dll": {}
+          "bin/placeholder/MarketOps.OmegaSdk.dll": {}
         },
         "runtime": {
-          "bin/placeholder/MarketOps.Keon.dll": {}
+          "bin/placeholder/MarketOps.OmegaSdk.dll": {}
+        }
+      },
+      "Omega.Sdk/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Omega.Sdk.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Omega.Sdk.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "libsodium/1.0.19": {
-      "sha512": "tupm/HViwBN6Knd/gckR+cLaJGR39GLmiU4iDMM5hp/1BoczMr8fwJhSU+3/C2V4hi9nBK/4FICRKtTLU30TCA==",
-      "type": "package",
-      "path": "libsodium/1.0.19",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "AUTHORS",
-        "ChangeLog",
-        "LICENSE",
-        "libsodium.1.0.19.nupkg.sha512",
-        "libsodium.nuspec",
-        "runtimes/linux-arm/native/libsodium.so",
-        "runtimes/linux-arm64/native/libsodium.so",
-        "runtimes/linux-musl-arm/native/libsodium.so",
-        "runtimes/linux-musl-arm64/native/libsodium.so",
-        "runtimes/linux-musl-x64/native/libsodium.so",
-        "runtimes/linux-x64/native/libsodium.so",
-        "runtimes/osx-arm64/native/libsodium.dylib",
-        "runtimes/osx-x64/native/libsodium.dylib",
-        "runtimes/win-x64/native/libsodium.dll",
-        "runtimes/win-x86/native/libsodium.dll"
-      ]
-    },
     "Microsoft.CodeCoverage/17.14.1": {
       "sha512": "pmTrhfFIoplzFVbhVwUquT+77CbGH+h4/3mBpdmIlYtBi9nAB+kKI6dN3A/nV4DFi3wLLx/BlHIPK+MkbQ6Tpg==",
       "type": "package",
@@ -856,21 +722,6 @@
         "packageIcon.png"
       ]
     },
-    "NSec.Cryptography/24.4.0": {
-      "sha512": "R89OF0T5OY9QnPRoTsMCaPKMqtXcWKZSWAO4zyUaFHI+ZRMgXU7WaIwg/rPP3vOfdaLl8HdUHWkDB+2B9FOO7g==",
-      "type": "package",
-      "path": "nsec.cryptography/24.4.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE",
-        "NOTICE",
-        "lib/net6.0/NSec.Cryptography.dll",
-        "nsec.cryptography.24.4.0.nupkg.sha512",
-        "nsec.cryptography.nuspec",
-        "nsec.png"
-      ]
-    },
     "xunit/2.9.3": {
       "sha512": "TlXQBinK35LpOPKHAqbLY4xlEen9TBafjs0V5KnA4wZsoQLQJiirCR4CbIXvOH8NzkW4YeJKP5P/Bnrodm0h9Q==",
       "type": "package",
@@ -1011,46 +862,26 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "Keon.Canonicalization/1.0.0": {
-      "type": "project",
-      "path": "../../../../../src/Keon.Canonicalization/Keon.Canonicalization.csproj",
-      "msbuildProject": "../../../../../src/Keon.Canonicalization/Keon.Canonicalization.csproj"
-    },
-    "Keon.Contracts/1.0.0": {
-      "type": "project",
-      "path": "../../../../../src/Keon.Contracts/Keon.Contracts.csproj",
-      "msbuildProject": "../../../../../src/Keon.Contracts/Keon.Contracts.csproj"
-    },
-    "Keon.Sdk/1.0.0": {
-      "type": "project",
-      "path": "../../../../../src/Keon.Sdk/Keon.Sdk.csproj",
-      "msbuildProject": "../../../../../src/Keon.Sdk/Keon.Sdk.csproj"
-    },
-    "Keon.Verification/1.0.0": {
-      "type": "project",
-      "path": "../../../../../src/Keon.Verification/Keon.Verification.csproj",
-      "msbuildProject": "../../../../../src/Keon.Verification/Keon.Verification.csproj"
-    },
-    "Keon.Verify/1.0.0": {
-      "type": "project",
-      "path": "../../../../../src/Keon.Verify/Keon.Verify.csproj",
-      "msbuildProject": "../../../../../src/Keon.Verify/Keon.Verify.csproj"
-    },
     "MarketOps/1.0.0": {
       "type": "project",
       "path": "../../src/MarketOps/MarketOps.csproj",
       "msbuildProject": "../../src/MarketOps/MarketOps.csproj"
     },
-    "MarketOps.Keon/1.0.0": {
+    "MarketOps.OmegaSdk/1.0.0": {
       "type": "project",
-      "path": "../../src/MarketOps.Keon/MarketOps.Keon.csproj",
-      "msbuildProject": "../../src/MarketOps.Keon/MarketOps.Keon.csproj"
+      "path": "../../src/MarketOps.OmegaSdk/MarketOps.OmegaSdk.csproj",
+      "msbuildProject": "../../src/MarketOps.OmegaSdk/MarketOps.OmegaSdk.csproj"
+    },
+    "Omega.Sdk/1.0.0": {
+      "type": "project",
+      "path": "../../src/Omega.Sdk/Omega.Sdk.csproj",
+      "msbuildProject": "../../src/Omega.Sdk/Omega.Sdk.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
       "MarketOps >= 1.0.0",
-      "MarketOps.Keon >= 1.0.0",
+      "MarketOps.OmegaSdk >= 1.0.0",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 3.1.4"
@@ -1063,11 +894,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\tests\\MarketOps.Tests\\MarketOps.Tests.csproj",
+      "projectUniqueName": "D:\\Repos\\marketops\\tests\\MarketOps.Tests\\MarketOps.Tests.csproj",
       "projectName": "MarketOps.Tests",
-      "projectPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\tests\\MarketOps.Tests\\MarketOps.Tests.csproj",
+      "projectPath": "D:\\Repos\\marketops\\tests\\MarketOps.Tests\\MarketOps.Tests.csproj",
       "packagesPath": "C:\\Users\\clint\\.nuget\\packages\\",
-      "outputPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\tests\\MarketOps.Tests\\obj\\",
+      "outputPath": "D:\\Repos\\marketops\\tests\\MarketOps.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1089,17 +920,16 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps.Keon\\MarketOps.Keon.csproj": {
-              "projectPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps.Keon\\MarketOps.Keon.csproj"
+            "D:\\Repos\\marketops\\src\\MarketOps.OmegaSdk\\MarketOps.OmegaSdk.csproj": {
+              "projectPath": "D:\\Repos\\marketops\\src\\MarketOps.OmegaSdk\\MarketOps.OmegaSdk.csproj"
             },
-            "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj": {
-              "projectPath": "D:\\Repos\\keon-systems\\omega-core\\modules\\marketops\\src\\MarketOps\\MarketOps.csproj"
+            "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj": {
+              "projectPath": "D:\\Repos\\marketops\\src\\MarketOps\\MarketOps.csproj"
             }
           }
         }
       },
       "warningProperties": {
-        "allWarningsAsErrors": true,
         "warnAsError": [
           "NU1605"
         ]

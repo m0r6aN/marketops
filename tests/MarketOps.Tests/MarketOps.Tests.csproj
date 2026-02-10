@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MarketOps\MarketOps.csproj" />
-    <ProjectReference Include="..\..\src\MarketOps.Keon\MarketOps.Keon.csproj" />
+    <ProjectReference Include="..\..\src\MarketOps.OmegaSdk\MarketOps.OmegaSdk.csproj" />
   </ItemGroup>
 
 </Project>
