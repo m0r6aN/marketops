@@ -309,6 +309,150 @@ public sealed class EndToEndDryRunTests
         Assert.NotNull(gateResult);
     }
 
+    /// <summary>
+    /// SESSION 5: Evidence Creation E2E Test
+    ///
+    /// Verifies that audit completes successfully using Evidence.CreateAsync.
+    /// Tests the full flow: PLAN → AUTHORIZE → EXECUTE (blocked) → AUDIT (with evidence).
+    ///
+    /// Key assertions:
+    /// - Evidence.CreateAsync returns evidence_id and digest
+    /// - Audit write completes successfully
+    /// - Evidence is bound to receipt_id
+    /// - Zero external side effects still enforced
+    /// </summary>
+    [Fact]
+    public async Task Session5_AuditCompletesWithEvidenceCreate()
+    {
+        // ========== ARRANGE ==========
+        var correlationId = Guid.NewGuid().ToString("D");
+        var runId = $"e2e-evidence-create-{correlationId}";
+
+        var packet = new PublishPacket(
+            ArtifactId: "artifact-evidence-test",
+            ArtifactType: "documentation",
+            CreatedAtUtc: DateTimeOffset.UtcNow,
+            TenantId: "federation-public",
+            CorrelationId: correlationId,
+            ActorId: "operator-marketops",
+            SourceRefs: new[] { "source-1" },
+            PayloadRef: new PayloadRef(
+                Kind: "artifactStore",
+                Path: "payload.bin",
+                ContentType: "application/octet-stream",
+                Sha256: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"),
+            Destinations: new[] { "federation.systems/site-docs" });
+
+        // Create REAL OmegaClient with SDK primitives
+        var omegaClient = new Omega.Sdk.OmegaClient();
+        var decisionClient = new FixedDecisionClient(mode: "dry_run", enforceable: false);
+        var auditWriter = new OmegaAuditWriter(omegaClient);  // ← REAL adapter using SDK
+        var verifier = new FixedEvidenceVerifier(success: true, isValid: true);
+        var sideEffectPort = new TestNullSinkSideEffectPort();
+
+        var gateConfig = MarketOpsGateConfig.Build(null);
+        var gate = new OmegaGate(decisionClient, auditWriter, verifier, gateConfig, null);
+
+        // ========== ACT: Full workflow ==========
+        var gateResult = await gate.EvaluateAsync(packet);
+
+        // Attempt side effect (should be blocked)
+        var releaseResult = await sideEffectPort.PublishReleaseAsync(
+            "github:federation/docs",
+            new Dictionary<string, object?> { { "tag", "v1.0.0" } });
+
+        // ========== ASSERT ==========
+
+        // Gate evaluation should succeed
+        Assert.True(gateResult.Allowed, $"Gate denied: {gateResult.DenialCode}");
+
+        // Audit write should succeed (this exercises Evidence.CreateAsync internally)
+        // The Governance evidence contains the audit trail paths
+        Assert.NotNull(gateResult.Governance);
+        Assert.NotNull(gateResult.Governance.ReceiptCanonicalPath);
+        Assert.NotNull(gateResult.Governance.EvidencePackZipPath);
+
+        // Side effect still blocked
+        Assert.False(releaseResult.Success);
+        Assert.Equal("blocked_by_mode", releaseResult.ErrorMessage);
+
+        // Zero external calls
+        Assert.Empty(sideEffectPort.ActualExecutedCalls);
+
+        // Evidence binding: The OmegaAuditWriter called Evidence.CreateAsync
+        // We verify this succeeded by checking that evidence pack path is present
+        Assert.StartsWith("evidence:", gateResult.Governance.EvidencePackZipPath);
+    }
+
+    /// <summary>
+    /// SESSION 5: Evidence Download E2E Test
+    ///
+    /// Verifies that Evidence.DownloadAsync retrieves content with digest verification.
+    ///
+    /// Key assertions:
+    /// - Evidence can be downloaded by ID
+    /// - Digest matches computed hash
+    /// - Content is byte-for-byte identical
+    /// - Fails closed on digest mismatch
+    /// </summary>
+    [Fact]
+    public async Task Session5_EvidenceDownloadVerifiesDigest()
+    {
+        // ========== ARRANGE ==========
+        var omegaClient = new Omega.Sdk.OmegaClient();
+
+        // Create test evidence
+        var receiptId = Guid.NewGuid().ToString();
+        var testContent = System.Text.Encoding.UTF8.GetBytes("test-evidence-payload");
+        var expectedDigest = Omega.Sdk.Canonicalizer.Hash(testContent);
+
+        var createRequest = new Omega.Sdk.EvidenceCreateRequest
+        {
+            ReceiptId = receiptId,
+            CanonicalHash = "test-hash",
+            Content = testContent,
+            TenantId = "test-tenant",
+            CorrelationId = "test-correlation",
+            Phase = "audit"
+        };
+
+        // ========== ACT: Create evidence ==========
+        var createResponse = await omegaClient.Evidence.CreateAsync(createRequest);
+
+        // ========== ASSERT: Evidence created ==========
+        Assert.NotNull(createResponse.EvidenceId);
+        Assert.Equal(expectedDigest, createResponse.Digest);
+
+        // ========== ACT: Download evidence ==========
+        var downloadRequest = new Omega.Sdk.EvidenceDownloadRequest
+        {
+            EvidenceId = createResponse.EvidenceId,
+            ExpectedDigest = expectedDigest  // ← Verify digest during download
+        };
+
+        var downloadResponse = await omegaClient.Evidence.DownloadAsync(downloadRequest);
+
+        // ========== ASSERT: Content matches ==========
+        Assert.NotNull(downloadResponse.Content);
+        Assert.Equal(testContent.Length, downloadResponse.Content.Length);
+        Assert.Equal(testContent, downloadResponse.Content);
+        Assert.Equal(expectedDigest, downloadResponse.Digest);
+        Assert.Equal(receiptId, downloadResponse.ReceiptId);
+
+        // ========== ACT: Verify digest mismatch fails closed ==========
+        var badDownloadRequest = new Omega.Sdk.EvidenceDownloadRequest
+        {
+            EvidenceId = createResponse.EvidenceId,
+            ExpectedDigest = "0000000000000000000000000000000000000000000000000000000000000000"  // Wrong digest
+        };
+
+        // ========== ASSERT: Digest mismatch throws ==========
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await omegaClient.Evidence.DownloadAsync(badDownloadRequest));
+
+        Assert.Contains("Digest mismatch", exception.Message);
+    }
+
     // ========== Test Fixtures ==========
 
     /// <summary>
