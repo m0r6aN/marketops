@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "marketops.approver-summary.v1",
+  "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
+  "mode": "dry_run",
+  "issuedAt": "2026-02-12T03:29:39.8457066+00:00",
+  "metadata": {
+    "status": "completed",
+    "startedAt": "2026-02-12T03:29:37.361523+00:00",
+    "completedAt": "2026-02-12T03:29:39.8456891+00:00",
+    "durationSeconds": 2
+  },
+  "scope": {
+    "reposTotal": 2,
+    "reposWithFindings": 2,
+    "repos": [
+      "D:\\Repos\\marketops",
+      "D:\\Repos\\marketops\\main"
+    ],
+    "issuesTotal": 4,
+    "issuesByType": {
+      "incomplete_readme": 1,
+      "missing_codeowners": 1,
+      "missing_editorconfig": 1,
+      "direct_push_to_main": 1
+    }
+  },
+  "operations": {
+    "totalIntents": 4,
+    "blockedByMode": 4,
+    "blockedByPolicy": 1,
+    "wouldExecute": 0,
+    "countsByStatus": {
+      "blocked_by_mode": 3,
+      "denied_by_policy": 1
+    },
+    "topOperations": [
+      {
+        "intentId": "c3852b3f-f89d-44b4-a02d-7e376fdbd879",
+        "effectType": "OpenPr",
+        "target": {
+          "repoPath": "D:\\Repos\\marketops",
+          "branch": "main",
+          "scope": "repo"
+        },
+        "status": "blocked_by_mode",
+        "blocked": {
+          "byMode": true,
+          "byPolicy": false
+        },
+        "blockReasons": [
+          {
+            "code": "dry_run_blocks_side_effects",
+            "message": "Dry run mode blocks all side effects."
+          }
+        ],
+        "items": [
+          {
+            "issueType": "incomplete_readme",
+            "severity": "medium",
+            "action": "update",
+            "path": "README.md",
+            "contentDigest": "sha256:d4d902c4173ef95abeee1d4fa1ded1a40b2cf9130e89440644b8e2f0dc356c4d",
+            "details": {
+              "missingSections": [
+                "Installation",
+                "Usage",
+                "License"
+              ]
+            }
+          },
+          {
+            "issueType": "missing_codeowners",
+            "severity": "high",
+            "action": "create",
+            "path": "CODEOWNERS",
+            "contentDigest": "sha256:c60e6fd4af996d655501d65f0b363061f7854cdf9929c14d1640d42923a69474"
+          },
+          {
+            "issueType": "missing_editorconfig",
+            "severity": "low",
+            "action": "create",
+            "path": ".editorconfig",
+            "contentDigest": "sha256:4266447428639b3b55b6146e74869e37a2664810e7fc02e3ae16f82c695d634b"
+          }
+        ]
+      },
+      {
+        "intentId": "808a2ca9-082a-4fdc-8925-e32910a08a9f",
+        "effectType": "TagRepo",
+        "target": {
+          "repoPath": "D:\\Repos\\marketops\\main",
+          "branch": "main",
+          "scope": "repo"
+        },
+        "status": "denied_by_policy",
+        "blocked": {
+          "byMode": true,
+          "byPolicy": true
+        },
+        "blockReasons": [
+          {
+            "code": "dry_run_blocks_side_effects",
+            "message": "Dry run mode blocks all side effects."
+          },
+          {
+            "code": "policy_denial",
+            "message": "Intent 808a2ca9-082a-4fdc-8925-e32910a08a9f targets direct push to main (blocked by policy)"
+          }
+        ],
+        "items": [
+          {
+            "issueType": "direct_push_to_main",
+            "severity": "critical",
+            "action": "modify",
+            "path": "D:\\Repos\\marketops\\main",
+            "contentDigest": "sha256:835d5ae98b0408806955466f532952762c13e4075350bc95e117eb2e5ec26a03"
+          }
+        ]
+      }
+    ]
+  },
+  "policyEvaluation": {
+    "verdict": "denied",
+    "violationsDetected": 1,
+    "violations": [
+      {
+        "intentId": "808a2ca9-082a-4fdc-8925-e32910a08a9f",
+        "violationType": "direct_push_to_main",
+        "ruleId": "policy.direct_push_main.denied.v1",
+        "reason": "Intent 808a2ca9-082a-4fdc-8925-e32910a08a9f targets direct push to main (blocked by policy)",
+        "recommendation": "Use a pull request instead of direct push to main"
+      }
+    ]
+  },
+  "recommendation": {
+    "outcome": "deny",
+    "summary": "Policy violations detected: 1 intent(s) blocked",
+    "requiredActions": [
+      "Address policy violations before proceeding",
+      "Review operation details in full ledger"
+    ],
+    "warnings": [
+      "This is a dry-run preview; no changes will be made"
+    ]
+  }
+}

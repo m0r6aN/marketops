@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "marketops.fc-binding.v1",
+  "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
+  "scenario": "04-policy-violation-direct-push-main",
+  "verifiedAt": "2026-02-12T03:29:40.0701492+00:00",
+  "verdict": "fc_bound",
+  "totalChecks": 7,
+  "passedChecks": 7,
+  "failedChecks": 0,
+  "checks": [
+    {
+      "id": "fc.receipt.present",
+      "name": "Advisory receipt is present",
+      "passed": true,
+      "expected": "non-null",
+      "actual": "advr_fe392404"
+    },
+    {
+      "id": "fc.receipt.issuer",
+      "name": "Receipt minted by Federation Core",
+      "passed": true,
+      "expected": "federation-core",
+      "actual": "federation-core"
+    },
+    {
+      "id": "fc.binding.runId",
+      "name": "receipt.runId matches run",
+      "passed": true,
+      "expected": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
+      "actual": "747d5b76-005a-4fc7-8c89-81dcaf5436af"
+    },
+    {
+      "id": "fc.binding.planHash",
+      "name": "receipt.planSha256 matches hash(publication-plan)",
+      "passed": true,
+      "expected": "a96f2ab0f8bbb0272d4eb27897139503ec97ea9ac218a80e17e37ef86c1bb1b3",
+      "actual": "a96f2ab0f8bbb0272d4eb27897139503ec97ea9ac218a80e17e37ef86c1bb1b3"
+    },
+    {
+      "id": "fc.binding.ledgerHash",
+      "name": "receipt.ledgerSha256 matches hash(proof-ledger)",
+      "passed": true,
+      "expected": "e5ffcbca466047904f9429bb84b1499aa999343f9f048f3ab8d4778e9525309a",
+      "actual": "e5ffcbca466047904f9429bb84b1499aa999343f9f048f3ab8d4778e9525309a"
+    },
+    {
+      "id": "fc.signature.hmac",
+      "name": "HMAC-SHA256 signature valid",
+      "passed": true,
+      "expected": "valid",
+      "actual": "valid"
+    },
+    {
+      "id": "fc.ledger.receiptBinding",
+      "name": "Ledger references receipt (receiptId \u002B receiptDigest)",
+      "passed": true,
+      "expected": "advr_fe392404",
+      "actual": "advr_fe392404"
+    }
+  ]
+}

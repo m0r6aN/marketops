@@ -1,22 +1,22 @@
-﻿{
+{
   "schemaVersion": "marketops.proofpack.index.v1",
-  "createdAt": "2026-02-12T02:19:45.9161948+00:00",
-  "packId": "pack-20260212-021945",
+  "createdAt": "2026-02-12T03:29:40.142684+00:00",
+  "packId": "pack-20260212-032940",
   "runs": [
     {
-      "runId": "2c1894c6-90b0-4ab2-8256-63fb2817dc9e",
-      "scenario": "01-hygiene-sweep",
-      "mode": "dry_run",
-      "path": "runs/2c1894c6-90b0-4ab2-8256-63fb2817dc9e/RUN_MANIFEST.json",
-      "sha256": "6c67e040bdad644c2421314238830c41067950730e3159063813f0e9272f57c7"
-    },
-    {
-      "runId": "5a97c35b-162d-4751-82b8-1d55b8dca327",
+      "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
       "scenario": "04-policy-violation-direct-push-main",
       "mode": "dry_run",
-      "path": "runs/5a97c35b-162d-4751-82b8-1d55b8dca327/RUN_MANIFEST.json",
-      "sha256": "7981b698f4f0cd3a3672aec5b27eb1d6d13a4177addf620db252a87542d3058b"
+      "path": "runs/747d5b76-005a-4fc7-8c89-81dcaf5436af/RUN_MANIFEST.json",
+      "sha256": "8c3f0ec1e2a424483dbae5e8fbc711c07c7fe461a6945aa07f5ac10a44729fb4"
+    },
+    {
+      "runId": "d6674680-7b33-4c58-add9-96617ff8ba17",
+      "scenario": "01-hygiene-sweep",
+      "mode": "dry_run",
+      "path": "runs/d6674680-7b33-4c58-add9-96617ff8ba17/RUN_MANIFEST.json",
+      "sha256": "356b4aa3589d6ff47c0f943989d2be1c324eee7890104bd64363e585631e06b3"
     }
   ],
-  "packSha256": "86fac4b2939c01aeff4d8a980c9d458e8cf8f8dce94cbc49ded4d33d57d77e0b"
+  "packSha256": "7290c642cdc4480c21b581ea6ae77cb0729ee014c9e86f207162c80ce552c99d"
 }

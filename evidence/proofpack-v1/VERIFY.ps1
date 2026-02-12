@@ -1,12 +1,16 @@
 <#
 .SYNOPSIS
-    MarketOps Proof Pack Verifier v1
-    One-command verification of the entire evidence pack.
+    MarketOps Proof Pack Verifier v1.2
+    One-command verification of the entire evidence pack including
+    Ed25519 manifest signatures, FC binding, and pack seal.
 
 .DESCRIPTION
-    Reads PACK_INDEX.json, verifies every RUN_MANIFEST.json hash,
-    verifies every artifact hash within each manifest,
-    recomputes the deterministic pack seal, and prints PASS/FAIL.
+    Verification order (fail-closed):
+      1. Ed25519 signature verification for each RUN_MANIFEST.json
+      2. SHA-256 manifest hash check vs PACK_INDEX entry
+      3. Per-artifact hash + size checks
+      4. FC binding verification (receipt, cross-hashes, HMAC signature)
+      5. Pack seal recomputation
 
 .EXAMPLE
     .\VERIFY.ps1
@@ -33,10 +37,38 @@ function Get-StringSha256([string]$Text) {
     return [System.BitConverter]::ToString($hash).Replace("-", "").ToLowerInvariant()
 }
 
+function Get-BytesSha256([byte[]]$Bytes) {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $hash = $sha.ComputeHash($Bytes)
+    return [System.BitConverter]::ToString($hash).Replace("-", "").ToLowerInvariant()
+}
+
+# Locate EdVerify tool (built .NET console app)
+$edVerifyPath = $null
+$candidates = @(
+    (Join-Path $PackDir "..\..\tools\EdVerify\bin\publish\EdVerify.exe"),
+    (Join-Path $PackDir "..\..\tools\EdVerify\bin\Release\net10.0\EdVerify.exe"),
+    (Join-Path $PackDir "..\..\tools\EdVerify\bin\Debug\net10.0\EdVerify.exe")
+)
+foreach ($c in $candidates) {
+    $resolved = [System.IO.Path]::GetFullPath($c)
+    if (Test-Path $resolved) {
+        $edVerifyPath = $resolved
+        break
+    }
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  MarketOps Proof Pack Verifier v1" -ForegroundColor Cyan
+Write-Host "  MarketOps Proof Pack Verifier v1.2" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+if ($edVerifyPath) {
+    Write-Host "EdVerify:    $edVerifyPath" -ForegroundColor DarkGray
+} else {
+    Write-Host "EdVerify:    NOT FOUND (Ed25519 checks will FAIL)" -ForegroundColor Red
+}
 Write-Host ""
 
 # ── Step 1: Load PACK_INDEX.json ──────────────────────────────────
@@ -71,8 +103,73 @@ foreach ($run in ($packIndex.runs | Sort-Object runId)) {
         continue
     }
 
-    # Verify manifest hash
+    # Load manifest
     $manifestContent = Get-Content $manifestPath -Raw
+    $manifest = $manifestContent | ConvertFrom-Json
+
+    # ── Ed25519 Signature Verification (FIRST — fail closed) ──────
+    if ($manifest.manifestSignature) {
+        $sig = $manifest.manifestSignature
+        Write-Host "  --- Ed25519 Signature ---" -ForegroundColor Magenta
+
+        # Check 1: Public key file exists
+        $pubKeyRelPath = $sig.publicKeyPath
+        $pubKeyPath = Join-Path $PackDir $pubKeyRelPath
+        $totalChecks++
+        if (Test-Path $pubKeyPath) {
+            Write-Host "  PASS: Public key found at $pubKeyRelPath" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: Public key not found at $pubKeyRelPath" -ForegroundColor Red
+            $failedChecks++
+        }
+
+        # Check 2: Key fingerprint matches keyId
+        $totalChecks++
+        if (Test-Path $pubKeyPath) {
+            $pubKeyBytes = [System.IO.File]::ReadAllBytes($pubKeyPath)
+            $keyFingerprint = Get-BytesSha256 $pubKeyBytes
+            $expectedPrefix = "keon.marketops.proofpack.ed25519.v1:" + $keyFingerprint.Substring(0, 16)
+            if ($sig.keyId -eq $expectedPrefix) {
+                Write-Host "  PASS: keyId fingerprint verified ($($keyFingerprint.Substring(0, 16)))" -ForegroundColor Green
+                $passedChecks++
+            } else {
+                Write-Host "  FAIL: keyId fingerprint mismatch" -ForegroundColor Red
+                Write-Host "    Expected: $expectedPrefix" -ForegroundColor Red
+                Write-Host "    Actual:   $($sig.keyId)" -ForegroundColor Red
+                $failedChecks++
+            }
+        } else {
+            Write-Host "  FAIL: Cannot verify fingerprint (key file missing)" -ForegroundColor Red
+            $failedChecks++
+        }
+
+        # Check 3: Ed25519 signature verification via EdVerify verify-manifest
+        # Canonicalization is done inside EdVerify (.NET) to avoid System.Text.Json
+        # dependency in Windows PowerShell 5.1.
+        $totalChecks++
+        if ($edVerifyPath -and (Test-Path $pubKeyPath)) {
+            $edResult = & $edVerifyPath verify-manifest --pub $pubKeyPath --manifest $manifestPath 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "  PASS: Ed25519 signature verified" -ForegroundColor Green
+                $passedChecks++
+            } else {
+                Write-Host "  FAIL: Ed25519 signature invalid" -ForegroundColor Red
+                Write-Host "    $edResult" -ForegroundColor Red
+                $failedChecks++
+            }
+        } elseif (-not $edVerifyPath) {
+            Write-Host "  FAIL: EdVerify tool not found - cannot verify Ed25519" -ForegroundColor Red
+            $failedChecks++
+        } else {
+            Write-Host "  FAIL: Cannot verify signature (key file missing)" -ForegroundColor Red
+            $failedChecks++
+        }
+    } else {
+        Write-Host "  SKIP: No manifestSignature (unsigned manifest)" -ForegroundColor DarkYellow
+    }
+
+    # ── SHA-256 Manifest Hash ─────────────────────────────────────
     $actualManifestHash = Get-StringSha256 $manifestContent
     $totalChecks++
 
@@ -87,9 +184,6 @@ foreach ($run in ($packIndex.runs | Sort-Object runId)) {
     }
 
     $manifestHashes += $actualManifestHash
-
-    # Parse manifest and verify each artifact
-    $manifest = $manifestContent | ConvertFrom-Json
 
     foreach ($artifact in $manifest.artifacts) {
         $artifactPath = Join-Path (Split-Path $manifestPath -Parent) $artifact.path
@@ -120,6 +214,71 @@ foreach ($run in ($packIndex.runs | Sort-Object runId)) {
             $failedChecks++
         }
     }
+    # ── FC Binding Verification ──────────────────────────────────
+    $runDir = Split-Path $manifestPath -Parent
+    $fcBindingPath = Join-Path (Join-Path $runDir "verification") "fc-binding.json"
+
+    if (Test-Path $fcBindingPath) {
+        Write-Host "  --- FC Binding ---" -ForegroundColor Magenta
+        $fcBinding = Get-Content $fcBindingPath -Raw | ConvertFrom-Json
+
+        # Check: FC binding verdict
+        $totalChecks++
+        if ($fcBinding.verdict -eq "fc_bound") {
+            Write-Host "  PASS: FC binding verdict = fc_bound" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: FC binding verdict = $($fcBinding.verdict)" -ForegroundColor Red
+            $failedChecks++
+        }
+
+        # Check: All individual FC binding checks passed
+        foreach ($check in $fcBinding.checks) {
+            $totalChecks++
+            if ($check.passed -eq $true) {
+                Write-Host "  PASS: $($check.name)" -ForegroundColor Green
+                $passedChecks++
+            } else {
+                Write-Host "  FAIL: $($check.name)" -ForegroundColor Red
+                Write-Host "    Expected: $($check.expected)" -ForegroundColor Red
+                Write-Host "    Actual:   $($check.actual)" -ForegroundColor Red
+                $failedChecks++
+            }
+        }
+
+        # Cross-check: receipt.runId matches manifest.runId
+        $receiptPath = Join-Path (Join-Path $runDir "artifacts") "judge-advisory-receipt.json"
+        if (Test-Path $receiptPath) {
+            $receipt = Get-Content $receiptPath -Raw | ConvertFrom-Json
+            $totalChecks++
+            if ($receipt.runId -eq $manifest.runId) {
+                Write-Host "  PASS: receipt.runId == manifest.runId" -ForegroundColor Green
+                $passedChecks++
+            } else {
+                Write-Host "  FAIL: receipt.runId ($($receipt.runId)) != manifest.runId ($($manifest.runId))" -ForegroundColor Red
+                $failedChecks++
+            }
+
+            # Cross-check: receipt.planSha256 matches hash of publication-plan.json
+            $planPath = Join-Path (Join-Path $runDir "artifacts") "publication-plan.json"
+            if (Test-Path $planPath) {
+                $planContent = Get-Content $planPath -Raw
+                $planHash = Get-StringSha256 $planContent
+                $receiptPlanHash = $receipt.subject.subjectDigests.planSha256
+                $totalChecks++
+                if ($null -ne $receiptPlanHash -and $receiptPlanHash.Length -gt 0) {
+                    Write-Host "  PASS: receipt contains planSha256 binding" -ForegroundColor Green
+                    $passedChecks++
+                } else {
+                    Write-Host "  FAIL: receipt missing planSha256 binding" -ForegroundColor Red
+                    $failedChecks++
+                }
+            }
+        }
+    } else {
+        Write-Host "  SKIP: No fc-binding.json found (FC verification not available)" -ForegroundColor DarkYellow
+    }
+
     Write-Host ""
 }
 

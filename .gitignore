@@ -47,7 +47,7 @@ packages/
 *.snupkg
 project.lock.json
 project.fragment.lock.json
-artifacts/
+/artifacts/
 
 # Build Results
 [Dd]ebug/
@@ -68,7 +68,7 @@ bld/
 # .NET Core
 project.lock.json
 project.fragment.lock.json
-artifacts/
+/artifacts/
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt

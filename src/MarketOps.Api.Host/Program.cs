@@ -3,6 +3,7 @@ using MarketOps.Artifacts;
 using MarketOps.Contracts;
 using MarketOps.Pipeline;
 using MarketOps.Ports;
+using MarketOps.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,8 @@ builder.Services.AddSingleton(sp =>
     return new MarketOpsPipeline(sp.GetRequiredService<ISideEffectPort>(), auditLog);
 });
 builder.Services.AddSingleton<ArtifactGenerator>();
+builder.Services.AddSingleton<FcSigner>();
+builder.Services.AddSingleton<Ed25519Signer>();
 
 var app = builder.Build();
 
@@ -38,13 +41,16 @@ app.UseCors("AllowAll");
 var controller = app.Services.GetRequiredService<MarketOpsController>();
 var pipeline = app.Services.GetRequiredService<MarketOpsPipeline>();
 var artifactGenerator = app.Services.GetRequiredService<ArtifactGenerator>();
+var fcSigner = app.Services.GetRequiredService<FcSigner>();
+var ed25519Signer = app.Services.GetRequiredService<Ed25519Signer>();
 
-// Helper function to generate advisory reasons from intents
-JudgeAdvisoryReceipt GenerateAdvisoryReasons(ArtifactGenerator gen, string runId, List<SideEffectIntent> intents)
+// Helper: build advisory reasons from intents, then sign via FC
+JudgeAdvisoryReceipt GenerateSignedAdvisory(
+    ArtifactGenerator gen, string runId, List<SideEffectIntent> intents,
+    PublicationPlan plan, ProofLedger ledger, FcSigner signer)
 {
     var reasons = new List<string> { "dry_run_preview" };
 
-    // Check if any intents were blocked by policy
     var policyBlockedIntents = intents.Where(i => i.BlockedByPolicy).ToList();
     if (policyBlockedIntents.Any())
     {
@@ -55,7 +61,7 @@ JudgeAdvisoryReceipt GenerateAdvisoryReasons(ArtifactGenerator gen, string runId
         }
     }
 
-    return gen.GenerateAdvisoryReceipt(runId, reasons);
+    return gen.GenerateAdvisoryReceipt(runId, reasons, plan, ledger, signer);
 }
 
 app.MapPost("/marketops/runs", async (HttpContext context) =>
@@ -127,9 +133,21 @@ app.MapPost("/marketops/runs", async (HttpContext context) =>
                 pipelineResult.Ledger.SideEffectIntents,
                 pipelineResult.Ledger.SideEffectReceipts);
 
+            // Generate signed advisory (dry_run only) — binds to plan + ledger hashes
             var advisory = run.IsDryRun
-                ? GenerateAdvisoryReasons(artifactGenerator, runId, pipelineResult.Ledger.SideEffectIntents)
+                ? GenerateSignedAdvisory(artifactGenerator, runId,
+                    pipelineResult.Ledger.SideEffectIntents, plan, ledger, fcSigner)
                 : null;
+
+            // Bind ledger → receipt (immutable update via with-expression)
+            if (advisory != null)
+            {
+                ledger = ledger with
+                {
+                    ReceiptId = advisory.Id,
+                    ReceiptDigest = advisory.Digests.ReceiptSha256
+                };
+            }
 
             // Update controller state with artifacts
             controller.UpdateRunState(runId, plan, ledger, advisory);
@@ -243,7 +261,7 @@ app.MapPost("/marketops/proofpack", async (HttpContext context) =>
         // Generate proof pack — write to repo root evidence/ folder
         var repoRoot = FindRepoRoot(Directory.GetCurrentDirectory());
         var outputDir = Path.Combine(repoRoot, "evidence", "proofpack-v1");
-        var generator = new ProofPackGenerator(msg => app.Logger.LogInformation("[AUDIT] {Msg}", msg));
+        var generator = new ProofPackGenerator(msg => app.Logger.LogInformation("[AUDIT] {Msg}", msg), fcSigner, ed25519Signer);
         var packIndex = generator.Generate(outputDir, runInputs);
 
         app.Logger.LogInformation("Proof Pack generated: {PackId} with {RunCount} runs, seal={Seal}",

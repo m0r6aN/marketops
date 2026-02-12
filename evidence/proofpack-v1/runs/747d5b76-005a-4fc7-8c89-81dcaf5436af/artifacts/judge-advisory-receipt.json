@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "marketops.judge_advisory_receipt.v1",
+  "receiptType": "judge.advisory",
+  "id": "advr_fe392404",
+  "mode": "dry_run",
+  "enforceable": false,
+  "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
+  "advisoryOutcome": "denied",
+  "reasons": [
+    "dry_run_preview",
+    "policy_violation_detected",
+    "Intent 808a2ca9-082a-4fdc-8925-e32910a08a9f targets direct push to main (blocked by policy)"
+  ],
+  "issuedAt": "2026-02-12T03:29:37.3648477+00:00",
+  "issuer": {
+    "issuerId": "federation-core",
+    "endpoint": "http://federation-core:9400"
+  },
+  "subject": {
+    "subjectType": "marketops.run",
+    "subjectRef": "run:747d5b76-005a-4fc7-8c89-81dcaf5436af",
+    "subjectDigests": {
+      "planSha256": "a96f2ab0f8bbb0272d4eb27897139503ec97ea9ac218a80e17e37ef86c1bb1b3",
+      "ledgerSha256": "e5ffcbca466047904f9429bb84b1499aa999343f9f048f3ab8d4778e9525309a"
+    }
+  },
+  "policySet": {
+    "policySetId": "marketops.publication.v1",
+    "version": "1.0.0",
+    "digestSha256": "568240d6c73488265dd0cca96331ae8f86b1e9af26cefc743f3ba6f1fb03da8d"
+  },
+  "digests": {
+    "receiptSha256": "95db85130fb96fd121e9ca20357845e0ec7056cd534e99e204f9ac9191802a9d"
+  },
+  "signature": {
+    "alg": "hmac-sha256",
+    "keyId": "fc-marketops-k1",
+    "sig": "dc0b39b2c05ba9a60866a37e43238fccf8c457bd6565085d8a2ac12ebae6e4bd"
+  }
+}

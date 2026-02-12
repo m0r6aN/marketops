@@ -1,0 +1,129 @@
+{
+  "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
+  "mode": "dry_run",
+  "inputHashes": {},
+  "policySetReferences": [],
+  "stageEvents": [],
+  "sideEffectIntents": [
+    {
+      "id": "c3852b3f-f89d-44b4-a02d-7e376fdbd879",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": "README.md",
+        "issue_type": "incomplete_readme",
+        "description": "README.md missing sections: ## Installation, ## Usage, ## License",
+        "severity": "medium"
+      },
+      "blockedByMode": true,
+      "blockedByPolicy": false,
+      "policyDenialReasons": [],
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-12T03:29:37.3633026+00:00"
+    },
+    {
+      "id": "199ac068-16b1-464e-8a8c-393b3ff8f895",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": "CODEOWNERS",
+        "issue_type": "missing_codeowners",
+        "description": "CODEOWNERS file is missing",
+        "severity": "high"
+      },
+      "blockedByMode": true,
+      "blockedByPolicy": false,
+      "policyDenialReasons": [],
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-12T03:29:37.3633043+00:00"
+    },
+    {
+      "id": "d142c9c9-b361-4d4d-b00e-54fba3f95b53",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": ".editorconfig",
+        "issue_type": "missing_editorconfig",
+        "description": ".editorconfig file is missing",
+        "severity": "low"
+      },
+      "blockedByMode": true,
+      "blockedByPolicy": false,
+      "policyDenialReasons": [],
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-12T03:29:37.3633054+00:00"
+    },
+    {
+      "id": "808a2ca9-082a-4fdc-8925-e32910a08a9f",
+      "mode": "dry_run",
+      "effectType": 2,
+      "target": "D:\\Repos\\marketops\\main",
+      "parameters": {
+        "branch": "main",
+        "action": "direct_commit",
+        "issue_type": "direct_push_to_main",
+        "severity": "critical",
+        "description": "Test: Direct push to main (should be denied by policy)"
+      },
+      "blockedByMode": true,
+      "blockedByPolicy": true,
+      "policyDenialReasons": [
+        "Intent 808a2ca9-082a-4fdc-8925-e32910a08a9f targets direct push to main (blocked by policy)"
+      ],
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-12T03:29:37.3633156+00:00"
+    }
+  ],
+  "sideEffectReceipts": [
+    {
+      "id": "a6725408-84ad-48d3-b3b8-fdb8928a06ec",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-12T03:29:37.3645701+00:00"
+    },
+    {
+      "id": "59a0f727-d5c0-47f8-a230-f38f7d3231e8",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-12T03:29:37.3645711+00:00"
+    },
+    {
+      "id": "b7db7906-d49e-483a-8656-207ba370776a",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-12T03:29:37.3645715+00:00"
+    },
+    {
+      "id": "35c9873f-67a7-407b-a49c-783cd90e0235",
+      "mode": "dry_run",
+      "effectType": 2,
+      "target": "D:\\Repos\\marketops\\main",
+      "success": false,
+      "errorMessage": "blocked_by_policy",
+      "executedAt": "2026-02-12T03:29:37.364572+00:00"
+    }
+  ],
+  "sealedAt": "2026-02-12T03:29:37.3648165+00:00",
+  "receiptId": "advr_fe392404",
+  "receiptDigest": "95db85130fb96fd121e9ca20357845e0ec7056cd534e99e204f9ac9191802a9d"
+}

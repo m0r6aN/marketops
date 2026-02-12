@@ -1,7 +1,7 @@
-﻿{
-  "schemaVersion": "marketops.proofpack.run-manifest.v1",
-  "runId": "2c1894c6-90b0-4ab2-8256-63fb2817dc9e",
-  "issuedAt": "2026-02-12T02:19:45.8974317+00:00",
+{
+  "schemaVersion": "marketops.proofpack.run-manifest.v1.2",
+  "runId": "d6674680-7b33-4c58-add9-96617ff8ba17",
+  "issuedAt": "2026-02-12T03:29:40.134751+00:00",
   "mode": "dry_run",
   "scenario": "01-hygiene-sweep",
   "source": {
@@ -26,36 +26,43 @@
       "name": "publication-plan.json",
       "path": "artifacts/publication-plan.json",
       "contentType": "application/json",
-      "sha256": "3998d96d5a60c1ccfe9a8fb7f07544adc58570075201a210d161c69db04031d5",
-      "bytes": 1364
+      "sha256": "b985d26fcc0df43c1c86cc1627750a15a4546f5603419d8f69348b343bbf22ab",
+      "bytes": 1366
     },
     {
       "name": "proof-ledger.json",
       "path": "artifacts/proof-ledger.json",
       "contentType": "application/json",
-      "sha256": "7bb40d879a59f4d0af7849bfaf6dffdd8dff6e3a7026fc9abfc5ee62419c5dfb",
-      "bytes": 2917
+      "sha256": "3b35ff575e57460d992bfc972a3df34acc6ee8c4c9508ee86c4c447c1603aad0",
+      "bytes": 3040
     },
     {
       "name": "judge-advisory-receipt.json",
       "path": "artifacts/judge-advisory-receipt.json",
       "contentType": "application/json",
-      "sha256": "680b9fc307d1fefd28eb16cba913fe8b354f7d07fce7966944ca09effb7697c1",
-      "bytes": 290
+      "sha256": "f51de9e9a06c1094c18adad10717e3fa68b5848ca34992dda67ae5e089a87d3f",
+      "bytes": 1250
     },
     {
       "name": "approver-summary.json",
       "path": "artifacts/approver-summary.json",
       "contentType": "application/json",
-      "sha256": "8dcb251d2a01fdb0c40e856b857017a0d74082c424207b875bad71c4252a0621",
-      "bytes": 2897
+      "sha256": "5eef8257b1c2a8b18f930ddc8918cedfb8a8a92f456750373a987ad7c0901bc4",
+      "bytes": 2899
     },
     {
       "name": "approver-summary.md",
       "path": "artifacts/approver-summary.md",
       "contentType": "text/markdown",
-      "sha256": "d73ebf21e0d0b9ca2046757ca39100934f5215be0f431b45c022e48288b04d47",
+      "sha256": "aeda2a0e17c3ccd11aa531b4e5ee87850245d19a040195b697a1fdd1bccac263",
       "bytes": 1526
+    },
+    {
+      "name": "fc-binding.json",
+      "path": "verification/fc-binding.json",
+      "contentType": "application/json",
+      "sha256": "a400b0617377fca11cad3f682156387d6f9482be473e3f3f6a5b10d10de21564",
+      "bytes": 1934
     }
   ],
   "rollup": {
@@ -64,5 +71,12 @@
     "blockedByPolicy": 0,
     "policyVerdict": "clear",
     "recommendationOutcome": "review_ready"
+  },
+  "manifestSignature": {
+    "alg": "ed25519",
+    "keyId": "keon.marketops.proofpack.ed25519.v1:dcf966cf13b8af81",
+    "publicKeyPath": "keys/proofpack_signing_public.ed25519",
+    "signature": "0jVX0dORO5ov2/dkiIISbsFy9UGIrXuogRqZle1O7ZVeSbsLGlEYOrF1PQA9bMVi3xpS3KazRcCcKeacvxMUDQ==",
+    "signedAt": "2026-02-12T03:29:40.1349227+00:00"
   }
 }
