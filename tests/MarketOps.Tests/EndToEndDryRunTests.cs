@@ -9,6 +9,7 @@ using MarketOps.Gate;
 using MarketOps.OmegaSdk.Adapters;
 using MarketOps.OmegaSdk.Ports;
 using MarketOps.Ports;
+using MarketOps.Security;
 using Xunit;
 
 namespace MarketOps.Tests;
@@ -63,6 +64,7 @@ public sealed class EndToEndDryRunTests
         // Create a dry-run context
         var run = new MarketOpsRun(
             RunId: runId,
+            TenantId: "tenant-test",
             Mode: ExecutionMode.DryRun,
             StartedAt: DateTimeOffset.UtcNow,
             Input: new Dictionary<string, object?> { { "packet", packet } });
@@ -84,6 +86,7 @@ public sealed class EndToEndDryRunTests
         // Generate a publication plan (no external calls yet)
         var plan = artifactGen.GeneratePublicationPlan(
             runId: runId,
+            tenantId: "tenant-test",
             mode: ExecutionMode.DryRun,
             wouldShip: new List<object> { "artifact-1" },
             wouldNotShip: new List<object>(),
@@ -92,11 +95,6 @@ public sealed class EndToEndDryRunTests
         // ========== ACT: PHASE 2 (AUTHORIZE) ==========
         // Run gate evaluation (decision + audit + verification)
         var gateResult = await gate.EvaluateAsync(packet);
-
-        // Generate advisory receipt (non-enforceable)
-        var advisory = artifactGen.GenerateAdvisoryReceipt(
-            runId: runId,
-            reasons: new List<string> { "dry_run_mode", "no_side_effects" });
 
         // ========== ACT: PHASE 3 (EXECUTE) ==========
         // Attempt all side effect operations (all should be blocked)
@@ -120,9 +118,20 @@ public sealed class EndToEndDryRunTests
         // Create proof ledger with all recorded intents and receipts
         var ledger = artifactGen.GenerateProofLedger(
             runId: runId,
+            tenantId: "tenant-test",
             mode: ExecutionMode.DryRun,
             intents: sideEffectPort.RecordedIntents.ToList(),
             receipts: new List<SideEffectReceipt> { releaseResult, postResult, tagResult, prResult });
+
+        // Generate advisory receipt (non-enforceable) — binds to plan + ledger hashes
+        var fcSigner = new FcSigner();
+        var advisory = artifactGen.GenerateAdvisoryReceipt(
+            runId: runId,
+            tenantId: "tenant-test",
+            reasons: new List<string> { "dry_run_mode", "no_side_effects" },
+            plan: plan,
+            ledger: ledger,
+            signer: fcSigner);
 
         // ========== ASSERT ==========
 
@@ -202,6 +211,7 @@ public sealed class EndToEndDryRunTests
         // ADVERSARY ATTEMPT: Use prod mode with only advisory receipt (non-enforceable)
         var run = new MarketOpsRun(
             RunId: runId,
+            TenantId: "tenant-test",
             Mode: ExecutionMode.Prod,  // ← Prod mode
             StartedAt: DateTimeOffset.UtcNow,
             Input: new Dictionary<string, object?> { { "packet", packet } });
@@ -209,10 +219,23 @@ public sealed class EndToEndDryRunTests
         var sideEffectPort = new TestNullSinkSideEffectPort();
         var artifactGen = new ArtifactGenerator();
 
+        // Generate minimal plan + ledger for advisory binding
+        var plan = artifactGen.GeneratePublicationPlan(
+            runId, "tenant-test", ExecutionMode.Prod,
+            new List<object>(), new List<object>(), new Dictionary<string, string>());
+        var ledger = artifactGen.GenerateProofLedger(
+            runId, "tenant-test", ExecutionMode.Prod,
+            new List<SideEffectIntent>(), new List<SideEffectReceipt>());
+        var fcSigner = new FcSigner();
+
         // Generate ADVISORY receipt (enforceable=false)
         var advisory = artifactGen.GenerateAdvisoryReceipt(
             runId: runId,
-            reasons: new List<string> { "dry_run_advisory" });
+            tenantId: "tenant-test",
+            reasons: new List<string> { "dry_run_advisory" },
+            plan: plan,
+            ledger: ledger,
+            signer: fcSigner);
 
         // ========== ACT ==========
         // Attempt to execute with advisory (should fail)

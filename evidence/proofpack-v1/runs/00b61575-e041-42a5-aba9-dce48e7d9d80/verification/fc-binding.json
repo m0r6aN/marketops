@@ -1,11 +1,11 @@
 {
   "schemaVersion": "marketops.fc-binding.v1",
-  "runId": "d6674680-7b33-4c58-add9-96617ff8ba17",
-  "scenario": "01-hygiene-sweep",
-  "verifiedAt": "2026-02-12T03:29:40.1289133+00:00",
+  "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+  "scenario": "unknown",
+  "verifiedAt": "2026-02-12T04:21:11.1850211+00:00",
   "verdict": "fc_bound",
-  "totalChecks": 7,
-  "passedChecks": 7,
+  "totalChecks": 8,
+  "passedChecks": 8,
   "failedChecks": 0,
   "checks": [
     {
@@ -13,7 +13,7 @@
       "name": "Advisory receipt is present",
       "passed": true,
       "expected": "non-null",
-      "actual": "advr_45c15a12"
+      "actual": "advr_689db081"
     },
     {
       "id": "fc.receipt.issuer",
@@ -26,22 +26,22 @@
       "id": "fc.binding.runId",
       "name": "receipt.runId matches run",
       "passed": true,
-      "expected": "d6674680-7b33-4c58-add9-96617ff8ba17",
-      "actual": "d6674680-7b33-4c58-add9-96617ff8ba17"
+      "expected": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+      "actual": "00b61575-e041-42a5-aba9-dce48e7d9d80"
     },
     {
       "id": "fc.binding.planHash",
       "name": "receipt.planSha256 matches hash(publication-plan)",
       "passed": true,
-      "expected": "b0a82249009d62047a9336d29d24c19c2475158973183af3e853d7ae04da8550",
-      "actual": "b0a82249009d62047a9336d29d24c19c2475158973183af3e853d7ae04da8550"
+      "expected": "ad06b14c5dc3081921692914cd86e1343c978066ef7b99110d8425931ff843a4",
+      "actual": "ad06b14c5dc3081921692914cd86e1343c978066ef7b99110d8425931ff843a4"
     },
     {
       "id": "fc.binding.ledgerHash",
       "name": "receipt.ledgerSha256 matches hash(proof-ledger)",
       "passed": true,
-      "expected": "62620cdafbeeb0d2c7e0356bd75def561a59420f30af33270f3c1c441559c1b1",
-      "actual": "62620cdafbeeb0d2c7e0356bd75def561a59420f30af33270f3c1c441559c1b1"
+      "expected": "4c4e5ca2aebbb6e25b19b0f8722ec2d8f72c34aac11b2fbc8eb938553a8d6373",
+      "actual": "4c4e5ca2aebbb6e25b19b0f8722ec2d8f72c34aac11b2fbc8eb938553a8d6373"
     },
     {
       "id": "fc.signature.hmac",
@@ -54,8 +54,15 @@
       "id": "fc.ledger.receiptBinding",
       "name": "Ledger references receipt (receiptId \u002B receiptDigest)",
       "passed": true,
-      "expected": "advr_45c15a12",
-      "actual": "advr_45c15a12"
+      "expected": "advr_689db081",
+      "actual": "advr_689db081"
+    },
+    {
+      "id": "fc.tenant.consistency",
+      "name": "tenantId consistent across plan, ledger, receipt.subject",
+      "passed": true,
+      "expected": "tenant-demo",
+      "actual": "tenant-demo"
     }
   ]
 }

@@ -31,9 +31,11 @@ public sealed class MarketOpsController
         CancellationToken ct = default)
     {
         var mode = request.Mode ?? ExecutionMode.DryRun;
+        var tenantId = request.TenantId ?? "tenant-demo";
         var runId = Guid.NewGuid().ToString();
         var run = new MarketOpsRun(
             RunId: runId,
+            TenantId: tenantId,
             Mode: mode,
             StartedAt: DateTimeOffset.UtcNow,
             Input: request.Input ?? new Dictionary<string, object?>(),
@@ -119,6 +121,7 @@ public sealed class MarketOpsController
         var generator = new ApproverSummaryGenerator(_auditLog);
         var summary = generator.Generate(
             runId,
+            state.Run.TenantId,
             state.Run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
             state.Run.StartedAt,
             state.Ledger.SideEffectIntents,
@@ -162,6 +165,7 @@ public sealed class MarketOpsController
 
         return new ProofPackRunInput(
             RunId: runId,
+            TenantId: state.Run.TenantId,
             Scenario: scenario,
             Mode: state.Run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
             StartedAt: state.Run.StartedAt,
@@ -175,6 +179,7 @@ public sealed class MarketOpsController
 
 public sealed record StartRunRequest(
     ExecutionMode? Mode = null,
+    string? TenantId = null,
     Dictionary<string, object?>? Input = null,
     string? CorrelationId = null);
 

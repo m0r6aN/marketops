@@ -20,6 +20,7 @@ public enum ExecutionMode
 /// </summary>
 public sealed record MarketOpsRun(
     string RunId,
+    string TenantId,
     ExecutionMode Mode,
     DateTimeOffset StartedAt,
     Dictionary<string, object?> Input,

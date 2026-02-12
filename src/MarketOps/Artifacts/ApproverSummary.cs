@@ -11,6 +11,7 @@ namespace MarketOps.Artifacts;
 public sealed record ApproverSummary(
     string SchemaVersion,
     string RunId,
+    string TenantId,
     string Mode,
     DateTimeOffset IssuedAt,
     RunMetadata Metadata,

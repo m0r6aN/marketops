@@ -46,7 +46,7 @@ var ed25519Signer = app.Services.GetRequiredService<Ed25519Signer>();
 
 // Helper: build advisory reasons from intents, then sign via FC
 JudgeAdvisoryReceipt GenerateSignedAdvisory(
-    ArtifactGenerator gen, string runId, List<SideEffectIntent> intents,
+    ArtifactGenerator gen, string runId, string tenantId, List<SideEffectIntent> intents,
     PublicationPlan plan, ProofLedger ledger, FcSigner signer)
 {
     var reasons = new List<string> { "dry_run_preview" };
@@ -61,7 +61,7 @@ JudgeAdvisoryReceipt GenerateSignedAdvisory(
         }
     }
 
-    return gen.GenerateAdvisoryReceipt(runId, reasons, plan, ledger, signer);
+    return gen.GenerateAdvisoryReceipt(runId, tenantId, reasons, plan, ledger, signer);
 }
 
 app.MapPost("/marketops/runs", async (HttpContext context) =>
@@ -93,6 +93,13 @@ app.MapPost("/marketops/runs", async (HttpContext context) =>
             input = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object?>>(inputElem.GetRawText());
         }
 
+        // Parse tenantId (default: "tenant-demo")
+        string? tenantId = null;
+        if (root.TryGetProperty("tenantId", out var tenantElem))
+        {
+            tenantId = tenantElem.GetString();
+        }
+
         // Parse correlationId
         string? correlationId = null;
         if (root.TryGetProperty("correlationId", out var corrElem))
@@ -100,13 +107,15 @@ app.MapPost("/marketops/runs", async (HttpContext context) =>
             correlationId = corrElem.GetString();
         }
 
-        var request = new StartRunRequest(mode, input, correlationId);
+        var request = new StartRunRequest(mode, tenantId, input, correlationId);
         var response = await controller.StartRunAsync(request);
 
         // Execute pipeline to generate artifacts
         var runId = response.RunId;
+        var actualTenantId = tenantId ?? "tenant-demo";
         var run = new MarketOpsRun(
             RunId: runId,
+            TenantId: actualTenantId,
             Mode: mode ?? ExecutionMode.DryRun,
             StartedAt: DateTimeOffset.UtcNow,
             Input: input ?? new Dictionary<string, object?>(),
@@ -122,6 +131,7 @@ app.MapPost("/marketops/runs", async (HttpContext context) =>
             // Generate artifacts
             var plan = artifactGenerator.GeneratePublicationPlan(
                 runId,
+                actualTenantId,
                 run.Mode,
                 pipelineResult.Plan.WouldShip,
                 pipelineResult.Plan.WouldNotShip,
@@ -129,13 +139,14 @@ app.MapPost("/marketops/runs", async (HttpContext context) =>
 
             var ledger = artifactGenerator.GenerateProofLedger(
                 runId,
+                actualTenantId,
                 run.Mode,
                 pipelineResult.Ledger.SideEffectIntents,
                 pipelineResult.Ledger.SideEffectReceipts);
 
             // Generate signed advisory (dry_run only) — binds to plan + ledger hashes
             var advisory = run.IsDryRun
-                ? GenerateSignedAdvisory(artifactGenerator, runId,
+                ? GenerateSignedAdvisory(artifactGenerator, runId, actualTenantId,
                     pipelineResult.Ledger.SideEffectIntents, plan, ledger, fcSigner)
                 : null;
 

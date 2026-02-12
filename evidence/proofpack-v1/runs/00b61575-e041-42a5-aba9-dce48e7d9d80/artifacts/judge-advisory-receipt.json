@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "marketops.judge_advisory_receipt.v1",
+  "receiptType": "judge.advisory",
+  "id": "advr_689db081",
+  "mode": "dry_run",
+  "enforceable": false,
+  "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+  "advisoryOutcome": "advisory",
+  "reasons": [
+    "dry_run_preview"
+  ],
+  "issuedAt": "2026-02-12T04:20:49.8572562+00:00",
+  "issuer": {
+    "issuerId": "federation-core",
+    "endpoint": "http://federation-core:9400"
+  },
+  "subject": {
+    "subjectType": "marketops.run",
+    "subjectRef": "run:00b61575-e041-42a5-aba9-dce48e7d9d80",
+    "tenantId": "tenant-demo",
+    "subjectDigests": {
+      "planSha256": "ad06b14c5dc3081921692914cd86e1343c978066ef7b99110d8425931ff843a4",
+      "ledgerSha256": "4c4e5ca2aebbb6e25b19b0f8722ec2d8f72c34aac11b2fbc8eb938553a8d6373"
+    }
+  },
+  "policySet": {
+    "policySetId": "marketops.publication.v1",
+    "version": "1.0.0",
+    "digestSha256": "568240d6c73488265dd0cca96331ae8f86b1e9af26cefc743f3ba6f1fb03da8d"
+  },
+  "digests": {
+    "receiptSha256": "34b176d3dee39fac1dfb99977cffec19dc523eb0ee8faf6295620c52934d38ff"
+  },
+  "signature": {
+    "alg": "hmac-sha256",
+    "keyId": "fc-marketops-k1",
+    "sig": "72303b83daef130ca8e0f30a3a558863d877094957002a4413eb2eff0d9d827a"
+  }
+}

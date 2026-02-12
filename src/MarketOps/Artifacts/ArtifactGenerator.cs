@@ -27,15 +27,17 @@ public sealed class ArtifactGenerator
     /// </summary>
     public PublicationPlan GeneratePublicationPlan(
         string runId,
+        string tenantId,
         ExecutionMode mode,
         List<object> wouldShip,
         List<object> wouldNotShip,
         Dictionary<string, string> reasons)
     {
-        _auditLog?.Invoke($"ARTIFACT_PLAN_GENERATE mode={mode} run_id={runId}");
+        _auditLog?.Invoke($"ARTIFACT_PLAN_GENERATE mode={mode} run_id={runId} tenant={tenantId}");
 
         return new PublicationPlan(
             RunId: runId,
+            TenantId: tenantId,
             Mode: mode == ExecutionMode.DryRun ? "dry_run" : "prod",
             DiscoveredArtifacts: new List<object>(),
             SelectedCandidates: new List<object>(),
@@ -52,14 +54,16 @@ public sealed class ArtifactGenerator
     /// </summary>
     public ProofLedger GenerateProofLedger(
         string runId,
+        string tenantId,
         ExecutionMode mode,
         List<SideEffectIntent> intents,
         List<SideEffectReceipt> receipts)
     {
-        _auditLog?.Invoke($"ARTIFACT_LEDGER_GENERATE mode={mode} run_id={runId}");
+        _auditLog?.Invoke($"ARTIFACT_LEDGER_GENERATE mode={mode} run_id={runId} tenant={tenantId}");
 
         return new ProofLedger(
             RunId: runId,
+            TenantId: tenantId,
             Mode: mode == ExecutionMode.DryRun ? "dry_run" : "prod",
             InputHashes: new Dictionary<string, string>(),
             PolicySetReferences: new List<object>(),
@@ -76,12 +80,13 @@ public sealed class ArtifactGenerator
     /// </summary>
     public JudgeAdvisoryReceipt GenerateAdvisoryReceipt(
         string runId,
+        string tenantId,
         List<string> reasons,
         PublicationPlan plan,
         ProofLedger ledger,
         FcSigner signer)
     {
-        _auditLog?.Invoke($"ARTIFACT_ADVISORY_GENERATE run_id={runId}");
+        _auditLog?.Invoke($"ARTIFACT_ADVISORY_GENERATE run_id={runId} tenant={tenantId}");
 
         var receiptId = $"advr_{Guid.NewGuid().ToString("N")[..8]}";
         var issuedAt = DateTimeOffset.UtcNow;
@@ -112,6 +117,7 @@ public sealed class ArtifactGenerator
             Subject: new ReceiptSubject(
                 SubjectType: "marketops.run",
                 SubjectRef: $"run:{runId}",
+                TenantId: tenantId,
                 SubjectDigests: new ReceiptSubjectDigests(planSha256, ledgerSha256)),
             PolicySet: new ReceiptPolicySet(
                 PolicySetId: "marketops.publication.v1",
@@ -153,6 +159,7 @@ public sealed class ArtifactGenerator
 
 public sealed record PublicationPlan(
     string RunId,
+    string TenantId,
     string Mode,
     List<object> DiscoveredArtifacts,
     List<object> SelectedCandidates,
@@ -165,6 +172,7 @@ public sealed record PublicationPlan(
 
 public sealed record ProofLedger(
     string RunId,
+    string TenantId,
     string Mode,
     Dictionary<string, string> InputHashes,
     List<object> PolicySetReferences,
@@ -200,6 +208,7 @@ public sealed record ReceiptIssuer(
 public sealed record ReceiptSubject(
     string SubjectType,
     string SubjectRef,
+    string? TenantId,
     ReceiptSubjectDigests SubjectDigests);
 
 public sealed record ReceiptSubjectDigests(

@@ -13,6 +13,7 @@ namespace MarketOps.Artifacts;
 public sealed record RunManifest(
     string SchemaVersion,
     string RunId,
+    string TenantId,
     DateTimeOffset IssuedAt,
     string Mode,
     string Scenario,
@@ -49,6 +50,7 @@ public sealed record GitInfo(
     string? Tag);
 
 public sealed record ManifestScope(
+    string TenantId,
     List<string> Repos,
     int ReposTotal,
     int IssuesTotal);
@@ -78,6 +80,7 @@ public sealed record PackIndex(
     string SchemaVersion,
     DateTimeOffset CreatedAt,
     string PackId,
+    string TenantId,
     List<PackRunEntry> Runs,
     string PackSha256);
 

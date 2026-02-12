@@ -131,6 +131,22 @@ public sealed class FcBindingVerifier
             Expected: receipt.Id,
             Actual: run.Ledger.ReceiptId ?? "missing"));
 
+        // Check 7: Tenant consistency across all artifacts
+        var expectedTenant = run.TenantId;
+        var planTenant = run.Plan.TenantId;
+        var ledgerTenant = run.Ledger.TenantId;
+        var receiptTenant = receipt.Subject?.TenantId;
+        var tenantConsistent = planTenant == expectedTenant
+            && ledgerTenant == expectedTenant
+            && receiptTenant == expectedTenant;
+        var actualTenants = $"plan={planTenant}, ledger={ledgerTenant}, receipt.subject={receiptTenant ?? "null"}";
+        checks.Add(new FcBindingCheck(
+            Id: "fc.tenant.consistency",
+            Name: "tenantId consistent across plan, ledger, receipt.subject",
+            Passed: tenantConsistent,
+            Expected: expectedTenant,
+            Actual: tenantConsistent ? expectedTenant : actualTenants));
+
         var allPassed = checks.All(c => c.Passed);
         return BuildOutput(run, checks, allPassed);
     }

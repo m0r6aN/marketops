@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MarketOps.Artifacts;
 using MarketOps.Contracts;
 using MarketOps.Ports;
+using MarketOps.Security;
 using Xunit;
 
 namespace MarketOps.Tests;
@@ -24,6 +25,7 @@ public sealed class DryRunLawTests
         var port = new NullSinkSideEffectPort();
         var run = new MarketOpsRun(
             RunId: "test-run-1",
+            TenantId: "tenant-test",
             Mode: ExecutionMode.DryRun,
             StartedAt: DateTimeOffset.UtcNow,
             Input: new Dictionary<string, object?>());
@@ -51,9 +53,19 @@ public sealed class DryRunLawTests
         var runId = "test-run-2";
 
         // Act
+        var plan = generator.GeneratePublicationPlan(
+            runId, "tenant-test", ExecutionMode.DryRun,
+            new List<object>(), new List<object>(), new Dictionary<string, string>());
+        var ledger = generator.GenerateProofLedger(
+            runId, "tenant-test", ExecutionMode.DryRun,
+            new List<SideEffectIntent>(), new List<SideEffectReceipt>());
+        var signer = new FcSigner();
+
         var advisory = generator.GenerateAdvisoryReceipt(
             runId,
-            new List<string> { "reason1", "reason2" });
+            "tenant-test",
+            new List<string> { "reason1", "reason2" },
+            plan, ledger, signer);
 
         // Assert
         Assert.Equal("dry_run", advisory.Mode);
@@ -71,6 +83,7 @@ public sealed class DryRunLawTests
         // Act
         var plan = generator.GeneratePublicationPlan(
             runId,
+            "tenant-test",
             ExecutionMode.DryRun,
             new List<object>(),
             new List<object>(),
@@ -78,6 +91,7 @@ public sealed class DryRunLawTests
 
         var ledger = generator.GenerateProofLedger(
             runId,
+            "tenant-test",
             ExecutionMode.DryRun,
             new List<SideEffectIntent>(),
             new List<SideEffectReceipt>());
@@ -95,6 +109,7 @@ public sealed class DryRunLawTests
         // Arrange
         var run = new MarketOpsRun(
             RunId: "test-run-4",
+            TenantId: "tenant-test",
             Mode: ExecutionMode.DryRun,
             StartedAt: DateTimeOffset.UtcNow,
             Input: new Dictionary<string, object?>());
@@ -111,6 +126,7 @@ public sealed class DryRunLawTests
         // Arrange
         var run = new MarketOpsRun(
             RunId: "test-run-5",
+            TenantId: "tenant-test",
             Mode: ExecutionMode.Prod,
             StartedAt: DateTimeOffset.UtcNow,
             Input: new Dictionary<string, object?>());

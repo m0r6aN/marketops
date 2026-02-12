@@ -25,12 +25,13 @@ public sealed class ApproverSummaryGenerator
 
     public ApproverSummary Generate(
         string runId,
+        string tenantId,
         string mode,
         DateTimeOffset startedAt,
         List<SideEffectIntent> intents,
         List<SideEffectReceipt> receipts)
     {
-        _auditLog?.Invoke($"APPROVER_SUMMARY_GENERATE run_id={runId}");
+        _auditLog?.Invoke($"APPROVER_SUMMARY_GENERATE run_id={runId} tenant={tenantId}");
 
         var blockedByMode = intents.Count(i => i.BlockedByMode);
         var blockedByPolicy = intents.Count(i => i.BlockedByPolicy);
@@ -125,6 +126,7 @@ public sealed class ApproverSummaryGenerator
         return new ApproverSummary(
             SchemaVersion: "marketops.approver-summary.v1",
             RunId: runId,
+            TenantId: tenantId,
             Mode: mode,
             IssuedAt: DateTimeOffset.UtcNow,
             Metadata: metadata,

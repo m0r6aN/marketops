@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "marketops.approver-summary.v1",
+  "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+  "tenantId": "tenant-demo",
+  "mode": "dry_run",
+  "issuedAt": "2026-02-12T04:21:11.1057559+00:00",
+  "metadata": {
+    "status": "completed",
+    "startedAt": "2026-02-12T04:20:49.8341241+00:00",
+    "completedAt": "2026-02-12T04:21:11.1057408+00:00",
+    "durationSeconds": 21
+  },
+  "scope": {
+    "reposTotal": 0,
+    "reposWithFindings": 0,
+    "repos": [],
+    "issuesTotal": 0,
+    "issuesByType": {}
+  },
+  "operations": {
+    "totalIntents": 0,
+    "blockedByMode": 0,
+    "blockedByPolicy": 0,
+    "wouldExecute": 0,
+    "countsByStatus": {},
+    "topOperations": []
+  },
+  "policyEvaluation": {
+    "verdict": "clear",
+    "violationsDetected": 0,
+    "violations": []
+  },
+  "recommendation": {
+    "outcome": "review_ready",
+    "summary": "Dry run preview: 0 intent(s) blocked by mode \u2014 no changes made",
+    "requiredActions": [
+      "Review operation details in full ledger"
+    ],
+    "warnings": [
+      "This is a dry-run preview; no changes will be made"
+    ]
+  }
+}

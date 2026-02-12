@@ -1,0 +1,13 @@
+{
+  "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+  "tenantId": "tenant-demo",
+  "mode": "dry_run",
+  "inputHashes": {},
+  "policySetReferences": [],
+  "stageEvents": [],
+  "sideEffectIntents": [],
+  "sideEffectReceipts": [],
+  "sealedAt": "2026-02-12T04:20:49.856218+00:00",
+  "receiptId": "advr_689db081",
+  "receiptDigest": "34b176d3dee39fac1dfb99977cffec19dc523eb0ee8faf6295620c52934d38ff"
+}

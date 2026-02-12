@@ -14,6 +14,7 @@ namespace MarketOps.Artifacts;
 /// </summary>
 public sealed record ProofPackRunInput(
     string RunId,
+    string TenantId,
     string Scenario,
     string Mode,
     DateTimeOffset StartedAt,
@@ -157,10 +158,18 @@ public sealed class ProofPackGenerator
         var concatHashes = string.Concat(sortedEntries.Select(e => e.Sha256));
         var packSha256 = ComputeSha256(concatHashes);
 
+        // Single-tenant rule: all runs must share the same tenantId
+        var packTenantId = runs.First().TenantId;
+        if (runs.Any(r => r.TenantId != packTenantId))
+            throw new InvalidOperationException(
+                $"Pack is single-tenant but runs contain mixed tenantIds: " +
+                string.Join(", ", runs.Select(r => r.TenantId).Distinct()));
+
         var packIndex = new PackIndex(
             SchemaVersion: "marketops.proofpack.index.v1",
             CreatedAt: DateTimeOffset.UtcNow,
             PackId: $"pack-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}",
+            TenantId: packTenantId,
             Runs: sortedEntries,
             PackSha256: packSha256);
 
@@ -231,8 +240,9 @@ public sealed class ProofPackGenerator
         var summary = run.Summary;
 
         return new RunManifest(
-            SchemaVersion: "marketops.proofpack.run-manifest.v1.2",
+            SchemaVersion: "marketops.proofpack.run-manifest.v1.3",
             RunId: run.RunId,
+            TenantId: run.TenantId,
             IssuedAt: DateTimeOffset.UtcNow,
             Mode: run.Mode,
             Scenario: run.Scenario,
@@ -242,6 +252,7 @@ public sealed class ProofPackGenerator
                 ServiceVersion: "1.0.0",
                 Git: null),
             Scope: new ManifestScope(
+                TenantId: run.TenantId,
                 Repos: summary.Scope.Repos,
                 ReposTotal: summary.Scope.ReposTotal,
                 IssuesTotal: summary.Scope.IssuesTotal),

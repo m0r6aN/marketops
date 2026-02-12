@@ -1,16 +1,18 @@
 <#
 .SYNOPSIS
-    MarketOps Proof Pack Verifier v1.2
+    MarketOps Proof Pack Verifier v1.3
     One-command verification of the entire evidence pack including
-    Ed25519 manifest signatures, FC binding, and pack seal.
+    Ed25519 manifest signatures, tenant consistency, FC binding, and pack seal.
 
 .DESCRIPTION
     Verification order (fail-closed):
       1. Ed25519 signature verification for each RUN_MANIFEST.json
       2. SHA-256 manifest hash check vs PACK_INDEX entry
       3. Per-artifact hash + size checks
-      4. FC binding verification (receipt, cross-hashes, HMAC signature)
-      5. Pack seal recomputation
+      4. Tenant consistency (tenantId matches across plan, ledger, receipt, summary, manifest)
+      5. FC binding verification (receipt, cross-hashes, HMAC signature)
+      6. Pack seal recomputation
+      7. Pack-level single-tenant rule (all runs share same tenantId as PACK_INDEX)
 
 .EXAMPLE
     .\VERIFY.ps1
@@ -60,7 +62,7 @@ foreach ($c in $candidates) {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  MarketOps Proof Pack Verifier v1.2" -ForegroundColor Cyan
+Write-Host "  MarketOps Proof Pack Verifier v1.3" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -279,6 +281,87 @@ foreach ($run in ($packIndex.runs | Sort-Object runId)) {
         Write-Host "  SKIP: No fc-binding.json found (FC verification not available)" -ForegroundColor DarkYellow
     }
 
+    # ── Tenant Consistency Verification ──────────────────────────
+    Write-Host "  --- Tenant Consistency ---" -ForegroundColor Magenta
+    $manifestTenantId = $manifest.tenantId
+
+    # Check: manifest.tenantId is non-empty
+    $totalChecks++
+    if ($manifestTenantId -and $manifestTenantId.Length -gt 0) {
+        Write-Host "  PASS: manifest.tenantId = '$manifestTenantId'" -ForegroundColor Green
+        $passedChecks++
+    } else {
+        Write-Host "  FAIL: manifest.tenantId is missing or empty" -ForegroundColor Red
+        $failedChecks++
+    }
+
+    # Check: manifest.scope.tenantId matches manifest.tenantId
+    $totalChecks++
+    $scopeTenantId = $manifest.scope.tenantId
+    if ($scopeTenantId -eq $manifestTenantId) {
+        Write-Host "  PASS: scope.tenantId matches manifest" -ForegroundColor Green
+        $passedChecks++
+    } else {
+        Write-Host "  FAIL: scope.tenantId ('$scopeTenantId') != manifest.tenantId ('$manifestTenantId')" -ForegroundColor Red
+        $failedChecks++
+    }
+
+    # Check: publication-plan.tenantId matches
+    $planPath = Join-Path (Join-Path $runDir "artifacts") "publication-plan.json"
+    if (Test-Path $planPath) {
+        $planObj = Get-Content $planPath -Raw | ConvertFrom-Json
+        $totalChecks++
+        if ($planObj.tenantId -eq $manifestTenantId) {
+            Write-Host "  PASS: plan.tenantId matches manifest" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: plan.tenantId ('$($planObj.tenantId)') != manifest.tenantId ('$manifestTenantId')" -ForegroundColor Red
+            $failedChecks++
+        }
+    }
+
+    # Check: proof-ledger.tenantId matches
+    $ledgerPath = Join-Path (Join-Path $runDir "artifacts") "proof-ledger.json"
+    if (Test-Path $ledgerPath) {
+        $ledgerObj = Get-Content $ledgerPath -Raw | ConvertFrom-Json
+        $totalChecks++
+        if ($ledgerObj.tenantId -eq $manifestTenantId) {
+            Write-Host "  PASS: ledger.tenantId matches manifest" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: ledger.tenantId ('$($ledgerObj.tenantId)') != manifest.tenantId ('$manifestTenantId')" -ForegroundColor Red
+            $failedChecks++
+        }
+    }
+
+    # Check: receipt.subject.tenantId matches
+    $receiptPath2 = Join-Path (Join-Path $runDir "artifacts") "judge-advisory-receipt.json"
+    if (Test-Path $receiptPath2) {
+        $receiptObj = Get-Content $receiptPath2 -Raw | ConvertFrom-Json
+        $totalChecks++
+        if ($receiptObj.subject.tenantId -eq $manifestTenantId) {
+            Write-Host "  PASS: receipt.subject.tenantId matches manifest" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: receipt.subject.tenantId ('$($receiptObj.subject.tenantId)') != manifest.tenantId ('$manifestTenantId')" -ForegroundColor Red
+            $failedChecks++
+        }
+    }
+
+    # Check: approver-summary.tenantId matches
+    $summaryPath = Join-Path (Join-Path $runDir "artifacts") "approver-summary.json"
+    if (Test-Path $summaryPath) {
+        $summaryObj = Get-Content $summaryPath -Raw | ConvertFrom-Json
+        $totalChecks++
+        if ($summaryObj.tenantId -eq $manifestTenantId) {
+            Write-Host "  PASS: summary.tenantId matches manifest" -ForegroundColor Green
+            $passedChecks++
+        } else {
+            Write-Host "  FAIL: summary.tenantId ('$($summaryObj.tenantId)') != manifest.tenantId ('$manifestTenantId')" -ForegroundColor Red
+            $failedChecks++
+        }
+    }
+
     Write-Host ""
 }
 
@@ -297,6 +380,39 @@ if ($recomputedSeal -eq $packIndex.packSha256) {
     Write-Host "    Expected: $($packIndex.packSha256)" -ForegroundColor Red
     Write-Host "    Actual:   $recomputedSeal" -ForegroundColor Red
     $failedChecks++
+}
+
+# ── Step 4: Pack-level tenant rule ────────────────────────────────
+Write-Host ""
+Write-Host "--- Pack Tenant Verification ---" -ForegroundColor Yellow
+
+# Check: PACK_INDEX has tenantId
+$totalChecks++
+$packTenantId = $packIndex.tenantId
+if ($packTenantId -and $packTenantId.Length -gt 0) {
+    Write-Host "  PASS: PACK_INDEX.tenantId = '$packTenantId'" -ForegroundColor Green
+    $passedChecks++
+} else {
+    Write-Host "  FAIL: PACK_INDEX.tenantId is missing or empty" -ForegroundColor Red
+    $failedChecks++
+}
+
+# Check: All run manifests share the same tenantId as the pack
+if ($packTenantId) {
+    foreach ($run in ($packIndex.runs | Sort-Object runId)) {
+        $mPath = Join-Path $PackDir $run.path
+        if (Test-Path $mPath) {
+            $mObj = Get-Content $mPath -Raw | ConvertFrom-Json
+            $totalChecks++
+            if ($mObj.tenantId -eq $packTenantId) {
+                Write-Host "  PASS: Run $($run.runId) tenantId matches pack" -ForegroundColor Green
+                $passedChecks++
+            } else {
+                Write-Host "  FAIL: Run $($run.runId) tenantId ('$($mObj.tenantId)') != pack tenantId ('$packTenantId')" -ForegroundColor Red
+                $failedChecks++
+            }
+        }
+    }
 }
 
 # ── Summary ───────────────────────────────────────────────────────

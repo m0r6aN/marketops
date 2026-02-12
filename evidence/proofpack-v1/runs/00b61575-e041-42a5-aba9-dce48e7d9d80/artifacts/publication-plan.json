@@ -1,0 +1,13 @@
+{
+  "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+  "tenantId": "tenant-demo",
+  "mode": "dry_run",
+  "discoveredArtifacts": [],
+  "selectedCandidates": [],
+  "executedChecks": [],
+  "evaluatedPolicies": [],
+  "wouldShip": [],
+  "wouldNotShip": [],
+  "reasons": {},
+  "missingPrerequisites": []
+}

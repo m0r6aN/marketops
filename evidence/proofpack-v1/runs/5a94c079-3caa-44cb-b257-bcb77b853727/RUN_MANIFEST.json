@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "marketops.proofpack.run-manifest.v1.3",
+  "runId": "5a94c079-3caa-44cb-b257-bcb77b853727",
+  "tenantId": "tenant-demo",
+  "issuedAt": "2026-02-12T04:21:11.2236039+00:00",
+  "mode": "dry_run",
+  "scenario": "unknown",
+  "source": {
+    "host": "M0R6AN",
+    "service": "MarketOps.Api.Host",
+    "serviceVersion": "1.0.0"
+  },
+  "scope": {
+    "tenantId": "tenant-demo",
+    "repos": [],
+    "reposTotal": 0,
+    "issuesTotal": 0
+  },
+  "invariants": {
+    "dryRunBlocksAllSideEffects": true,
+    "fcOnlyMintEnforceable": true,
+    "portsAreGateways": true
+  },
+  "artifacts": [
+    {
+      "name": "publication-plan.json",
+      "path": "artifacts/publication-plan.json",
+      "contentType": "application/json",
+      "sha256": "c31d3c1a5771a653c17f416b9a7a159162f1d209ff69da108d904a73efeb0f34",
+      "bytes": 311
+    },
+    {
+      "name": "proof-ledger.json",
+      "path": "artifacts/proof-ledger.json",
+      "contentType": "application/json",
+      "sha256": "e781fef30d00cf27d97d243c129a7a1bdf4c76f0b80add147b24536ff57b6f27",
+      "bytes": 411
+    },
+    {
+      "name": "judge-advisory-receipt.json",
+      "path": "artifacts/judge-advisory-receipt.json",
+      "contentType": "application/json",
+      "sha256": "48112e9131099c6acb5902a176b64de282b3dab0e254b777050ec8d16646e5da",
+      "bytes": 1282
+    },
+    {
+      "name": "approver-summary.json",
+      "path": "artifacts/approver-summary.json",
+      "contentType": "application/json",
+      "sha256": "ae4d6c8938997e6eb0a55665c032ca5684d44e0c8a44f6b3197f104d76ad7275",
+      "bytes": 1140
+    },
+    {
+      "name": "approver-summary.md",
+      "path": "artifacts/approver-summary.md",
+      "contentType": "text/markdown",
+      "sha256": "5375a9848842c847afbcdbe9c149c3fcea87fcad9c4d455c499722514995e510",
+      "bytes": 904
+    },
+    {
+      "name": "fc-binding.json",
+      "path": "verification/fc-binding.json",
+      "contentType": "application/json",
+      "sha256": "c5ee09080ed3cfdac9aaaf1298ac35fc8386661302506b01610977cfac865969",
+      "bytes": 2141
+    }
+  ],
+  "rollup": {
+    "intentsTotal": 0,
+    "blockedByMode": 0,
+    "blockedByPolicy": 0,
+    "policyVerdict": "clear",
+    "recommendationOutcome": "review_ready"
+  },
+  "manifestSignature": {
+    "alg": "ed25519",
+    "keyId": "keon.marketops.proofpack.ed25519.v1:1e7291d07b0f5085",
+    "publicKeyPath": "keys/proofpack_signing_public.ed25519",
+    "signature": "BvfB7JPygsFat/4WR2waVlNFG9N0cSrxevkriW6FAQkY3RDtBv6qBI68QKHoA706tm52vj02dPziIBZh2brwAA==",
+    "signedAt": "2026-02-12T04:21:11.2237779+00:00"
+  }
+}

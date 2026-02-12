@@ -1,22 +1,23 @@
 {
   "schemaVersion": "marketops.proofpack.index.v1",
-  "createdAt": "2026-02-12T03:29:40.142684+00:00",
-  "packId": "pack-20260212-032940",
+  "createdAt": "2026-02-12T04:21:11.2287956+00:00",
+  "packId": "pack-20260212-042111",
+  "tenantId": "tenant-demo",
   "runs": [
     {
-      "runId": "747d5b76-005a-4fc7-8c89-81dcaf5436af",
-      "scenario": "04-policy-violation-direct-push-main",
+      "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+      "scenario": "unknown",
       "mode": "dry_run",
-      "path": "runs/747d5b76-005a-4fc7-8c89-81dcaf5436af/RUN_MANIFEST.json",
-      "sha256": "8c3f0ec1e2a424483dbae5e8fbc711c07c7fe461a6945aa07f5ac10a44729fb4"
+      "path": "runs/00b61575-e041-42a5-aba9-dce48e7d9d80/RUN_MANIFEST.json",
+      "sha256": "578449db0aca7c3784ea120271be277f6254c8a7346e5f82d2b3a3d9f775a754"
     },
     {
-      "runId": "d6674680-7b33-4c58-add9-96617ff8ba17",
-      "scenario": "01-hygiene-sweep",
+      "runId": "5a94c079-3caa-44cb-b257-bcb77b853727",
+      "scenario": "unknown",
       "mode": "dry_run",
-      "path": "runs/d6674680-7b33-4c58-add9-96617ff8ba17/RUN_MANIFEST.json",
-      "sha256": "356b4aa3589d6ff47c0f943989d2be1c324eee7890104bd64363e585631e06b3"
+      "path": "runs/5a94c079-3caa-44cb-b257-bcb77b853727/RUN_MANIFEST.json",
+      "sha256": "14c7104577a950856cc2ac6ced0aa487ae2691654e8dbb1f115d8703764d81ea"
     }
   ],
-  "packSha256": "7290c642cdc4480c21b581ea6ae77cb0729ee014c9e86f207162c80ce552c99d"
+  "packSha256": "b28e253fb8485e3d6c2bf6d95cd9ee60dae3cee0560530768a9e3b154a26a5cc"
 }
