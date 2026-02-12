@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MarketOps.Contracts;
+using MarketOps.Pipeline;
+using MarketOps.Policy;
 using MarketOps.Ports;
 
 namespace MarketOps.Pipeline;
@@ -15,12 +17,14 @@ namespace MarketOps.Pipeline;
 public sealed class MarketOpsPipeline
 {
     private readonly ISideEffectPort _sideEffectPort;
+    private readonly PipelineStages _stages;
     private readonly Action<string>? _auditLog;
 
     public MarketOpsPipeline(ISideEffectPort sideEffectPort, Action<string>? auditLog = null)
     {
         _sideEffectPort = sideEffectPort ?? throw new ArgumentNullException(nameof(sideEffectPort));
         _auditLog = auditLog;
+        _stages = new PipelineStages(auditLog);
     }
 
     /// <summary>
@@ -34,27 +38,27 @@ public sealed class MarketOpsPipeline
         try
         {
             // Stage 1: Discover
-            var discovered = await DiscoverAsync(run, ct);
-            _auditLog?.Invoke($"STAGE_DISCOVER completed artifacts={discovered.Count}");
+            var discovered = await _stages.DiscoverAsync(run, ct);
+            _auditLog?.Invoke($"STAGE_DISCOVER completed artifacts={discovered.Artifacts.Count}");
 
             // Stage 2: Select
-            var selected = await SelectAsync(run, discovered, ct);
-            _auditLog?.Invoke($"STAGE_SELECT completed candidates={selected.Count}");
+            var selected = await _stages.SelectAsync(run, discovered, ct);
+            _auditLog?.Invoke($"STAGE_SELECT completed candidates={selected.Candidates.Count}");
 
             // Stage 3: Verify
-            var verified = await VerifyAsync(run, selected, ct);
+            var verified = await _stages.VerifyAsync(run, selected, ct);
             _auditLog?.Invoke($"STAGE_VERIFY completed valid={verified.IsValid}");
 
             // Stage 4: Evaluate
-            var evaluated = await EvaluateAsync(run, verified, ct);
+            var evaluated = await _stages.EvaluateAsync(run, verified, ct);
             _auditLog?.Invoke($"STAGE_EVALUATE completed approved={evaluated.IsApproved}");
 
             // Stage 5: Plan
-            var plan = await PlanAsync(run, evaluated, ct);
+            var plan = await _stages.PlanAsync(run, verified, evaluated, ct);
             _auditLog?.Invoke($"STAGE_PLAN completed would_ship={plan.WouldShip.Count}");
 
             // Stage 6: Execute (mode-dependent)
-            var executed = await ExecuteAsync(run, plan, ct);
+            var executed = await ExecuteAsync(run, plan, evaluated, ct);
             _auditLog?.Invoke($"STAGE_EXECUTE completed mode={run.Mode}");
 
             // Stage 7: Seal
@@ -82,34 +86,44 @@ public sealed class MarketOpsPipeline
         }
     }
 
-    private Task<List<object>> DiscoverAsync(MarketOpsRun run, CancellationToken ct)
-        => Task.FromResult(new List<object>());
 
-    private Task<List<object>> SelectAsync(MarketOpsRun run, List<object> discovered, CancellationToken ct)
-        => Task.FromResult(new List<object>(discovered));
 
-    private Task<VerificationResult> VerifyAsync(MarketOpsRun run, List<object> selected, CancellationToken ct)
-        => Task.FromResult(new VerificationResult(IsValid: true, Checks: new List<string>()));
-
-    private Task<EvaluationResult> EvaluateAsync(MarketOpsRun run, VerificationResult verified, CancellationToken ct)
-        => Task.FromResult(new EvaluationResult(IsApproved: true, Policies: new List<string>()));
-
-    private Task<PublicationPlanData> PlanAsync(MarketOpsRun run, EvaluationResult evaluated, CancellationToken ct)
-        => Task.FromResult(new PublicationPlanData(
-            WouldShip: new List<object>(),
-            WouldNotShip: new List<object>(),
-            Reasons: new Dictionary<string, string>()));
-
-    private async Task<ExecutionResult> ExecuteAsync(MarketOpsRun run, PublicationPlanData plan, CancellationToken ct)
+    private async Task<ExecutionResult> ExecuteAsync(MarketOpsRun run, PublicationPlanData plan, EvaluationResult evaluated, CancellationToken ct)
     {
-        if (run.IsDryRun)
+        var receipts = new List<SideEffectReceipt>();
+
+        // Use the evaluated intents (which include policy-denied ones) instead of regenerating.
+        // This ensures violation intents created during policy evaluation reach the ledger.
+        var intents = evaluated.EvaluatedIntents;
+
+        foreach (var intent in intents)
         {
-            _auditLog?.Invoke("EXECUTE_BLOCKED mode=dry_run");
-            return new ExecutionResult(Intents: new List<SideEffectIntent>(), Receipts: new List<SideEffectReceipt>());
+            if (intent.BlockedByMode || intent.BlockedByPolicy)
+            {
+                // Blocked → generate a blocked receipt (no external side effect)
+                var blockedReason = intent.BlockedByPolicy ? "blocked_by_policy" : "blocked_by_mode";
+                receipts.Add(new SideEffectReceipt(
+                    Id: Guid.NewGuid().ToString(),
+                    Mode: intent.Mode,
+                    EffectType: intent.EffectType,
+                    Target: intent.Target,
+                    Success: false,
+                    ErrorMessage: blockedReason,
+                    ExecutedAt: DateTimeOffset.UtcNow));
+            }
+            else
+            {
+                // Not blocked → route through ISideEffectPort
+                var receipt = await _sideEffectPort.OpenPrAsync(
+                    intent.Target,
+                    intent.Parameters,
+                    ct);
+                receipts.Add(receipt);
+            }
         }
 
-        // Prod mode: execute side effects
-        return new ExecutionResult(Intents: new List<SideEffectIntent>(), Receipts: new List<SideEffectReceipt>());
+        _auditLog?.Invoke($"EXECUTE_COMPLETE mode={run.Mode} intents={intents.Count} receipts={receipts.Count}");
+        return new ExecutionResult(Intents: intents, Receipts: receipts);
     }
 
     private Task<ProofLedgerData> SealAsync(MarketOpsRun run, ExecutionResult executed, CancellationToken ct)
@@ -128,8 +142,8 @@ public sealed record PipelineResult(
     ProofLedgerData? Ledger,
     string? ErrorMessage);
 
-public sealed record VerificationResult(bool IsValid, List<string> Checks);
-public sealed record EvaluationResult(bool IsApproved, List<string> Policies);
+public sealed record VerificationResult(bool IsValid, List<string> Checks, List<ArtifactMetadata> Candidates);
+public sealed record EvaluationResult(bool IsApproved, List<string> Policies, List<SideEffectIntent> EvaluatedIntents);
 public sealed record PublicationPlanData(List<object> WouldShip, List<object> WouldNotShip, Dictionary<string, string> Reasons);
 public sealed record ExecutionResult(List<SideEffectIntent> Intents, List<SideEffectReceipt> Receipts);
 public sealed record ProofLedgerData(string RunId, ExecutionMode Mode, List<SideEffectIntent> SideEffectIntents, List<SideEffectReceipt> SideEffectReceipts);

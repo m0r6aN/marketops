@@ -1,0 +1,22 @@
+﻿{
+  "schemaVersion": "marketops.proofpack.index.v1",
+  "createdAt": "2026-02-12T02:19:45.9161948+00:00",
+  "packId": "pack-20260212-021945",
+  "runs": [
+    {
+      "runId": "2c1894c6-90b0-4ab2-8256-63fb2817dc9e",
+      "scenario": "01-hygiene-sweep",
+      "mode": "dry_run",
+      "path": "runs/2c1894c6-90b0-4ab2-8256-63fb2817dc9e/RUN_MANIFEST.json",
+      "sha256": "6c67e040bdad644c2421314238830c41067950730e3159063813f0e9272f57c7"
+    },
+    {
+      "runId": "5a97c35b-162d-4751-82b8-1d55b8dca327",
+      "scenario": "04-policy-violation-direct-push-main",
+      "mode": "dry_run",
+      "path": "runs/5a97c35b-162d-4751-82b8-1d55b8dca327/RUN_MANIFEST.json",
+      "sha256": "7981b698f4f0cd3a3672aec5b27eb1d6d13a4177addf620db252a87542d3058b"
+    }
+  ],
+  "packSha256": "86fac4b2939c01aeff4d8a980c9d458e8cf8f8dce94cbc49ded4d33d57d77e0b"
+}

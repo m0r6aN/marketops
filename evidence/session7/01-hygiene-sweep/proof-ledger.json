@@ -1,0 +1,87 @@
+{
+  "runId": "5cc03bbf-50b5-46ad-89fc-5057d32c1ee6",
+  "mode": "dry_run",
+  "inputHashes": {},
+  "policySetReferences": [],
+  "stageEvents": [],
+  "sideEffectIntents": [
+    {
+      "id": "9a02f790-2a35-4dfc-ac1a-20f7b321cb58",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": "README.md",
+        "issue_type": "incomplete_readme",
+        "description": "README.md missing sections: ## Installation, ## Usage, ## License"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:32:38.6090915-05:00"
+    },
+    {
+      "id": "5db030cb-2976-43ba-951b-cf55f1335e06",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": "CODEOWNERS",
+        "issue_type": "missing_codeowners",
+        "description": "CODEOWNERS file is missing"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:32:38.6090954-05:00"
+    },
+    {
+      "id": "5355fa7a-3b57-47f4-9b86-04861669aacc",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "parameters": {
+        "file": ".editorconfig",
+        "issue_type": "missing_editorconfig",
+        "description": ".editorconfig file is missing"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:32:38.6090966-05:00"
+    }
+  ],
+  "sideEffectReceipts": [
+    {
+      "id": "d81275a6-5bb7-4399-8b4a-a7c108cdb268",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:32:38.6090936-05:00"
+    },
+    {
+      "id": "0c037d2e-d233-445f-9188-51e38f133ecb",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:32:38.6090957-05:00"
+    },
+    {
+      "id": "9d025c30-ad13-4228-b1a9-b39fc064e1a0",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:32:38.6090967-05:00"
+    }
+  ],
+  "sealedAt": "2026-02-11T19:32:38.6093604-05:00"
+}

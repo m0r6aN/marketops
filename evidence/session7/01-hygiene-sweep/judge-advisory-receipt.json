@@ -1,0 +1,11 @@
+{
+  "id": "99677563-94f0-4e7e-ba92-9140f2d13795",
+  "mode": "dry_run",
+  "enforceable": false,
+  "runId": "5cc03bbf-50b5-46ad-89fc-5057d32c1ee6",
+  "advisoryOutcome": "dry_run_advisory",
+  "reasons": [
+    "dry_run_preview"
+  ],
+  "issuedAt": "2026-02-11T19:32:38.6093659-05:00"
+}

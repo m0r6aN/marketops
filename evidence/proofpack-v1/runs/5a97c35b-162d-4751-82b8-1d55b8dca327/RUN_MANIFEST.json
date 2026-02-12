@@ -1,0 +1,69 @@
+﻿{
+  "schemaVersion": "marketops.proofpack.run-manifest.v1",
+  "runId": "5a97c35b-162d-4751-82b8-1d55b8dca327",
+  "issuedAt": "2026-02-12T02:19:45.9126642+00:00",
+  "mode": "dry_run",
+  "scenario": "04-policy-violation-direct-push-main",
+  "source": {
+    "host": "M0R6AN",
+    "service": "MarketOps.Api.Host",
+    "serviceVersion": "1.0.0"
+  },
+  "scope": {
+    "repos": [
+      "D:\\Repos\\marketops",
+      "D:\\Repos\\marketops\\main"
+    ],
+    "reposTotal": 2,
+    "issuesTotal": 4
+  },
+  "invariants": {
+    "dryRunBlocksAllSideEffects": true,
+    "fcOnlyMintEnforceable": true,
+    "portsAreGateways": true
+  },
+  "artifacts": [
+    {
+      "name": "publication-plan.json",
+      "path": "artifacts/publication-plan.json",
+      "contentType": "application/json",
+      "sha256": "1c4f1613ab4bb8c7386f6486b376b16af964bc661c34160ee35e7756984ba373",
+      "bytes": 1507
+    },
+    {
+      "name": "proof-ledger.json",
+      "path": "artifacts/proof-ledger.json",
+      "contentType": "application/json",
+      "sha256": "625a6b1ee30313063f28ba19946e14e3ccd0f8b3762b20d5d1cf88444dc02907",
+      "bytes": 3975
+    },
+    {
+      "name": "judge-advisory-receipt.json",
+      "path": "artifacts/judge-advisory-receipt.json",
+      "contentType": "application/json",
+      "sha256": "fbff8722188e1bca54f7a506cc921dedcd0afbf2c17e0d83498286e7df51e0af",
+      "bytes": 424
+    },
+    {
+      "name": "approver-summary.json",
+      "path": "artifacts/approver-summary.json",
+      "contentType": "application/json",
+      "sha256": "ed91f773a7e77051dc69fa6f4b040ded1e2ff1143bbb0cd52dc9f6f1c44f853b",
+      "bytes": 4488
+    },
+    {
+      "name": "approver-summary.md",
+      "path": "artifacts/approver-summary.md",
+      "contentType": "text/markdown",
+      "sha256": "65fecce5ff79563b8ecae50ca2372134d3d270d781a113da387845e054b2e8dd",
+      "bytes": 2505
+    }
+  ],
+  "rollup": {
+    "intentsTotal": 4,
+    "blockedByMode": 4,
+    "blockedByPolicy": 1,
+    "policyVerdict": "denied",
+    "recommendationOutcome": "deny"
+  }
+}

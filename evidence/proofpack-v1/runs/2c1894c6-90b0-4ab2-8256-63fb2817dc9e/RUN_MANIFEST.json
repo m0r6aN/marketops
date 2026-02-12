@@ -1,0 +1,68 @@
+﻿{
+  "schemaVersion": "marketops.proofpack.run-manifest.v1",
+  "runId": "2c1894c6-90b0-4ab2-8256-63fb2817dc9e",
+  "issuedAt": "2026-02-12T02:19:45.8974317+00:00",
+  "mode": "dry_run",
+  "scenario": "01-hygiene-sweep",
+  "source": {
+    "host": "M0R6AN",
+    "service": "MarketOps.Api.Host",
+    "serviceVersion": "1.0.0"
+  },
+  "scope": {
+    "repos": [
+      "D:\\Repos\\marketops"
+    ],
+    "reposTotal": 1,
+    "issuesTotal": 3
+  },
+  "invariants": {
+    "dryRunBlocksAllSideEffects": true,
+    "fcOnlyMintEnforceable": true,
+    "portsAreGateways": true
+  },
+  "artifacts": [
+    {
+      "name": "publication-plan.json",
+      "path": "artifacts/publication-plan.json",
+      "contentType": "application/json",
+      "sha256": "3998d96d5a60c1ccfe9a8fb7f07544adc58570075201a210d161c69db04031d5",
+      "bytes": 1364
+    },
+    {
+      "name": "proof-ledger.json",
+      "path": "artifacts/proof-ledger.json",
+      "contentType": "application/json",
+      "sha256": "7bb40d879a59f4d0af7849bfaf6dffdd8dff6e3a7026fc9abfc5ee62419c5dfb",
+      "bytes": 2917
+    },
+    {
+      "name": "judge-advisory-receipt.json",
+      "path": "artifacts/judge-advisory-receipt.json",
+      "contentType": "application/json",
+      "sha256": "680b9fc307d1fefd28eb16cba913fe8b354f7d07fce7966944ca09effb7697c1",
+      "bytes": 290
+    },
+    {
+      "name": "approver-summary.json",
+      "path": "artifacts/approver-summary.json",
+      "contentType": "application/json",
+      "sha256": "8dcb251d2a01fdb0c40e856b857017a0d74082c424207b875bad71c4252a0621",
+      "bytes": 2897
+    },
+    {
+      "name": "approver-summary.md",
+      "path": "artifacts/approver-summary.md",
+      "contentType": "text/markdown",
+      "sha256": "d73ebf21e0d0b9ca2046757ca39100934f5215be0f431b45c022e48288b04d47",
+      "bytes": 1526
+    }
+  ],
+  "rollup": {
+    "intentsTotal": 3,
+    "blockedByMode": 3,
+    "blockedByPolicy": 0,
+    "policyVerdict": "clear",
+    "recommendationOutcome": "review_ready"
+  }
+}

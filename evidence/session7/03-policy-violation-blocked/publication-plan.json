@@ -1,0 +1,43 @@
+{
+  "runId": "71e11e50-a743-4c5f-8793-04f9334dbd19",
+  "mode": "dry_run",
+  "discoveredArtifacts": [],
+  "selectedCandidates": [],
+  "executedChecks": [],
+  "evaluatedPolicies": [],
+  "wouldShip": [
+    {
+      "id": "2a524726-23ef-4384-9a5f-a2d505ddb04b",
+      "type": "missing_readme",
+      "hash": "-1372005858",
+      "createdAt": "2026-02-11T19:06:11.7632628-05:00",
+      "repoPath": "D:\\Repos\\marketops\\src\\MarketOps.Api.Host",
+      "filePath": "README.md",
+      "description": "README.md is missing",
+      "severity": "high"
+    },
+    {
+      "id": "8b4ff067-a148-4ace-89c5-d4f905b2d4f7",
+      "type": "missing_codeowners",
+      "hash": "-1949278821",
+      "createdAt": "2026-02-11T19:06:11.7632643-05:00",
+      "repoPath": "D:\\Repos\\marketops\\src\\MarketOps.Api.Host",
+      "filePath": "CODEOWNERS",
+      "description": "CODEOWNERS file is missing",
+      "severity": "high"
+    },
+    {
+      "id": "4b7f040d-1d9a-4f87-adb3-49491df69377",
+      "type": "missing_editorconfig",
+      "hash": "397673534",
+      "createdAt": "2026-02-11T19:06:11.7632667-05:00",
+      "repoPath": "D:\\Repos\\marketops\\src\\MarketOps.Api.Host",
+      "filePath": ".editorconfig",
+      "description": ".editorconfig file is missing",
+      "severity": "low"
+    }
+  ],
+  "wouldNotShip": [],
+  "reasons": {},
+  "missingPrerequisites": []
+}

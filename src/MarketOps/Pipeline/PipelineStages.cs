@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MarketOps.Contracts;
+using MarketOps.Discovery;
+using MarketOps.Policy;
+using MarketOps.Ports;
 
 namespace MarketOps.Pipeline;
 
@@ -21,17 +24,83 @@ public sealed class PipelineStages
     }
 
     /// <summary>
-    /// Stage 1: Discover - Find all artifacts available for publication.
+    /// Stage 1: Discover - Find all hygiene issues in provided repos.
     /// </summary>
     public async Task<DiscoveredArtifacts> DiscoverAsync(
         MarketOpsRun run,
         CancellationToken ct = default)
     {
         _auditLog?.Invoke($"STAGE_DISCOVER_START mode={run.Mode}");
-        
-        // TODO: Implement artifact discovery logic
+
         var artifacts = new List<ArtifactMetadata>();
-        
+        var scanner = new RepoScanner(_auditLog);
+
+        // Extract repo paths from input
+        if (run.Input.TryGetValue("repos", out var reposObj))
+        {
+            _auditLog?.Invoke($"DISCOVER_REPOS_FOUND type={reposObj?.GetType().Name}");
+
+            // Handle different types of repo collections
+            var repoPaths = new List<string>();
+
+            // Handle JsonElement (from JSON deserialization)
+            if (reposObj is System.Text.Json.JsonElement jsonElem)
+            {
+                if (jsonElem.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var item in jsonElem.EnumerateArray())
+                    {
+                        var repoPath = item.GetString();
+                        if (!string.IsNullOrEmpty(repoPath))
+                            repoPaths.Add(repoPath);
+                    }
+                }
+                else if (jsonElem.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    var repoPath = jsonElem.GetString();
+                    if (!string.IsNullOrEmpty(repoPath))
+                        repoPaths.Add(repoPath);
+                }
+            }
+            // Handle IEnumerable (list, array, etc.)
+            else if (reposObj is System.Collections.IEnumerable enumerable && !(reposObj is string))
+            {
+                foreach (var repo in enumerable)
+                {
+                    var repoPath = repo?.ToString();
+                    if (!string.IsNullOrEmpty(repoPath))
+                        repoPaths.Add(repoPath);
+                }
+            }
+            // Handle single string
+            else if (reposObj is string singleRepo && !string.IsNullOrEmpty(singleRepo))
+            {
+                repoPaths.Add(singleRepo);
+            }
+
+            _auditLog?.Invoke($"DISCOVER_REPO_PATHS count={repoPaths.Count}");
+
+            foreach (var repoPath in repoPaths)
+            {
+                _auditLog?.Invoke($"DISCOVER_SCANNING repo_path={repoPath}");
+                var issues = await scanner.ScanAsync(repoPath, ct);
+                _auditLog?.Invoke($"DISCOVER_ISSUES_FOUND repo_path={repoPath} count={issues.Count}");
+
+                foreach (var issue in issues)
+                {
+                    artifacts.Add(new ArtifactMetadata(
+                        Id: Guid.NewGuid().ToString(),
+                        Type: issue.Type,
+                        Hash: issue.GetHashCode().ToString(),
+                        CreatedAt: DateTimeOffset.UtcNow,
+                        RepoPath: issue.RepoPath,
+                        FilePath: issue.FilePath,
+                        Description: issue.Description,
+                        Severity: issue.Severity));
+                }
+            }
+        }
+
         _auditLog?.Invoke($"STAGE_DISCOVER_END count={artifacts.Count}");
         return new DiscoveredArtifacts(artifacts);
     }
@@ -73,7 +142,7 @@ public sealed class PipelineStages
         var isValid = true;
         _auditLog?.Invoke($"STAGE_VERIFY_END valid={isValid} checks={checks.Count}");
 
-        return new Pipeline.VerificationResult(isValid, checks);
+        return new Pipeline.VerificationResult(isValid, checks, selected.Candidates);
     }
 
     /// <summary>
@@ -87,33 +156,128 @@ public sealed class PipelineStages
         _auditLog?.Invoke($"STAGE_EVALUATE_START mode={run.Mode}");
 
         var policies = new List<string>();
+        var evaluator = new PolicyEvaluator(_auditLog);
 
-        // TODO: Implement policy evaluation
-        // - Judge policy evaluation
-        // - Governance checks
+        // Generate intents from verified candidates
+        var intents = new List<SideEffectIntent>();
+        foreach (var candidate in verified.Candidates)
+        {
+            var intent = new SideEffectIntent(
+                Id: Guid.NewGuid().ToString(),
+                Mode: run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
+                EffectType: SideEffectType.OpenPr,
+                Target: candidate.RepoPath ?? "unknown",
+                Parameters: new Dictionary<string, object?>
+                {
+                    { "file", candidate.FilePath },
+                    { "issue_type", candidate.Type },
+                    { "description", candidate.Description },
+                    { "severity", candidate.Severity ?? "medium" }
+                },
+                BlockedByMode: run.IsDryRun,
+                BlockedByPolicy: false,
+                PolicyDenialReasons: new List<string>(),
+                RequiredAuthorization: new Dictionary<string, object?> { { "enforceable_required", false } },
+                Timestamp: DateTimeOffset.UtcNow);
 
-        var isApproved = true;
+            intents.Add(intent);
+        }
+
+        // Inject violation intent if simulateViolation flag is set (for testing policy denial)
+        if (run.Input.TryGetValue("simulateViolation", out var violationObj))
+        {
+            // Handle JsonElement (from JSON deserialization) vs plain string
+            string? violationType = null;
+            if (violationObj is System.Text.Json.JsonElement jsonViolation)
+                violationType = jsonViolation.GetString();
+            else
+                violationType = violationObj?.ToString();
+
+            if (violationType == "direct_push_main")
+            {
+                var violationIntent = new SideEffectIntent(
+                    Id: Guid.NewGuid().ToString(),
+                    Mode: run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
+                    EffectType: SideEffectType.TagRepo,  // Not OpenPr → triggers direct-push-to-main policy
+                    Target: "D:\\Repos\\marketops\\main",  // Target main branch
+                    Parameters: new Dictionary<string, object?>
+                    {
+                        { "branch", "main" },
+                        { "action", "direct_commit" },
+                        { "issue_type", "direct_push_to_main" },
+                        { "severity", "critical" },
+                        { "description", "Test: Direct push to main (should be denied by policy)" }
+                    },
+                    BlockedByMode: run.IsDryRun,
+                    BlockedByPolicy: false,
+                    PolicyDenialReasons: new List<string>(),
+                    RequiredAuthorization: new Dictionary<string, object?> { { "enforceable_required", false } },
+                    Timestamp: DateTimeOffset.UtcNow);
+
+                intents.Add(violationIntent);
+                _auditLog?.Invoke($"VIOLATION_INJECTED type=direct_push_main intent_id={violationIntent.Id}");
+            }
+        }
+
+        // Evaluate policies and update intents with policy results
+        var policyResult = await evaluator.EvaluateAsync(intents, ct);
+        policies.AddRange(policyResult.DenialReasons);
+
+        // Update intents with policy evaluation results
+        if (!policyResult.IsApproved)
+        {
+            for (int i = 0; i < intents.Count; i++)
+            {
+                var intent = intents[i];
+                // Check if this specific intent was denied
+                var denialReason = policyResult.DenialReasons.FirstOrDefault(r => r.Contains(intent.Id));
+                if (denialReason != null)
+                {
+                    intents[i] = intent with
+                    {
+                        BlockedByPolicy = true,
+                        PolicyDenialReasons = new List<string> { denialReason }
+                    };
+                }
+            }
+        }
+
+        var isApproved = policyResult.IsApproved;
         _auditLog?.Invoke($"STAGE_EVALUATE_END approved={isApproved} policies={policies.Count}");
 
-        return new Pipeline.EvaluationResult(isApproved, policies);
+        return new Pipeline.EvaluationResult(isApproved, policies, intents);
     }
 
     /// <summary>
-    /// Stage 5: Plan - Generate PublicationPlan and SideEffectIntents.
+    /// Stage 5: Plan - Generate PublicationPlan based on policy evaluation.
     /// </summary>
     public async Task<Pipeline.PublicationPlanData> PlanAsync(
         MarketOpsRun run,
+        Pipeline.VerificationResult verified,
         Pipeline.EvaluationResult evaluated,
         CancellationToken ct = default)
     {
-        _auditLog?.Invoke($"STAGE_PLAN_START mode={run.Mode}");
+        _auditLog?.Invoke($"STAGE_PLAN_START mode={run.Mode} approved={evaluated.IsApproved}");
 
         var wouldShip = new List<object>();
         var wouldNotShip = new List<object>();
         var reasons = new Dictionary<string, string>();
 
-        // TODO: Generate PublicationPlan
-        // TODO: Generate SideEffectIntents
+        // If approved, all candidates ship; otherwise, none ship
+        if (evaluated.IsApproved)
+        {
+            wouldShip.AddRange(verified.Candidates);
+            _auditLog?.Invoke($"STAGE_PLAN approved_all candidates={verified.Candidates.Count}");
+        }
+        else
+        {
+            wouldNotShip.AddRange(verified.Candidates);
+            foreach (var reason in evaluated.Policies)
+            {
+                reasons[Guid.NewGuid().ToString()] = reason;
+            }
+            _auditLog?.Invoke($"STAGE_PLAN denied_all candidates={verified.Candidates.Count} reasons={evaluated.Policies.Count}");
+        }
 
         _auditLog?.Invoke($"STAGE_PLAN_END would_ship={wouldShip.Count} would_not_ship={wouldNotShip.Count}");
 
@@ -124,5 +288,13 @@ public sealed class PipelineStages
 public sealed record DiscoveredArtifacts(List<ArtifactMetadata> Artifacts);
 public sealed record SelectedCandidates(List<ArtifactMetadata> Candidates);
 public sealed record VerificationCheck(string Name, bool Passed, string? Details);
-public sealed record ArtifactMetadata(string Id, string Type, string Hash, DateTimeOffset CreatedAt);
+public sealed record ArtifactMetadata(
+    string Id,
+    string Type,
+    string Hash,
+    DateTimeOffset CreatedAt,
+    string? RepoPath = null,
+    string? FilePath = null,
+    string? Description = null,
+    string? Severity = null);
 

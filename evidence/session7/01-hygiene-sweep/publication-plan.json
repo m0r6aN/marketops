@@ -1,0 +1,43 @@
+{
+  "runId": "5cc03bbf-50b5-46ad-89fc-5057d32c1ee6",
+  "mode": "dry_run",
+  "discoveredArtifacts": [],
+  "selectedCandidates": [],
+  "executedChecks": [],
+  "evaluatedPolicies": [],
+  "wouldShip": [
+    {
+      "id": "d42afd88-0512-4ed1-9a7b-f1218ee6d7af",
+      "type": "incomplete_readme",
+      "hash": "-1774985962",
+      "createdAt": "2026-02-11T19:32:38.6064273-05:00",
+      "repoPath": "D:\\Repos\\marketops",
+      "filePath": "README.md",
+      "description": "README.md missing sections: ## Installation, ## Usage, ## License",
+      "severity": "medium"
+    },
+    {
+      "id": "7315c9d4-f103-4dd3-a1da-9a90e179b01d",
+      "type": "missing_codeowners",
+      "hash": "-1844253362",
+      "createdAt": "2026-02-11T19:32:38.6064305-05:00",
+      "repoPath": "D:\\Repos\\marketops",
+      "filePath": "CODEOWNERS",
+      "description": "CODEOWNERS file is missing",
+      "severity": "high"
+    },
+    {
+      "id": "4a2a6abd-7c08-447b-ad05-c8d55a176d0e",
+      "type": "missing_editorconfig",
+      "hash": "502698993",
+      "createdAt": "2026-02-11T19:32:38.6064341-05:00",
+      "repoPath": "D:\\Repos\\marketops",
+      "filePath": ".editorconfig",
+      "description": ".editorconfig file is missing",
+      "severity": "low"
+    }
+  ],
+  "wouldNotShip": [],
+  "reasons": {},
+  "missingPrerequisites": []
+}

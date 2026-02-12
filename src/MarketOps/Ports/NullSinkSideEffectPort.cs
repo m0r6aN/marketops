@@ -73,6 +73,8 @@ public sealed class NullSinkSideEffectPort : ISideEffectPort
             Target: target,
             Parameters: parameters,
             BlockedByMode: true,
+            BlockedByPolicy: false,
+            PolicyDenialReasons: new List<string>(),
             RequiredAuthorization: new Dictionary<string, object?> { { "enforceable_required", false } },
             Timestamp: now);
 

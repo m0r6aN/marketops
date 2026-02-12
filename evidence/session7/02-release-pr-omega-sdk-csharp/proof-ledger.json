@@ -1,0 +1,87 @@
+{
+  "runId": "2864009c-14fe-433f-9b19-c97cd13050aa",
+  "mode": "dry_run",
+  "inputHashes": {},
+  "policySetReferences": [],
+  "stageEvents": [],
+  "sideEffectIntents": [
+    {
+      "id": "9f92c415-abaf-4b50-8d30-f78d4e3124fd",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "parameters": {
+        "file": "README.md",
+        "issue_type": "missing_readme",
+        "description": "README.md is missing"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:28:00.514429-05:00"
+    },
+    {
+      "id": "4a37afe0-6b2a-4f8d-9e86-de0193098f15",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "parameters": {
+        "file": "CODEOWNERS",
+        "issue_type": "missing_codeowners",
+        "description": "CODEOWNERS file is missing"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:28:00.5144345-05:00"
+    },
+    {
+      "id": "26dcd150-1872-4e89-a127-bcd4cbc10975",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "parameters": {
+        "file": ".editorconfig",
+        "issue_type": "missing_editorconfig",
+        "description": ".editorconfig file is missing"
+      },
+      "blockedByMode": true,
+      "requiredAuthorization": {
+        "enforceable_required": false
+      },
+      "timestamp": "2026-02-11T19:28:00.514436-05:00"
+    }
+  ],
+  "sideEffectReceipts": [
+    {
+      "id": "bb395a96-7355-4905-9405-20af1c363db1",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:28:00.514433-05:00"
+    },
+    {
+      "id": "4303af30-3854-495b-80f7-e4970eb0aefb",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:28:00.5144356-05:00"
+    },
+    {
+      "id": "894a19fd-12b4-4403-bfea-946701fa7e30",
+      "mode": "dry_run",
+      "effectType": 3,
+      "target": "D:\\Repos\\marketops\\src\\MarketOps",
+      "success": false,
+      "errorMessage": "blocked_by_mode",
+      "executedAt": "2026-02-11T19:28:00.5144361-05:00"
+    }
+  ],
+  "sealedAt": "2026-02-11T19:28:00.514534-05:00"
+}

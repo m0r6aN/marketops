@@ -1,0 +1,106 @@
+﻿{
+  "schemaVersion": "marketops.approver-summary.v1",
+  "runId": "19f9d7ca-1b9a-4a9b-8ffd-2da9843a96b7",
+  "mode": "dry_run",
+  "issuedAt": "2026-02-12T01:53:40.5818101+00:00",
+  "metadata": {
+    "status": "completed",
+    "startedAt": "2026-02-12T01:53:35.9548969+00:00",
+    "completedAt": "2026-02-12T01:53:40.5794355+00:00",
+    "durationSeconds": 4
+  },
+  "scope": {
+    "reposTotal": 1,
+    "reposWithFindings": 1,
+    "repos": [
+      "D:\\Repos\\marketops"
+    ],
+    "issuesTotal": 3,
+    "issuesByType": {
+      "incomplete_readme": 1,
+      "missing_codeowners": 1,
+      "missing_editorconfig": 1
+    }
+  },
+  "operations": {
+    "totalIntents": 3,
+    "blockedByMode": 3,
+    "blockedByPolicy": 0,
+    "wouldExecute": 0,
+    "countsByStatus": {
+      "blocked_by_mode": 3
+    },
+    "topOperations": [
+      {
+        "intentId": "44f53f47-8bb9-46d1-a941-fec6f53a0134",
+        "effectType": "OpenPr",
+        "target": {
+          "repoPath": "D:\\Repos\\marketops",
+          "branch": "main",
+          "scope": "repo"
+        },
+        "status": "blocked_by_mode",
+        "blocked": {
+          "byMode": true,
+          "byPolicy": false
+        },
+        "blockReasons": [
+          {
+            "code": "dry_run_blocks_side_effects",
+            "message": "Dry run mode blocks all side effects."
+          }
+        ],
+        "items": [
+          {
+            "issueType": "incomplete_readme",
+            "severity": "medium",
+            "action": "update",
+            "path": "README.md",
+            "contentDigest": "sha256:d4d902c4173ef95abeee1d4fa1ded1a40b2cf9130e89440644b8e2f0dc356c4d",
+            "details": {
+              "missingSections": [
+                "Installation",
+                "Usage",
+                "License"
+              ]
+            },
+            "preview": null
+          },
+          {
+            "issueType": "missing_codeowners",
+            "severity": "high",
+            "action": "create",
+            "path": "CODEOWNERS",
+            "contentDigest": "sha256:c60e6fd4af996d655501d65f0b363061f7854cdf9929c14d1640d42923a69474",
+            "details": null,
+            "preview": null
+          },
+          {
+            "issueType": "missing_editorconfig",
+            "severity": "low",
+            "action": "create",
+            "path": ".editorconfig",
+            "contentDigest": "sha256:4266447428639b3b55b6146e74869e37a2664810e7fc02e3ae16f82c695d634b",
+            "details": null,
+            "preview": null
+          }
+        ]
+      }
+    ]
+  },
+  "policyEvaluation": {
+    "verdict": "clear",
+    "violationsDetected": 0,
+    "violations": []
+  },
+  "recommendation": {
+    "outcome": "review_ready",
+    "summary": "Dry run preview: 3 intent(s) blocked by mode \u2014 no changes made",
+    "requiredActions": [
+      "Review operation details in full ledger"
+    ],
+    "warnings": [
+      "This is a dry-run preview; no changes will be made"
+    ]
+  }
+}

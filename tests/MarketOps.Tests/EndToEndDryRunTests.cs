@@ -503,6 +503,8 @@ public sealed class EndToEndDryRunTests
                 Target: target,
                 Parameters: parameters,
                 BlockedByMode: true,  // ← Always blocked in dry-run
+                BlockedByPolicy: false,
+                PolicyDenialReasons: new List<string>(),
                 RequiredAuthorization: new Dictionary<string, object?> { { "enforceable", false } },
                 Timestamp: DateTimeOffset.UtcNow);
 

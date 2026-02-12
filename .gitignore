@@ -8,6 +8,22 @@ obj/
 *.exe
 *.pdb
 *.log
+*.err
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+
+# Claude AI local settings
+.claude/
+
+# Temp/scratch files
+test_output.txt
+
+# AI-generated summary docs (not project documentation)
+IMPLEMENTATION_COMPLETE.md
+MARKETOPS_API_HOST.md
+MARKETOPS_DRY_RUN_IMPLEMENTATION.md
 
 # Visual Studio
 .vs/
@@ -377,4 +393,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-

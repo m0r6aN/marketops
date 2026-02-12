@@ -1,0 +1,153 @@
+﻿{
+  "schemaVersion": "marketops.approver-summary.v1",
+  "runId": "720001e1-36a4-42ba-a890-0fbd14c3c7c7",
+  "mode": "dry_run",
+  "issuedAt": "2026-02-12T01:53:47.5906175+00:00",
+  "metadata": {
+    "status": "completed",
+    "startedAt": "2026-02-12T01:53:43.3593597+00:00",
+    "completedAt": "2026-02-12T01:53:47.5905411+00:00",
+    "durationSeconds": 4
+  },
+  "scope": {
+    "reposTotal": 2,
+    "reposWithFindings": 2,
+    "repos": [
+      "D:\\Repos\\marketops",
+      "D:\\Repos\\marketops\\main"
+    ],
+    "issuesTotal": 4,
+    "issuesByType": {
+      "incomplete_readme": 1,
+      "missing_codeowners": 1,
+      "missing_editorconfig": 1,
+      "direct_push_to_main": 1
+    }
+  },
+  "operations": {
+    "totalIntents": 4,
+    "blockedByMode": 4,
+    "blockedByPolicy": 1,
+    "wouldExecute": 0,
+    "countsByStatus": {
+      "blocked_by_mode": 3,
+      "denied_by_policy": 1
+    },
+    "topOperations": [
+      {
+        "intentId": "a3c07d96-9e42-45e5-99fd-8678fa5152ba",
+        "effectType": "OpenPr",
+        "target": {
+          "repoPath": "D:\\Repos\\marketops",
+          "branch": "main",
+          "scope": "repo"
+        },
+        "status": "blocked_by_mode",
+        "blocked": {
+          "byMode": true,
+          "byPolicy": false
+        },
+        "blockReasons": [
+          {
+            "code": "dry_run_blocks_side_effects",
+            "message": "Dry run mode blocks all side effects."
+          }
+        ],
+        "items": [
+          {
+            "issueType": "incomplete_readme",
+            "severity": "medium",
+            "action": "update",
+            "path": "README.md",
+            "contentDigest": "sha256:d4d902c4173ef95abeee1d4fa1ded1a40b2cf9130e89440644b8e2f0dc356c4d",
+            "details": {
+              "missingSections": [
+                "Installation",
+                "Usage",
+                "License"
+              ]
+            },
+            "preview": null
+          },
+          {
+            "issueType": "missing_codeowners",
+            "severity": "high",
+            "action": "create",
+            "path": "CODEOWNERS",
+            "contentDigest": "sha256:c60e6fd4af996d655501d65f0b363061f7854cdf9929c14d1640d42923a69474",
+            "details": null,
+            "preview": null
+          },
+          {
+            "issueType": "missing_editorconfig",
+            "severity": "low",
+            "action": "create",
+            "path": ".editorconfig",
+            "contentDigest": "sha256:4266447428639b3b55b6146e74869e37a2664810e7fc02e3ae16f82c695d634b",
+            "details": null,
+            "preview": null
+          }
+        ]
+      },
+      {
+        "intentId": "dbba04e0-c807-437a-9885-0a71ae2103ae",
+        "effectType": "TagRepo",
+        "target": {
+          "repoPath": "D:\\Repos\\marketops\\main",
+          "branch": "main",
+          "scope": "repo"
+        },
+        "status": "denied_by_policy",
+        "blocked": {
+          "byMode": true,
+          "byPolicy": true
+        },
+        "blockReasons": [
+          {
+            "code": "dry_run_blocks_side_effects",
+            "message": "Dry run mode blocks all side effects."
+          },
+          {
+            "code": "policy_denial",
+            "message": "Intent dbba04e0-c807-437a-9885-0a71ae2103ae targets direct push to main (blocked by policy)"
+          }
+        ],
+        "items": [
+          {
+            "issueType": "direct_push_to_main",
+            "severity": "critical",
+            "action": "modify",
+            "path": "D:\\Repos\\marketops\\main",
+            "contentDigest": "sha256:835d5ae98b0408806955466f532952762c13e4075350bc95e117eb2e5ec26a03",
+            "details": null,
+            "preview": null
+          }
+        ]
+      }
+    ]
+  },
+  "policyEvaluation": {
+    "verdict": "denied",
+    "violationsDetected": 1,
+    "violations": [
+      {
+        "intentId": "dbba04e0-c807-437a-9885-0a71ae2103ae",
+        "violationType": "direct_push_to_main",
+        "ruleId": "policy.direct_push_main.denied.v1",
+        "reason": "Intent dbba04e0-c807-437a-9885-0a71ae2103ae targets direct push to main (blocked by policy)",
+        "recommendation": "Use a pull request instead of direct push to main"
+      }
+    ]
+  },
+  "recommendation": {
+    "outcome": "deny",
+    "summary": "Policy violations detected: 1 intent(s) blocked",
+    "requiredActions": [
+      "Address policy violations before proceeding",
+      "Review operation details in full ledger"
+    ],
+    "warnings": [
+      "This is a dry-run preview; no changes will be made"
+    ]
+  }
+}

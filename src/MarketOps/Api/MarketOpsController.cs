@@ -105,12 +105,71 @@ public sealed class MarketOpsController
         return Task.FromResult(state.Advisory);
     }
 
-    internal void UpdateRunState(string runId, PublicationPlan plan, ProofLedger ledger, JudgeAdvisoryReceipt? advisory)
+    /// <summary>
+    /// GET /marketops/runs/{id}/summary - Get ApproverSummary (JSON).
+    /// </summary>
+    public Task<ApproverSummary> GetSummaryAsync(string runId, CancellationToken ct = default)
+    {
+        if (!_runs.TryGetValue(runId, out var state))
+            throw new InvalidOperationException($"Run not found: {runId}");
+
+        if (state.Ledger == null)
+            throw new InvalidOperationException($"Ledger not available for run: {runId}");
+
+        var generator = new ApproverSummaryGenerator(_auditLog);
+        var summary = generator.Generate(
+            runId,
+            state.Run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
+            state.Run.StartedAt,
+            state.Ledger.SideEffectIntents,
+            state.Ledger.SideEffectReceipts);
+
+        return Task.FromResult(summary);
+    }
+
+    /// <summary>
+    /// GET /marketops/runs/{id}/summary.md - Get ApproverSummary (Markdown).
+    /// </summary>
+    public async Task<string> GetSummaryMarkdownAsync(string runId, CancellationToken ct = default)
+    {
+        var summary = await GetSummaryAsync(runId, ct);
+        var renderer = new ApproverSummaryMarkdownRenderer();
+        return renderer.Render(summary);
+    }
+
+    public void UpdateRunState(string runId, PublicationPlan plan, ProofLedger ledger, JudgeAdvisoryReceipt? advisory)
     {
         if (_runs.TryGetValue(runId, out var state))
         {
             _runs[runId] = state with { Plan = plan, Ledger = ledger, Advisory = advisory, Status = "completed" };
         }
+    }
+
+    /// <summary>
+    /// Gets all artifacts for a run — used by ProofPackGenerator.
+    /// Returns (plan, ledger, advisory, summary, summaryMarkdown) or throws if run not found.
+    /// </summary>
+    public async Task<ProofPackRunInput> GetRunForProofPackAsync(string runId, string scenario, CancellationToken ct = default)
+    {
+        if (!_runs.TryGetValue(runId, out var state))
+            throw new InvalidOperationException($"Run not found: {runId}");
+
+        if (state.Plan == null || state.Ledger == null)
+            throw new InvalidOperationException($"Artifacts not available for run: {runId}");
+
+        var summary = await GetSummaryAsync(runId, ct);
+        var markdown = await GetSummaryMarkdownAsync(runId, ct);
+
+        return new ProofPackRunInput(
+            RunId: runId,
+            Scenario: scenario,
+            Mode: state.Run.Mode == ExecutionMode.DryRun ? "dry_run" : "prod",
+            StartedAt: state.Run.StartedAt,
+            Plan: state.Plan,
+            Ledger: state.Ledger,
+            Advisory: state.Advisory,
+            Summary: summary,
+            SummaryMarkdown: markdown);
     }
 }
 

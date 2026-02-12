@@ -28,6 +28,8 @@ public sealed record SideEffectIntent(
     string Target,
     Dictionary<string, object?> Parameters,
     bool BlockedByMode,
+    bool BlockedByPolicy,
+    List<string> PolicyDenialReasons,
     Dictionary<string, object?> RequiredAuthorization,
     DateTimeOffset Timestamp);
 
