@@ -48,9 +48,9 @@ function Get-BytesSha256([byte[]]$Bytes) {
 # Locate EdVerify tool (built .NET console app)
 $edVerifyPath = $null
 $candidates = @(
-    (Join-Path $PackDir "..\..\tools\EdVerify\bin\publish\EdVerify.exe"),
-    (Join-Path $PackDir "..\..\tools\EdVerify\bin\Release\net10.0\EdVerify.exe"),
-    (Join-Path $PackDir "..\..\tools\EdVerify\bin\Debug\net10.0\EdVerify.exe")
+    (Join-Path $PackDir "..\..\tools/EdVerify\bin\publish\EdVerify.exe"),
+    (Join-Path $PackDir "..\..\tools/EdVerify\bin\Release\net10.0\EdVerify.exe"),
+    (Join-Path $PackDir "..\..\tools/EdVerify\bin\Debug\net10.0\EdVerify.exe")
 )
 foreach ($c in $candidates) {
     $resolved = [System.IO.Path]::GetFullPath($c)

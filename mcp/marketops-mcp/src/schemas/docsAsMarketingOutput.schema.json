@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://marketops.local/schemas/docs-as-marketing-output.v1.json",
+  "title": "DocsAsMarketingReviewOutput",
+  "description": "Output contract for the docs_as_marketing_review MCP tool. Mirrors the JSON mode of the docs-as-marketing-review skill (rubric: docs-as-marketing.v1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "candidates", "red_flags", "asset_opportunities"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["best_marketing_uses", "overall_score", "highest_value_theme"],
+      "properties": {
+        "best_marketing_uses": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/useFor" },
+          "minItems": 0
+        },
+        "overall_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "highest_value_theme": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/candidate" }
+    },
+    "red_flags": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/redFlag" }
+    },
+    "asset_opportunities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/assetOpportunity" }
+    }
+  },
+  "definitions": {
+    "useFor": {
+      "type": "string",
+      "enum": [
+        "Website", "Landing Page", "Blog", "SEO",
+        "Social Media", "LinkedIn", "X / Twitter",
+        "Email", "Newsletter",
+        "Sales Deck", "Investor Deck",
+        "Webinar", "Demo Script", "Product Tour",
+        "FAQ", "Knowledge Hub", "Case Study",
+        "One-Pager", "Whitepaper", "Press / Launch",
+        "Documentation Link-Back"
+      ]
+    },
+    "audience": {
+      "type": "string",
+      "enum": [
+        "Developer", "Platform Team", "Security Team", "Compliance Team",
+        "Executive", "Founder", "Buyer", "Operator",
+        "Auditor", "Partner", "Investor"
+      ]
+    },
+    "funnelStage": {
+      "type": "string",
+      "enum": [
+        "Awareness", "Education", "Consideration", "Conversion",
+        "Activation", "Retention", "Expansion",
+        "Trust Building", "Objection Handling"
+      ]
+    },
+    "contentType": {
+      "type": "string",
+      "enum": [
+        "Problem Statement", "Product Positioning", "Feature", "Benefit",
+        "Proof Point", "Differentiator", "Customer Outcome",
+        "Technical Explanation", "Architecture Principle", "Integration",
+        "Benchmark", "FAQ", "Glossary", "Tutorial", "Comparison",
+        "Objection", "Risk Reduction",
+        "Quote Candidate", "Hook", "CTA Candidate"
+      ]
+    },
+    "reviewConfidence": {
+      "type": "string",
+      "enum": [
+        "Use As-Is", "Light Rewrite", "Heavy Rewrite",
+        "Needs Proof", "Needs Version Check", "Roadmap Only",
+        "Internal Only", "Do Not Use"
+      ]
+    },
+    "proofStrength": {
+      "type": "string",
+      "enum": ["Strong", "Medium", "Weak", "Unsupported"]
+    },
+    "claimRisk": {
+      "type": "string",
+      "enum": ["Low", "Medium", "High"]
+    },
+    "assetPriority": {
+      "type": "string",
+      "enum": ["High", "Medium", "Low"]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_section", "source_excerpt", "marketing_angle",
+        "suggested_rewrite", "use_for", "audience",
+        "funnel_stage", "content_type", "confidence",
+        "proof_strength", "claim_risk", "link_back_required"
+      ],
+      "properties": {
+        "source_section": { "type": "string", "minLength": 1 },
+        "source_excerpt": { "type": "string", "minLength": 1 },
+        "marketing_angle": { "type": "string", "minLength": 1 },
+        "suggested_rewrite": { "type": "string", "minLength": 1 },
+        "use_for": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/useFor" },
+          "minItems": 1
+        },
+        "audience": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/audience" },
+          "minItems": 1
+        },
+        "funnel_stage": { "$ref": "#/definitions/funnelStage" },
+        "content_type": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/contentType" },
+          "minItems": 1
+        },
+        "confidence": { "$ref": "#/definitions/reviewConfidence" },
+        "proof_strength": { "$ref": "#/definitions/proofStrength" },
+        "claim_risk": { "$ref": "#/definitions/claimRisk" },
+        "link_back_required": { "type": "boolean" }
+      }
+    },
+    "redFlag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_excerpt", "risk_level", "issue"],
+      "properties": {
+        "source_excerpt": { "type": "string", "minLength": 1 },
+        "risk_level": { "$ref": "#/definitions/claimRisk" },
+        "issue": { "type": "string", "minLength": 1 },
+        "safer_wording": { "type": ["string", "null"] },
+        "proof_requirement": { "type": ["string", "null"] }
+      },
+      "anyOf": [
+        { "required": ["safer_wording"], "properties": { "safer_wording": { "type": "string", "minLength": 1 } } },
+        { "required": ["proof_requirement"], "properties": { "proof_requirement": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "assetOpportunity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_type", "theme", "priority"],
+      "properties": {
+        "asset_type": { "type": "string", "minLength": 1 },
+        "theme": { "type": "string", "minLength": 1 },
+        "priority": { "$ref": "#/definitions/assetPriority" }
+      }
+    }
+  }
+}

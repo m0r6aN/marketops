@@ -1,0 +1,35 @@
+services:  
+  marketops-mcp:
+    image: marketops-mcp-docs-marketing
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    stdin_open: true
+    environment:
+      MARKETOPS_MCP_MODE: stdio
+      DOCS_AS_MARKETING_MODEL_PROVIDER: ollama
+      DOCS_AS_MARKETING_MODEL_NAME: ${OLLAMA_MODEL:-llama3.1:8b}
+      DOCS_AS_MARKETING_STRICT_JSON: "true"
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_NUM_CTX: "65,536"
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama:/root/.ollama
+    # GPU access (optional):
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  ollama:

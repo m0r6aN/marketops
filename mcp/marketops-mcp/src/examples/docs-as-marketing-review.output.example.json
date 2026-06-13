@@ -1,0 +1,44 @@
+{
+  "summary": {
+    "best_marketing_uses": ["Landing Page", "Sales Deck", "Documentation Link-Back"],
+    "overall_score": 72,
+    "highest_value_theme": "Pre-execution governance as the category-defining inversion"
+  },
+  "candidates": [
+    {
+      "source_section": "Opening framing",
+      "source_excerpt": "Most AI platforms treat governance as a wrapper bolted on after the model acts. Keon inverts that: every action proposed by an agent is evaluated against a policy graph before execution.",
+      "marketing_angle": "Pre-execution governance as the category-defining inversion — governance is the runtime, not a wrapper.",
+      "suggested_rewrite": "Governance shouldn't be a wrapper around AI. Keon evaluates every agent action against a policy graph before it runs.",
+      "use_for": ["Landing Page", "Sales Deck"],
+      "audience": ["Executive", "Security Team", "Platform Team"],
+      "funnel_stage": "Consideration",
+      "content_type": ["Problem Statement", "Differentiator", "Product Positioning"],
+      "confidence": "Light Rewrite",
+      "proof_strength": "Medium",
+      "claim_risk": "Low",
+      "link_back_required": true
+    }
+  ],
+  "red_flags": [
+    {
+      "source_excerpt": "We are also building a receipts pipeline that will emit a signed artifact for every governed action; the first version ships in Q3.",
+      "risk_level": "Medium",
+      "issue": "Receipts pipeline is roadmap, not shipped. Risk of being quoted as a current capability if extracted without context.",
+      "safer_wording": "Signed receipts for every governed action are on the Q3 roadmap.",
+      "proof_requirement": "Do not present as current capability until the Q3 release ships and a sample signed receipt is published."
+    }
+  ],
+  "asset_opportunities": [
+    {
+      "asset_type": "Landing Page Hero",
+      "theme": "Govern AI before it acts.",
+      "priority": "High"
+    },
+    {
+      "asset_type": "Knowledge Hub Article",
+      "theme": "What is a policy graph?",
+      "priority": "Medium"
+    }
+  ]
+}

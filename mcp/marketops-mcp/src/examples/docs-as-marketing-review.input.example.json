@@ -1,0 +1,9 @@
+{
+  "initiative": "Keon Systems",
+  "document_type": "whitepaper",
+  "source_title": "Governed AI Execution",
+  "source_url_or_path": "docs/whitepapers/governed-ai-execution.md",
+  "target_audience": ["CTO", "Platform Team", "Security Team"],
+  "review_goal": "Find reusable marketing content",
+  "document_text": "Most AI platforms treat governance as a wrapper bolted on after the model acts. Keon inverts that: every action proposed by an agent is evaluated against a policy graph before execution. The policy graph is versioned, deterministic, and replayable, so the same input always yields the same governance decision. We are also building a receipts pipeline that will emit a signed artifact for every governed action; the first version ships in Q3."
+}
