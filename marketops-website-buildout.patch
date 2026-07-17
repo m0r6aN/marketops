@@ -1,0 +1,835 @@
+diff --git a/mcp/marketops-mcp/src/tools/docsAsMarketingReview.ts b/mcp/marketops-mcp/src/tools/docsAsMarketingReview.ts
+index 298cb3d..b129607 100644
+--- a/mcp/marketops-mcp/src/tools/docsAsMarketingReview.ts
++++ b/mcp/marketops-mcp/src/tools/docsAsMarketingReview.ts
+@@ -6,7 +6,7 @@
+  * LlmReviewClient to do the review, then validates the response. Provider
+  * choice and review heuristics live in src/llm/.
+  */
+-import { Ajv, type ValidateFunction } from "ajv";
++import Ajv, { type ValidateFunction } from "ajv";
+ // ajv-formats is CJS-only; under NodeNext+ESM the default export lives at `.default`.
+ import * as ajvFormatsModule from "ajv-formats";
+ const addFormats = (
+diff --git a/package-lock.json b/package-lock.json
+index 3bf7631..192ae6d 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -97,7 +97,6 @@
+       "resolved": "https://registry.npmjs.org/@babel/core/-/core-7.29.0.tgz",
+       "integrity": "sha512-CGOfOJqWjg2qW/Mb6zNsDm+u5vFQ8DxXfbM09z69p5Z6+mE1ikP2jUXw+j42Pf1XTYED2Rni5f95npYeuwMDQA==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@babel/code-frame": "^7.29.0",
+         "@babel/generator": "^7.29.0",
+@@ -691,7 +690,6 @@
+       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz",
+       "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -743,10 +741,32 @@
+         "@noble/ciphers": "^1.0.0"
+       }
+     },
++    "node_modules/@emnapi/core": {
++      "version": "1.11.2",
++      "resolved": "https://registry.npmjs.org/@emnapi/core/-/core-1.11.2.tgz",
++      "integrity": "sha512-TC8MkTuZUtcTSiFeuC0ksCh9QIJ5+F21MvZ4Wn4ORfYaFJ/0dsiudv5tVkejgwZlwQ39jL9WWDe2lz8x0WglOA==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/wasi-threads": "1.2.2",
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@emnapi/runtime": {
++      "version": "1.11.2",
++      "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.2.tgz",
++      "integrity": "sha512-kyOl3X0DuTiT1h2ft8r2fYO8JYtU9a9Xis/zBSiGArNaagCOWx90N1k2wxp18czFDH+OgcWGb5ZP/XMt3dcyPA==",
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
+     "node_modules/@emnapi/wasi-threads": {
+-      "version": "1.2.1",
+-      "resolved": "https://registry.npmjs.org/@emnapi/wasi-threads/-/wasi-threads-1.2.1.tgz",
+-      "integrity": "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w==",
++      "version": "1.2.2",
++      "resolved": "https://registry.npmjs.org/@emnapi/wasi-threads/-/wasi-threads-1.2.2.tgz",
++      "integrity": "sha512-c95qOXkHdydNKhscBTebqEC1CVAZpyqOfVfBzQ1qgzyl3gfeldUjIggDbIZgDKsHLgnsM+igH7TJ/eAasaVuMA==",
+       "dev": true,
+       "license": "MIT",
+       "optional": true,
+@@ -2044,7 +2064,6 @@
+       "resolved": "https://registry.npmjs.org/@noble/ciphers/-/ciphers-1.3.0.tgz",
+       "integrity": "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": "^14.21.3 || >=16"
+       },
+@@ -2579,7 +2598,6 @@
+       "resolved": "https://registry.npmjs.org/@types/node/-/node-20.19.41.tgz",
+       "integrity": "sha512-ECymXOukMnOoVkC2bb1Vc/w/836DXncOg5m8Xj1RH7xSHZJWNYY6Zh7EH477vcnD5egKNNfy2RpNOmuChhFPgQ==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "undici-types": "~6.21.0"
+       }
+@@ -2590,7 +2608,6 @@
+       "integrity": "sha512-eRwcGNHve+E8qtEQSSRl6urh+rFop4v8gm6O8rGv25CodbvFdLjA1vVQ1KkiFE0w0UPOnb8tDiFKL5lp0rtY5Q==",
+       "devOptional": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "csstype": "^3.2.2"
+       }
+@@ -2671,7 +2688,6 @@
+       "integrity": "sha512-zORHqO/tuhxY1zWuTvMUqddRxpiFJ72xVfcNoWpqdLjs6lfPbuQBJuW4pk+49/uBMy7Ssr4bzgjiKmmDB1UbZQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@typescript-eslint/scope-manager": "8.59.4",
+         "@typescript-eslint/types": "8.59.4",
+@@ -3193,6 +3209,40 @@
+         "node": ">=14.0.0"
+       }
+     },
++    "node_modules/@unrs/resolver-binding-wasm32-wasi/node_modules/@emnapi/core": {
++      "version": "1.10.0",
++      "resolved": "https://registry.npmjs.org/@emnapi/core/-/core-1.10.0.tgz",
++      "integrity": "sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/wasi-threads": "1.2.1",
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@unrs/resolver-binding-wasm32-wasi/node_modules/@emnapi/runtime": {
++      "version": "1.10.0",
++      "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.10.0.tgz",
++      "integrity": "sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@unrs/resolver-binding-wasm32-wasi/node_modules/@emnapi/wasi-threads": {
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/@emnapi/wasi-threads/-/wasi-threads-1.2.1.tgz",
++      "integrity": "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w==",
++      "dev": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
+     "node_modules/@unrs/resolver-binding-win32-arm64-msvc": {
+       "version": "1.12.2",
+       "resolved": "https://registry.npmjs.org/@unrs/resolver-binding-win32-arm64-msvc/-/resolver-binding-win32-arm64-msvc-1.12.2.tgz",
+@@ -3254,7 +3304,6 @@
+       "integrity": "sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "bin": {
+         "acorn": "bin/acorn"
+       },
+@@ -3930,7 +3979,6 @@
+         }
+       ],
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "baseline-browser-mapping": "^2.10.12",
+         "caniuse-lite": "^1.0.30001782",
+@@ -4962,7 +5010,6 @@
+       "integrity": "sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@eslint-community/eslint-utils": "^4.8.0",
+         "@eslint-community/regexpp": "^4.12.1",
+@@ -5148,7 +5195,6 @@
+       "integrity": "sha512-whOE1HFo/qJDyX4SnXzP4N6zOWn79WhnCUY/iDR0mPfQZO8wcYE4JClzI2oZrhBnnMUCBCHZhO6VQyoBU95mZA==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "@rtsao/scc": "^1.1.0",
+         "array-includes": "^3.1.9",
+@@ -5447,7 +5493,6 @@
+       "resolved": "https://registry.npmjs.org/express/-/express-5.2.1.tgz",
+       "integrity": "sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "accepts": "^2.0.0",
+         "body-parser": "^2.2.1",
+@@ -6226,7 +6271,6 @@
+       "resolved": "https://registry.npmjs.org/hono/-/hono-4.12.21.tgz",
+       "integrity": "sha512-uV63apnb0kyPtAUwoWgaGh9HyIFcv8lgmzPZSiTBQAFOFGIzka5EZ1dZocmGnn0XdX0+XTqJ6Tqv7selMuGLRQ==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=16.9.0"
+       }
+@@ -8802,7 +8846,6 @@
+       "resolved": "https://registry.npmjs.org/react/-/react-19.2.4.tgz",
+       "integrity": "sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==",
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=0.10.0"
+       }
+@@ -8812,7 +8855,6 @@
+       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.2.4.tgz",
+       "integrity": "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==",
+       "license": "MIT",
+-      "peer": true,
+       "dependencies": {
+         "scheduler": "^0.27.0"
+       },
+@@ -10098,7 +10140,6 @@
+       "integrity": "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==",
+       "dev": true,
+       "license": "MIT",
+-      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -10391,7 +10432,6 @@
+       "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+       "devOptional": true,
+       "license": "Apache-2.0",
+-      "peer": true,
+       "bin": {
+         "tsc": "bin/tsc",
+         "tsserver": "bin/tsserver"
+@@ -10936,7 +10976,6 @@
+       "resolved": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz",
+       "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==",
+       "license": "MIT",
+-      "peer": true,
+       "funding": {
+         "url": "https://github.com/sponsors/colinhacks"
+       }
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index 74b5ea0..8050ed3 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -8,7 +8,7 @@ export const metadata: Metadata = {
+     template: "%s | MarketOps",
+   },
+   description:
+-    "Internal operator workspace for MarketOps planning, execution, and reporting.",
++    "MarketOps is the operating system of modern growth: a command center for strategy, campaigns, claims, content, and governed AI execution.",
+ };
+ 
+ export default function RootLayout({
+diff --git a/src/app/page.tsx b/src/app/page.tsx
+index c056878..697ecc8 100644
+--- a/src/app/page.tsx
++++ b/src/app/page.tsx
+@@ -1,223 +1,347 @@
+-import { CampaignList } from "@/components/campaign-list";
+-import { DashboardMetricCard } from "@/components/dashboard-metric-card";
++import type { Metadata } from "next";
++import Link from "next/link";
++import {
++  ArrowRight,
++  Bot,
++  CheckCircle2,
++  CircleGauge,
++  Network,
++  Radar,
++  ScrollText,
++  Shield,
++  Sparkles,
++  Workflow,
++} from "lucide-react";
++
+ import { Badge } from "@/components/ui/badge";
++import { buttonVariants } from "@/components/ui/button";
+ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+-import { campaignMetrics, getActiveCampaigns } from "@/lib/campaigns";
++import { campaignMetrics } from "@/lib/campaigns";
++import { initiatives, portfolioMetrics } from "@/lib/initiatives";
+ import {
+-    initiatives,
+-    portfolioMetrics,
+-} from "@/lib/initiatives";
+-import { ArrowUpRight, Layers3, ShieldAlert, Target } from "lucide-react";
+-import Link from "next/link";
++  marketOpsComparisons,
++  marketOpsFaqs,
++  marketOpsLoop,
++  marketOpsMetrics,
++  marketOpsPillars,
++} from "@/lib/site";
++import { cn } from "@/lib/utils";
++
++export const metadata: Metadata = {
++  title: "The operating system of modern growth",
++  description:
++    "MarketOps is building the AI-driven command center for strategy, content, sales, customer relations, vendor coordination, and governed market execution.",
++};
+ 
+-const launchStageDistribution = [
+-  portfolioMetrics.launchStageDistribution["public-proof"],
+-  portfolioMetrics.launchStageDistribution.alpha,
+-  portfolioMetrics.launchStageDistribution.concept,
++const previewSurfaces = [
++  {
++    title: "Initiative registry",
++    href: "/initiatives",
++    description: "Compare positioning, claim posture, readiness, and current market focus across the portfolio.",
++    stat: `${portfolioMetrics.totalInitiatives} initiatives`,
++    icon: CircleGauge,
++  },
++  {
++    title: "Campaign workspace",
++    href: "/campaigns",
++    description: "See active lanes, planning queues, asset mix, sensitivity, and launch posture in one view.",
++    stat: `${campaignMetrics.active} active campaigns`,
++    icon: Workflow,
++  },
++  {
++    title: "Canon review queue",
++    href: "/library/review",
++    description: "Keep approved truth, risky claims, and marketing opportunities connected before anything ships.",
++    stat: `${portfolioMetrics.needsPositioningReviewCount} positioning reviews`,
++    icon: ScrollText,
++  },
+ ];
+ 
+-export default function Home() {
+-  const activeCampaigns = getActiveCampaigns();
+-  const initiativesNeedingReview = initiatives.filter(
+-    (initiative) => initiative.needsPositioningReview
+-  );
+-  const proofInitiatives = initiatives.filter(
+-    (initiative) => initiative.stage.key === "public-proof" || initiative.stage.key === "alpha"
+-  );
++const narrativeSignals = [
++  "Strategy becomes executable.",
++  "Content becomes adaptive and trustworthy.",
++  "Sales and support speak with one voice.",
++  "Innovation becomes a governed loop of discovery, creation, distribution, learning, and proof.",
++];
+ 
++export default function Home() {
+   return (
+-    <div className="flex flex-col gap-6">
+-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+-        <Card className="border-border/70 bg-card/95 shadow-sm">
+-          <CardHeader className="space-y-4 p-6 sm:p-7">
+-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+-              <Layers3 className="size-3.5" />
+-              Executive command center
+-            </div>
+-            <div className="space-y-3">
+-              <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl">
+-                Portfolio overview, attention queue, and campaign motion.
++    <div className="pb-16">
++      <section className="border-b border-border/70 bg-[radial-gradient(circle_at_top,_rgba(0,0,0,0.06),_transparent_40%)] dark:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_40%)]">
++        <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:px-8 lg:py-24">
++          <div className="space-y-8">
++            <Badge variant="outline" className="h-7 rounded-full px-3 text-[11px] uppercase tracking-[0.22em]">
++              Market-facing work, operated end to end
++            </Badge>
++
++            <div className="space-y-5">
++              <h1 className="max-w-5xl text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
++                MarketOps will become the operating system of modern growth.
+               </h1>
+-              <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
+-                The dashboard is the readout layer: it summarizes health, exposes the next
+-                decisions, and routes operators into the right workspace without duplicating the
+-                full registries.
++              <p className="max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
++                Where Salesforce made customer relationships manageable at enterprise scale,
++                MarketOps is being built to make market-facing work intelligent, automated,
++                and accountable from end to end. One premier platform. One source of truth.
++                One AI-driven command center for how the world grows.
+               </p>
+             </div>
+-          </CardHeader>
+-          <CardContent className="grid gap-3 px-6 pb-6 sm:grid-cols-3 sm:px-7 sm:pb-7">
+-            <Link
+-              href="/initiatives"
+-              className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/45"
+-            >
+-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Registry</p>
+-              <p className="mt-2 text-sm font-medium">Compare initiatives and canon</p>
+-            </Link>
+-            <Link
+-              href="/campaigns"
+-              className="rounded-2xl border border-border/70 bg-muted/25 p-4 transition-colors hover:bg-muted/45"
+-            >
+-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Execution</p>
+-              <p className="mt-2 text-sm font-medium">Review campaign lanes and risk</p>
+-            </Link>
+-            <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
+-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Posture</p>
+-              <p className="mt-2 text-sm font-medium">Internal operator view only</p>
++
++            <div className="flex flex-wrap gap-3">
++              <Link href="/initiatives" className={buttonVariants({ size: "lg" })}>
++                Open command center preview
++              </Link>
++              <Link href="/platform" className={buttonVariants({ variant: "outline", size: "lg" })}>
++                Explore platform
++              </Link>
++              <Link href="/vision" className={buttonVariants({ variant: "ghost", size: "lg" })}>
++                Read the vision
++              </Link>
+             </div>
+-          </CardContent>
+-        </Card>
+ 
+-        <Card className="border-border/70 bg-foreground text-background shadow-sm dark:bg-foreground dark:text-background">
+-          <CardHeader className="p-6">
+-            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+-              <Target className="size-4" />
+-              Today&apos;s operating thesis
+-            </CardTitle>
+-          </CardHeader>
+-          <CardContent className="space-y-4 px-6 pb-6 text-sm leading-6 text-background/75">
+-            <p>
+-              Prioritize proof-bearing initiatives while resolving positioning drift before more
+-              campaigns enter motion.
+-            </p>
+-            <div className="grid gap-3 border-t border-background/15 pt-4">
+-              <div className="flex items-center justify-between gap-3">
+-                <span>Proof / alpha lanes</span>
+-                <span className="font-semibold text-background">{proofInitiatives.length}</span>
+-              </div>
+-              <div className="flex items-center justify-between gap-3">
+-                <span>Positioning reviews</span>
+-                <span className="font-semibold text-background">{initiativesNeedingReview.length}</span>
+-              </div>
+-              <div className="flex items-center justify-between gap-3">
+-                <span>Active campaigns</span>
+-                <span className="font-semibold text-background">{activeCampaigns.length}</span>
+-              </div>
++            <div className="grid gap-3 sm:grid-cols-2">
++              {narrativeSignals.map((signal) => (
++                <div key={signal} className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm">
++                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
++                  <p className="text-sm leading-6 text-muted-foreground">{signal}</p>
++                </div>
++              ))}
+             </div>
+-          </CardContent>
+-        </Card>
++          </div>
++
++          <Card className="border-border/70 bg-foreground text-background shadow-xl shadow-black/10 dark:bg-foreground dark:text-background">
++            <CardHeader className="space-y-4 p-6 sm:p-7">
++              <Badge className="w-fit bg-background/10 text-background">Operating thesis</Badge>
++              <CardTitle className="text-2xl font-semibold tracking-tight sm:text-3xl">
++                Operate markets, not just marketing tasks.
++              </CardTitle>
++            </CardHeader>
++            <CardContent className="space-y-5 px-6 pb-7 text-sm leading-7 text-background/75 sm:px-7">
++              <p>
++                MarketOps does not merely assist marketers. It is meant to sense demand,
++                shape narrative, orchestrate every medium, protect brand integrity, measure
++                what matters, and compound advantage faster than disconnected teams can do by hand.
++              </p>
++              <div className="grid gap-3 border-t border-background/15 pt-5">
++                <div className="flex items-center justify-between gap-3">
++                  <span>Active product initiatives</span>
++                  <span className="font-semibold text-background">{initiatives.length}</span>
++                </div>
++                <div className="flex items-center justify-between gap-3">
++                  <span>Campaigns already modeled</span>
++                  <span className="font-semibold text-background">{campaignMetrics.total}</span>
++                </div>
++                <div className="flex items-center justify-between gap-3">
++                  <span>Governed review surfaces</span>
++                  <span className="font-semibold text-background">Library + campaigns + initiatives</span>
++                </div>
++              </div>
++            </CardContent>
++          </Card>
++        </div>
++      </section>
++
++      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
++        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
++          {marketOpsMetrics.map((metric) => (
++            <Card key={metric.label} className="border-border/70 bg-card/95 shadow-sm">
++              <CardHeader className="space-y-3 p-6">
++                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
++                  {metric.label}
++                </p>
++                <CardTitle className="text-4xl font-semibold tracking-tight">{metric.value}</CardTitle>
++              </CardHeader>
++              <CardContent className="px-6 pb-6 text-sm leading-6 text-muted-foreground">
++                {metric.detail}
++              </CardContent>
++            </Card>
++          ))}
++        </div>
++      </section>
++
++      <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
++        <div className="space-y-4">
++          <Badge variant="outline">Why it wins</Badge>
++          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
++            Replace stitched-together growth work with one governed operating layer.
++          </h2>
++          <p className="max-w-2xl text-base leading-8 text-muted-foreground">
++            Most teams still run strategy, content, campaigns, approvals, and AI usage across
++            disconnected tools. MarketOps is designed to unify the entire system so narrative,
++            execution, learning, and proof stay connected.
++          </p>
++        </div>
++
++        <div className="grid gap-4">
++          {marketOpsComparisons.map((row) => (
++            <Card key={row.legacy} className="border-border/70 bg-card/95 shadow-sm">
++              <CardContent className="grid gap-4 p-6 md:grid-cols-2">
++                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
++                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
++                    Legacy stack
++                  </p>
++                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{row.legacy}</p>
++                </div>
++                <div className="rounded-2xl border border-border/70 bg-foreground p-4 text-background">
++                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-background/60">
++                    MarketOps
++                  </p>
++                  <p className="mt-2 text-sm leading-6 text-background/80">{row.marketops}</p>
++                </div>
++              </CardContent>
++            </Card>
++          ))}
++        </div>
+       </section>
+ 
+-      <section className="space-y-4">
+-        <div className="flex flex-wrap items-end justify-between gap-3">
+-          <div>
+-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
+-              Portfolio health
++      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
++        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
++          <div className="space-y-3">
++            <Badge variant="outline">Platform pillars</Badge>
++            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
++              One command center across the full growth surface.
++            </h2>
++          </div>
++          <Link href="/platform" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto")}>
++            See the platform map
++            <ArrowRight className="size-4" />
++          </Link>
++        </div>
++
++        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
++          {marketOpsPillars.map((pillar) => (
++            <Card key={pillar.title} className="border-border/70 bg-card/95 shadow-sm">
++              <CardHeader className="space-y-3 p-6">
++                <CardTitle className="text-xl font-semibold tracking-tight">{pillar.title}</CardTitle>
++              </CardHeader>
++              <CardContent className="space-y-4 px-6 pb-6">
++                <p className="text-sm leading-6 text-muted-foreground">{pillar.description}</p>
++                <div className="flex flex-wrap gap-2">
++                  {pillar.outcomes.map((outcome) => (
++                    <Badge key={outcome} variant="secondary">
++                      {outcome}
++                    </Badge>
++                  ))}
++                </div>
++              </CardContent>
++            </Card>
++          ))}
++        </div>
++      </section>
++
++      <section className="border-y border-border/70 bg-muted/20">
++        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
++          <div className="max-w-3xl space-y-4">
++            <Badge variant="outline">The operating loop</Badge>
++            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
++              Discovery, creation, distribution, learning, and proof in one continuous system.
++            </h2>
++            <p className="text-base leading-8 text-muted-foreground">
++              Innovation should not be a brainstorm. In the MarketOps model, it becomes a governed loop
++              that moves from signal to execution to evidence without losing narrative integrity.
+             </p>
+-            <h2 className="mt-1 text-xl font-semibold tracking-tight">Command metrics</h2>
+           </div>
++
++          <div className="mt-10 grid gap-4 lg:grid-cols-4">
++            {marketOpsLoop.map((step, index) => {
++              const icons = [Radar, Sparkles, Network, Shield];
++              const Icon = icons[index] ?? Bot;
++
++              return (
++                <Card key={step.title} className="border-border/70 bg-card/95 shadow-sm">
++                  <CardHeader className="space-y-4 p-6">
++                    <div className="flex size-11 items-center justify-center rounded-2xl bg-muted text-foreground">
++                      <Icon className="size-5" />
++                    </div>
++                    <CardTitle className="text-xl font-semibold tracking-tight">{step.title}</CardTitle>
++                  </CardHeader>
++                  <CardContent className="px-6 pb-6 text-sm leading-6 text-muted-foreground">
++                    {step.description}
++                  </CardContent>
++                </Card>
++              );
++            })}
++          </div>
++        </div>
++      </section>
++
++      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
++        <div className="mb-8 max-w-3xl space-y-4">
++          <Badge variant="outline">Built product surfaces</Badge>
++          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
++            The website now connects the vision to a live product preview.
++          </h2>
++          <p className="text-base leading-8 text-muted-foreground">
++            Instead of stopping at a manifesto, the site points directly into modeled product surfaces
++            for initiatives, campaigns, and canon review so the story ties back to actual software.
++          </p>
+         </div>
+-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+-          <DashboardMetricCard
+-            label="Total initiatives"
+-            value={portfolioMetrics.totalInitiatives.toString()}
+-          />
+-          <DashboardMetricCard
+-            label="Active initiatives"
+-            value={portfolioMetrics.activeInitiatives.toString()}
+-          />
+-          <DashboardMetricCard
+-            label="Launch-stage distribution"
+-            value={launchStageDistribution.join(" / ")}
+-            detail="Public proof, Alpha, Concept"
+-            className="xl:col-span-2"
+-          />
+-          <DashboardMetricCard
+-            label="Needs positioning review"
+-            value={portfolioMetrics.needsPositioningReviewCount.toString()}
+-            detail="Decision queue"
+-            tone="attention"
+-          />
+-          <DashboardMetricCard
+-            label="Campaigns in motion"
+-            value={campaignMetrics.active.toString()}
+-            detail="Active campaigns"
+-          />
++
++        <div className="grid gap-4 xl:grid-cols-3">
++          {previewSurfaces.map((surface) => {
++            const Icon = surface.icon;
++            return (
++              <Card key={surface.title} className="border-border/70 bg-card/95 shadow-sm">
++                <CardHeader className="space-y-4 p-6">
++                  <div className="flex items-center justify-between gap-3">
++                    <div className="flex size-11 items-center justify-center rounded-2xl bg-muted text-foreground">
++                      <Icon className="size-5" />
++                    </div>
++                    <Badge variant="outline">{surface.stat}</Badge>
++                  </div>
++                  <CardTitle className="text-xl font-semibold tracking-tight">{surface.title}</CardTitle>
++                </CardHeader>
++                <CardContent className="space-y-5 px-6 pb-6">
++                  <p className="text-sm leading-6 text-muted-foreground">{surface.description}</p>
++                  <Link href={surface.href} className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full justify-between")}>
++                    Open surface
++                    <ArrowRight className="size-4" />
++                  </Link>
++                </CardContent>
++              </Card>
++            );
++          })}
++        </div>
++      </section>
++
++      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-16">
++        <div className="grid gap-4 lg:grid-cols-3">
++          {marketOpsFaqs.map((item) => (
++            <Card key={item.question} className="border-border/70 bg-card/95 shadow-sm">
++              <CardHeader className="p-6">
++                <CardTitle className="text-lg font-semibold tracking-tight">{item.question}</CardTitle>
++              </CardHeader>
++              <CardContent className="px-6 pb-6 text-sm leading-6 text-muted-foreground">
++                {item.answer}
++              </CardContent>
++            </Card>
++          ))}
+         </div>
+       </section>
+ 
+-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.75fr)]">
+-        <Card className="border-border/70 bg-card/95 shadow-sm">
+-          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 p-6">
+-            <div className="space-y-1">
+-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
+-                Attention queue
++      <section className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
++        <Card className="border-border/70 bg-foreground text-background shadow-xl shadow-black/10 dark:bg-foreground dark:text-background">
++          <CardContent className="grid gap-8 p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:p-10">
++            <div className="space-y-4">
++              <Badge className="w-fit bg-background/10 text-background">Category-defining ambition</Badge>
++              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
++                Do for automated marketing what Salesforce did for CRM.
++              </h2>
++              <p className="max-w-3xl text-base leading-8 text-background/75">
++                The ambition is simple and absolute: define the category, set the standard,
++                and become the enterprise system of record for how the world grows.
+               </p>
+-              <CardTitle className="text-xl font-semibold tracking-tight">
+-                Positioning and claim-risk work
+-              </CardTitle>
+             </div>
+-            <ShieldAlert className="size-5 text-muted-foreground" />
+-          </CardHeader>
+-          <CardContent className="grid gap-3 px-6 pb-6">
+-            {initiativesNeedingReview.map((initiative) => (
+-              <Link
+-                key={initiative.slug}
+-                href={`/initiatives/${initiative.slug}`}
+-                className="grid gap-3 rounded-2xl border border-border/70 bg-muted/20 p-4 transition-colors hover:bg-muted/40 md:grid-cols-[1fr_auto]"
+-              >
+-                <div className="space-y-1">
+-                  <div className="flex flex-wrap items-center gap-2">
+-                    <p className="font-medium">{initiative.name}</p>
+-                    <Badge variant="outline">{initiative.stage.label}</Badge>
+-                  </div>
+-                  <p className="text-sm leading-6 text-muted-foreground">{initiative.claimPosture}</p>
+-                </div>
+-                <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+-                  Open record
+-                  <ArrowUpRight className="size-4" />
+-                </span>
++            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
++              <Link href="/platform" className={cn(buttonVariants({ size: "lg" }), "bg-background text-foreground hover:bg-background/90")}>
++                Explore platform
++              </Link>
++              <Link href="/campaigns" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "border-background/20 bg-transparent text-background hover:bg-background/10 hover:text-background")}>
++                Open workspace preview
+               </Link>
+-            ))}
+-          </CardContent>
+-        </Card>
+-
+-        <Card className="border-border/70 bg-card/95 shadow-sm">
+-          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 p-6">
+-            <div className="space-y-1">
+-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
+-                Stage map
+-              </p>
+-              <CardTitle className="text-xl font-semibold tracking-tight">Portfolio distribution</CardTitle>
+             </div>
+-            <Link href="/initiatives" className="text-sm font-medium text-primary hover:underline">
+-              Registry
+-            </Link>
+-          </CardHeader>
+-          <CardContent className="space-y-3 px-6 pb-6">
+-            {initiatives.map((initiative) => (
+-              <div
+-                key={initiative.slug}
+-                className="flex items-start justify-between gap-3 rounded-2xl border border-border/70 bg-muted/20 p-3"
+-              >
+-                <div className="min-w-0">
+-                  <p className="truncate text-sm font-medium">{initiative.name}</p>
+-                  <p className="truncate text-xs text-muted-foreground">{initiative.currentMarketingFocus}</p>
+-                </div>
+-                <Badge variant={initiative.needsPositioningReview ? "outline" : "secondary"}>
+-                  {initiative.stage.label}
+-                </Badge>
+-              </div>
+-            ))}
+           </CardContent>
+         </Card>
+       </section>
+-
+-      {activeCampaigns.length > 0 && (
+-        <section className="space-y-4">
+-          <div className="flex flex-wrap items-end justify-between gap-4">
+-            <div>
+-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
+-                Campaign motion
+-              </p>
+-              <h2 className="mt-1 text-xl font-semibold tracking-tight">Active execution lanes</h2>
+-            </div>
+-            <Link href="/campaigns" className="text-sm font-medium text-primary hover:underline">
+-              View campaign workspace
+-            </Link>
+-          </div>
+-          <CampaignList campaigns={activeCampaigns} showInitiative />
+-        </section>
+-      )}
+     </div>
+   );
+ }
+diff --git a/src/components/app-shell.tsx b/src/components/app-shell.tsx
+index 1127cdc..9604008 100644
+--- a/src/components/app-shell.tsx
++++ b/src/components/app-shell.tsx
+@@ -6,6 +6,7 @@ import type { ReactNode } from "react"
+ 
+ import { AiAssistantSidebar } from "@/components/ai-assistant-sidebar"
+ import { AppNav } from "@/components/app-nav"
++import { PublicShell } from "@/components/marketing/public-shell"
+ import { Separator } from "@/components/ui/separator"
+ import { cn } from "@/lib/utils"
+ 
+@@ -13,9 +14,15 @@ type AppShellProps = {
+   children: ReactNode
+ }
+ 
++const marketingRoutes = new Set(["/", "/platform", "/vision"])
++
+ function AppShell({ children }: AppShellProps) {
+   const pathname = usePathname()
+ 
++  if (marketingRoutes.has(pathname)) {
++    return <PublicShell pathname={pathname}>{children}</PublicShell>
++  }
++
+   return (
+     <div className="min-h-screen bg-background text-foreground">
+       <aside className="fixed inset-y-0 left-0 hidden w-80 border-r border-border/70 bg-background/95 px-5 py-6 shadow-[12px_0_40px_rgba(0,0,0,0.03)] backdrop-blur lg:flex lg:flex-col">
+diff --git a/tsconfig.json b/tsconfig.json
+index cf9c65d..fb141e1 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -24,11 +24,11 @@
+   },
+   "include": [
+     "next-env.d.ts",
+-    "**/*.ts",
+-    "**/*.tsx",
++    "next.config.ts",
++    "src/**/*.ts",
++    "src/**/*.tsx",
+     ".next/types/**/*.ts",
+-    ".next/dev/types/**/*.ts",
+-    "**/*.mts"
++    ".next/dev/types/**/*.ts"
+   ],
+-  "exclude": ["node_modules"]
++  "exclude": ["node_modules", "mcp/**", "tests/**"]
+ }
