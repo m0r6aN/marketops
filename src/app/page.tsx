@@ -2,7 +2,7 @@ import { CampaignList } from "@/components/campaign-list";
 import { DashboardMetricCard } from "@/components/dashboard-metric-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { campaignMetrics, getActiveCampaigns } from "@/lib/campaigns";
+import { getActiveCampaigns, getCampaignMetrics, listCampaigns } from "@/lib/campaigns";
 import {
     initiatives,
     portfolioMetrics,
@@ -16,8 +16,11 @@ const launchStageDistribution = [
   portfolioMetrics.launchStageDistribution.concept,
 ];
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   const activeCampaigns = getActiveCampaigns();
+  const campaignMetrics = getCampaignMetrics(listCampaigns());
   const initiativesNeedingReview = initiatives.filter(
     (initiative) => initiative.needsPositioningReview
   );

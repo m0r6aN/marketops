@@ -15,7 +15,7 @@ If a dependency exists, the work is not parallel-ready. Resolve it as one of:
 
 PR 0 exports shared contracts only.
 
-PR 0 does not:
+PR 0 did not:
 
 - refactor `src/lib/initiatives.ts`
 - refactor `src/lib/campaigns.ts`
@@ -27,9 +27,13 @@ PR 0 does not:
 - add database or schema coupling
 - add policy evaluation or execution gating
 
-Existing `src/lib/initiatives.ts`, `src/lib/campaigns.ts`, `/initiatives`, and `/campaigns` remain behaviorally unchanged in PR 0.
+That historical constraint has now been partially lifted for the Customer Finder integration lane.
+The current repository is allowed to extend `/campaigns`, add campaign-planning persistence, and add customer-discovery runtime behavior, provided the lane preserves these invariants:
 
-The new MarketOps `Campaign` contract is future-canonical. Existing campaign fixtures remain unchanged until a later integration PR migrates runtime consumers onto the shared contract layer.
+- customer discovery, source processing, draft preparation, and outbound delivery remain separate capabilities
+- unsupported sources are surfaced honestly
+- planning campaigns preserve provenance and fail closed when source processing is unavailable
+- draft generation may occur, but outbound delivery remains excluded from this release
 
 ## Canonical Imports For Feature Lanes
 
@@ -75,12 +79,18 @@ Do not rely on pasted type names alone. Inspect the underlying files on latest `
 
 If a required field or type is missing, do not silently invent a conflicting duplicate. Create a lane-local view model or report the contract gap.
 
-## Future Integration PR
+## Current Integration Direction
 
-After PR 0 lands and dependent feature lanes confirm import expectations, create a follow-up integration PR that:
+The customer-discovery lane is now one of the explicit runtime integration slices.
+It may:
 
-- migrates existing initiative models to the shared MarketOps contracts
-- migrates existing campaign models to the shared MarketOps contracts
-- updates runtime consumers in small, explicit slices
+- extend campaign runtime behavior for planning-state discovery campaigns
+- add persistence for discovery records, source provenance, and review-only drafts
+- update `/campaigns` and add campaign detail routes
 
-Until that integration PR lands, existing fixtures and current route behavior remain unchanged.
+It may not:
+
+- add autonomous outbound delivery
+- silently invent cross-tenant assumptions beyond current single-operator mode
+- represent unsupported data sources as processed
+- erase provenance during deduplication

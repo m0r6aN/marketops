@@ -9,6 +9,8 @@ const statusLabels: Record<CampaignStatus, string> = {
   active: "Active",
   paused: "Paused",
   planning: "Planning",
+  discovering: "Discovering",
+  "review-ready": "Review ready",
   complete: "Complete",
 };
 
@@ -19,6 +21,8 @@ const statusVariants: Record<
   active: "default",
   paused: "outline",
   planning: "secondary",
+  discovering: "secondary",
+  "review-ready": "outline",
   complete: "outline",
 };
 

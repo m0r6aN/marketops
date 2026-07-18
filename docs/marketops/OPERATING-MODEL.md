@@ -5,8 +5,8 @@
 MarketOps is the operating surface for planning, reviewing, and tracking market-facing work.
 Keon is the governance and execution system that may later automate parts of that work under explicit policy.
 
-In this foundation phase, MarketOps defines the operating model and the shared contracts around that model.
-It does not claim that live Keon runtime integration already exists.
+In this phase, MarketOps defines the operating model and includes limited runtime support for campaign planning, customer discovery, and review-only outreach preparation.
+It does not claim that live Keon runtime integration already exists, and it does not authorize autonomous outbound delivery.
 
 ## MarketOps and Keon
 
@@ -42,7 +42,7 @@ Each core entity has a specific role in the model:
 
 - `Initiative`: the portfolio-level operating unit. It groups work around a business objective or program.
 - `Medium`: the delivery surface or channel where work appears, such as a site, email stream, social surface, or partner channel.
-- `Campaign`: the execution lane that ties an initiative to one or more mediums and to a concrete delivery objective.
+- `Campaign`: the execution lane that ties an initiative to one or more mediums and to a concrete delivery objective. Discovery campaigns may begin in planning state before any launch work exists.
 - `ContentAsset`: the concrete artifact prepared, revised, approved, or published through a campaign and medium.
 - `Persona`: the target audience or operator context that shapes messaging, review, and delivery choices.
 - `Agent`: a bounded execution actor that may assist or act only within the automation level and approval state allowed for the work.
@@ -53,6 +53,30 @@ Each core entity has a specific role in the model:
 - `ApprovalState`: the recorded review status for a step that requires human or policy-governed approval.
 
 These entities are meant to make the operating model explicit before deeper runtime behavior is added.
+
+## Customer Discovery and Outreach Planning Boundaries
+
+Customer discovery is a planning capability inside MarketOps.
+It is intentionally separated from outbound delivery.
+
+The currently approved flow is:
+
+1. suggest an editable target-customer description
+2. let the operator choose approved data sources
+3. create a planning campaign and record provenance
+4. process supported sources honestly
+5. deduplicate candidates while retaining source provenance
+6. prepare review-required outreach drafts from verified facts
+
+This flow must not:
+
+- invent contact details or candidate facts
+- claim a source was processed when it was unavailable
+- bypass source access controls, rate limits, or terms of service
+- send messages automatically
+- collapse verified evidence and model inference into one undifferentiated field
+
+Outbound delivery remains a separately governed capability and is not authorized by this flow.
 
 ## What Receipts Prove
 
@@ -99,11 +123,10 @@ PR 0 is contract-only so later lanes can build against shared terms before runti
 
 That boundary is deliberate:
 
-- no runtime migration
 - no live Keon integration
-- no policy engine
-- no execution engine
-- no database-coupled automation behavior
+- no autonomous outbound delivery
+- no policy engine for external send authorization
+- no hidden database-coupled automation behavior that bypasses review
 
 This keeps the foundation narrow.
 It gives later implementation lanes stable entity definitions and operating-language seams without pretending the end-to-end execution path is already live.
