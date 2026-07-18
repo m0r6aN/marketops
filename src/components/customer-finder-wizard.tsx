@@ -12,7 +12,7 @@ import {
 } from "@/app/actions/customer-finder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { initiatives } from "@/lib/initiatives";
+import { initiativeSeed as initiatives } from "@/lib/initiatives/seed";
 import type { DiscoverySourceId, DiscoverySourceProposal } from "@/lib/customer-finder/types";
 import { cn } from "@/lib/utils";
 

@@ -1,6 +1,6 @@
 # MarketOps
 
-MarketOps is an operating surface for planning, reviewing, automating, monitoring, and proving market-facing work across products.
+MarketOps is an internal, all-in-one marketing operations website for running the complete marketing lifecycle: customer discovery, campaign planning, content development, outreach preparation, execution, measurement, and optimization.
 
 It is designed to help operators manage product marketing, sales support, content distribution, campaign readiness, medium selection, agent activity, revenue signals, cloud/service health, approvals, and receipts from one workspace.
 
@@ -36,20 +36,36 @@ MarketOps is built around four major ideas:
 * **Medium intelligence** - every marketing medium has different audience fit, content fit, cost model, risk profile, automation potential, and ROI behavior.
 * **Receipts over narrative** - meaningful actions should produce an inspectable trail so operators can prove what happened, what was approved, and what remains blocked.
 
-## Current boundary
+## Product implementation posture
 
-MarketOps includes several active operating surfaces, contract seams, local workflows, and proof-oriented foundations today.
+MarketOps is currently built for internal use. Product workflows should be implemented according to operator needs first; commercialization, tenant governance, and packaging controls can be introduced later through the existing adapter and policy seams.
 
-Some features are implemented. Others are planned as explicit future lanes.
+Implementation principles:
 
-Current constraints:
-
-* Live Keon runtime integration is future-facing and should be implemented through explicit integration lanes.
-* External integrations should start read-only before write actions are introduced.
-* Automation should progress from observe-only to draft-only to approval-gated execution before any bounded autonomous execution.
-* Receipts may begin as local or fixture-backed records and later connect to stronger governance and verification systems.
+* Customer discovery, campaign management, outreach, engagement, execution, and growth analysis are first-class product capabilities.
+* Keon Runtime, Collective, and Cortex may be integrated where they materially improve execution, coordination, memory, or evidence; MarketOps remains useful without them.
+* External integrations may support read and write actions when the provider permits them and the operator has explicitly configured the account and desired workflow.
+* Evidence, provenance, observability, honest status, and failure reporting should be preserved across manual and automated work.
+* Controls should be proportional to a real workflow, provider rule, safety need, or legal obligation—not retained solely because earlier documentation treated them as doctrine.
+* A capability that only plans or drafts must never be reported as having executed an external action.
 
 ## Features
+
+### Customer Finder and outreach planning
+
+MarketOps includes an evidence-backed Customer Finder inside the Campaigns workspace. It turns an editable target description into a planning campaign, processes supported discovery sources, deduplicates candidates, and preserves source provenance.
+
+The implementation supports:
+
+* initiative-aware target-customer suggestions
+* explicit supported and unsupported source visibility
+* manual CSV, company-website seed, and GitHub discovery inputs
+* planning-state campaigns with idempotency and retained provenance
+* deduplicated candidate records with verified evidence and confidence
+* review-required outreach drafts across email, LinkedIn, X, and CRM CSV channels
+* durable local SQLite state, workspace purge, and 90-day retention handling
+
+Message delivery remains an explicit later adapter. A generated draft is never represented as sent.
 
 ### Product and initiative command center
 

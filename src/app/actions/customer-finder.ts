@@ -50,7 +50,9 @@ export async function suggestTargetCustomerDescription(input: {
   initiativeSlug?: string;
 }) {
   purgeExpiredCustomerFinderData();
-  const initiative = input.initiativeSlug ? getInitiativeBySlug(input.initiativeSlug) : undefined;
+  const initiative = input.initiativeSlug
+    ? (getInitiativeBySlug(input.initiativeSlug) ?? undefined)
+    : undefined;
   const suggestion = buildTargetCustomerSuggestion(input.prompt, initiative);
 
   return {
@@ -92,7 +94,9 @@ export async function createDiscoveryCampaign(
     };
   }
 
-  const initiative = input.initiativeSlug ? getInitiativeBySlug(input.initiativeSlug) : undefined;
+  const initiative = input.initiativeSlug
+    ? (getInitiativeBySlug(input.initiativeSlug) ?? undefined)
+    : undefined;
   const campaignId = randomUUID();
   const campaignName = toCampaignName(input.targetDescription);
   const slug = `${toSlug(input.targetDescription)}-${campaignId.slice(0, 8)}`;
@@ -265,7 +269,7 @@ export async function generateOutreachDrafts(input: DraftGenerationInput) {
   const nowIso = new Date().toISOString();
   const initiative =
     campaignDetail.campaign.initiativeSlug !== "workspace-discovery"
-      ? getInitiativeBySlug(campaignDetail.campaign.initiativeSlug)
+      ? (getInitiativeBySlug(campaignDetail.campaign.initiativeSlug) ?? undefined)
       : undefined;
   const candidates = campaignDetail.candidates.filter((candidate) =>
     input.candidateIds.includes(candidate.id)
