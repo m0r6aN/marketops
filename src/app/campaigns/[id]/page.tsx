@@ -4,9 +4,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CampaignDiscoveryReview } from "@/components/campaign-discovery-review";
+import { CampaignLifecycleWorkspace } from "@/components/campaign-lifecycle-workspace";
 import { CampaignRowActions } from "@/components/campaign-row-actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCampaignById } from "@/lib/campaigns";
+import {
+  getCampaignLifecycle,
+  listCampaignAudienceCandidates,
+  listCampaignLifecycleEvents,
+} from "@/lib/campaigns/lifecycle-repository";
 import { getDiscoveryCampaignDetail } from "@/lib/customer-finder/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives";
 
@@ -38,6 +44,13 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
 
   const initiative = campaign.initiativeSlug ? getInitiativeBySlug(campaign.initiativeSlug) : undefined;
   const discoveryDetail = campaign.campaignKind === "customer-discovery" ? getDiscoveryCampaignDetail(id) : undefined;
+  const lifecycle = campaign.campaignKind === "managed" ? getCampaignLifecycle(id) : undefined;
+  const audienceCandidates =
+    campaign.campaignKind === "managed"
+      ? listCampaignAudienceCandidates(campaign.initiativeSlug)
+      : [];
+  const lifecycleEvents =
+    campaign.campaignKind === "managed" ? listCampaignLifecycleEvents(id) : [];
 
   return (
     <div className="space-y-6">
@@ -94,18 +107,18 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
       {discoveryDetail ? (
         <CampaignDiscoveryReview detail={discoveryDetail} />
       ) : (
-        <Card className="border-border/70 bg-card/95 shadow-sm">
-          <CardHeader className="space-y-2 p-6">
-            <CardTitle className="text-lg font-semibold">Discovery workspace</CardTitle>
-            <CardDescription>
-              Fixture campaigns keep their original summary view. Customer discovery review is available
-              on campaigns created through the Customer Finder.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 text-sm leading-6 text-muted-foreground">
-            No customer-discovery records are attached to this fixture campaign.
-          </CardContent>
-        </Card>
+        <CampaignLifecycleWorkspace
+          campaignId={campaign.id}
+          lifecycle={lifecycle}
+          defaults={{
+            brief: campaign.goal,
+            audienceSegment: campaign.audience,
+            assetPlan: campaign.assetTypes,
+            channelPlan: campaign.channel,
+          }}
+          candidates={audienceCandidates}
+          events={lifecycleEvents}
+        />
       )}
     </div>
   );

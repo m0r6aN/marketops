@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Campaign Workspace Foundation | `feat/campaign-workspace-foundation` | In progress |
+| Full Marketing Campaign Lifecycle | `feat/marketops-02-full-campaign` | In progress |
 
 ---
 
@@ -47,13 +47,12 @@ Status: In progress on `feat/campaign-workspace-foundation`. Listed here for roa
 
 ---
 
-### Campaign Editor
+### Campaign Provider Execution
 
-- Edit campaign fields (name, status, target, brief, sensitivity)
-- Validation against initiative claim boundaries at edit time
-- Persistence layer (SQLite-backed, extending existing `better-sqlite3` setup)
-- Audit trail: who changed what and when
-- Draft / published state management
+- Connect explicit provider adapters only after a channel-specific implementation is approved
+- Preserve provider request, confirmation, failure, and partial-delivery evidence
+- Keep planned, review-ready, approved, sent, failed, and measured states distinct
+- Never infer provider success from a queued request
 
 ---
 
