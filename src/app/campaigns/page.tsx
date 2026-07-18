@@ -85,8 +85,17 @@ export default function CampaignsPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold tracking-tight">All campaigns</h2>
-        <CampaignList campaigns={campaigns} showInitiative />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold tracking-tight">All campaigns</h2>
+          <Link
+            href="/campaigns/new"
+            className="inline-flex items-center rounded-full border border-border/70 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-muted/50"
+            aria-label="Add campaign"
+          >
+            Add campaign
+          </Link>
+        </div>
+        <CampaignList campaigns={campaigns} showInitiative showActions />
       </section>
     </div>
   );

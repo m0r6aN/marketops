@@ -1,13 +1,14 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { CampaignDiscoveryReview } from "@/components/campaign-discovery-review";
+import { CampaignRowActions } from "@/components/campaign-row-actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCampaignById } from "@/lib/campaigns";
 import { getDiscoveryCampaignDetail } from "@/lib/customer-finder/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives";
-import { getCampaignById } from "@/lib/campaigns";
 
 type CampaignDetailPageProps = {
   params: Promise<{
@@ -48,14 +49,23 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
         Back to campaigns
       </Link>
 
-      <section className="space-y-2">
+      <section className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
           Campaign detail
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{campaign.name}</h1>
-        <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
-          {campaign.goal}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{campaign.name}</h1>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
+              {campaign.goal}
+            </p>
+          </div>
+          <CampaignRowActions
+            id={campaign.id}
+            name={campaign.name}
+            campaignKind={campaign.campaignKind}
+          />
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">

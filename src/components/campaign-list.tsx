@@ -6,6 +6,7 @@ type CampaignListProps = {
   campaigns: Campaign[];
   showInitiative?: boolean; // defaults to false; pass true to render initiative name links
   density?: "default" | "compact";
+  showActions?: boolean;
 };
 
 function getInitiativeName(slug: string): string | undefined {
@@ -16,6 +17,7 @@ export function CampaignList({
   campaigns,
   showInitiative = false,
   density = "default",
+  showActions = false,
 }: CampaignListProps) {
   if (campaigns.length === 0) {
     return (
@@ -30,6 +32,7 @@ export function CampaignList({
           key={campaign.id}
           campaign={campaign}
           density={density}
+          showActions={showActions}
           initiativeName={
             showInitiative ? getInitiativeName(campaign.initiativeSlug) : undefined
           }
