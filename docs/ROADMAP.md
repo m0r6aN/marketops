@@ -9,7 +9,6 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 | Lane | Branch | Status |
 |---|---|---|
 | Campaign Workspace Foundation | `feat/campaign-workspace-foundation` | In progress |
-| Customer Finder and Outreach Planning | `feat/customer-finder-outreach-planning` | In progress |
 
 ---
 
@@ -105,23 +104,12 @@ These are deferred and not current scope. Do not implement any of the following 
 
 ---
 
-### Customer Finder and Outreach Planning
+### AI-Assisted Campaign Generation and Execution
 
-- Editable target-customer suggestion in the Campaigns workspace
-- Source checklist with supported / unsupported visibility
-- Planning-state campaign creation with provenance retention
-- Candidate deduplication with retained source provenance
-- Review-only outreach drafts with no outbound send path
-- Workspace purge and 90-day retention handling
-
----
-
-### AI-Assisted Campaign Generation
-
-- Deferred until core workflow lanes are stable
-- Not in scope until claim hygiene, campaign editor, and assets lanes are complete
-- Must be gated by claim boundary validation before any AI output is accepted
-- Requires explicit spec and human review checkpoint before implementation
+- Build incrementally on the campaign editor, assets, Customer Finder, and measurement surfaces
+- Keep generated claims tied to source evidence and show unsupported statements to the operator
+- Add provider execution through explicit adapters with honest sent, failed, and partial status
+- Add governance or approval controls when a concrete workflow, external rule, or commercialization decision requires them
 
 ---
 
@@ -151,4 +139,5 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 1 | Foundation: initiative domain model, detail page shell, fixture data | ✅ |
 | PR 2 | Go-live readiness: checklist cards, readiness summary, domain hardening | ✅ |
 | PR 3 | Positioning Canon + Claim Hygiene: narrative fields, claim validation helpers, PositioningCanonCard, ClaimHygienePanel | ✅ |
+| PR 1 | Customer Finder and Outreach Planning: discovery sources, planning campaigns, provenance, and review-only drafts | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |

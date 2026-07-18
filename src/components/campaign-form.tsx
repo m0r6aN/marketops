@@ -11,7 +11,7 @@ import {
     campaignSensitivityOptions,
     campaignStatusOptions,
 } from "@/lib/campaigns/types";
-import { initiatives } from "@/lib/initiatives";
+import { initiativeSeed as initiatives } from "@/lib/initiatives/seed";
 
 type CampaignFormProps = {
   mode: "create" | "edit";

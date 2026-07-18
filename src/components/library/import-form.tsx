@@ -1,7 +1,7 @@
 "use client";
 import { ImportProgress } from "@/components/library/import-progress";
 import { ModeSelector } from "@/components/library/mode-selector";
-import { initiatives } from "@/lib/initiatives";
+import { initiativeSeed as initiatives } from "@/lib/initiatives/seed";
 import type { ImportFileMetadata, ImportRequest, ProcessingMode } from "@/lib/library/types";
 import { type InputHTMLAttributes, useRef, useState } from "react";
 
