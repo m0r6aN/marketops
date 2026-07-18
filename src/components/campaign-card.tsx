@@ -1,3 +1,4 @@
+import { CampaignRowActions } from "@/components/campaign-row-actions";
 import { CampaignSensitivityBadge } from "@/components/campaign-sensitivity-badge";
 import { CampaignStatusBadge } from "@/components/campaign-status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ type CampaignCardProps = {
   campaign: Campaign;
   initiativeName?: string;
   density?: "default" | "compact";
+  showActions?: boolean;
 };
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -21,7 +23,12 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function CampaignCard({ campaign, initiativeName, density = "default" }: CampaignCardProps) {
+export function CampaignCard({
+  campaign,
+  initiativeName,
+  density = "default",
+  showActions = false,
+}: CampaignCardProps) {
   const isCompact = density === "compact";
 
   return (
@@ -41,10 +48,19 @@ export function CampaignCard({ campaign, initiativeName, density = "default" }: 
               </Link>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <CampaignStatusBadge status={campaign.status} />
-            <CampaignSensitivityBadge sensitivity={campaign.claimSensitivity} />
-            <Badge variant="outline">{campaign.launchReadiness}</Badge>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <CampaignStatusBadge status={campaign.status} />
+              <CampaignSensitivityBadge sensitivity={campaign.claimSensitivity} />
+              <Badge variant="outline">{campaign.launchReadiness}</Badge>
+            </div>
+            {showActions ? (
+              <CampaignRowActions
+                id={campaign.id}
+                name={campaign.name}
+                campaignKind={campaign.campaignKind}
+              />
+            ) : null}
           </div>
         </div>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{campaign.goal}</p>

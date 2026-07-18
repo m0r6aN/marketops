@@ -1,28 +1,19 @@
-# Initiatives CRUD Migration TODO
+# Campaign Administration TODO
 
-- [x] Create initiatives domain modules:
-  - [x] `src/lib/initiatives/types.ts`
-  - [x] `src/lib/initiatives/seed.ts`
-  - [x] `src/lib/initiatives/db.ts`
-  - [x] `src/lib/initiatives/repository.ts`
-  - [x] Update `src/lib/initiatives.ts` as compatibility shim
-
-- [x] Add initiatives server actions:
-  - [x] `src/app/actions/initiatives.ts`
-
-- [x] Refactor initiatives list + detail to repository-backed data:
-  - [x] Update `src/app/initiatives/page.tsx`
-  - [x] Update `src/components/initiative-table.tsx`
-  - [x] Update `src/app/initiatives/[slug]/page.tsx`
-
-- [x] Add CRUD UI building blocks:
-  - [x] `src/components/initiative-form.tsx`
-  - [x] `src/components/initiative-row-actions.tsx`
-
-- [x] Add CRUD pages:
-  - [x] `src/app/initiatives/new/page.tsx`
-  - [x] `src/app/initiatives/[slug]/edit/page.tsx`
-
-- [ ] Validation and checks:
-  - [ ] Run lint/type checks
-  - [ ] Verify `/initiatives`, `/initiatives/new`, `/initiatives/[slug]/edit`, `/initiatives/[slug]`
+- [x] Create branch from local main (`blackboxai/campaign-admin-persistence`)
+- [ ] Add campaigns SQLite schema + idempotent seed with soft delete support
+- [ ] Implement campaigns repository CRUD + discovery restrictions
+- [ ] Add validated server actions for campaigns create/update/delete with revalidation
+- [ ] Replace fixture-based campaign read facade with DB-backed managed + discovery merge
+- [ ] Add reusable campaign form component for create/edit
+- [ ] Add `/campaigns/new` page for managed campaign creation
+- [ ] Add `/campaigns/[id]/edit` page with 404 for deleted/nonexistent campaigns
+- [ ] Add campaign row/detail actions: edit + delete (only in All campaigns and detail page)
+- [ ] Ensure deleted campaigns are excluded from lists, metrics, and detail/edit routes
+- [ ] Add tests using isolated temporary SQLite database for campaign persistence and behaviors
+- [ ] Run verification commands:
+  - [ ] `npm test`
+  - [ ] `npm run typecheck`
+  - [ ] `npm run lint`
+  - [ ] `npm run build`
+- [ ] Summarize changed files and verification results
