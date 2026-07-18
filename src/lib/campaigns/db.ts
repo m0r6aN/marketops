@@ -20,6 +20,42 @@ db.exec(`
     updated_at TEXT NOT NULL,
     deleted_at TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS campaign_lifecycles (
+    campaign_id TEXT PRIMARY KEY,
+    brief TEXT NOT NULL DEFAULT '',
+    offer TEXT NOT NULL DEFAULT '',
+    audience_segment TEXT NOT NULL DEFAULT '',
+    selected_candidate_ids_json TEXT NOT NULL DEFAULT '[]',
+    brand_voice_summary TEXT NOT NULL DEFAULT '',
+    asset_plan_json TEXT NOT NULL DEFAULT '[]',
+    channel_plan TEXT NOT NULL DEFAULT '',
+    outreach_plan TEXT NOT NULL DEFAULT '',
+    review_status TEXT NOT NULL DEFAULT 'draft',
+    execution_mode TEXT NOT NULL DEFAULT 'manual',
+    execution_status TEXT NOT NULL DEFAULT 'not-started',
+    execution_evidence TEXT NOT NULL DEFAULT '',
+    measurement_plan TEXT NOT NULL DEFAULT '',
+    primary_metric TEXT NOT NULL DEFAULT '',
+    target_value TEXT NOT NULL DEFAULT '',
+    actual_outcome TEXT NOT NULL DEFAULT '',
+    optimization_notes TEXT NOT NULL DEFAULT '',
+    next_iteration TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS campaign_lifecycle_events (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    detail_json TEXT NOT NULL DEFAULT '{}',
+    recorded_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_campaign_lifecycle_events_campaign
+    ON campaign_lifecycle_events(campaign_id, recorded_at DESC);
 `);
 
 const insert = db.prepare(`
