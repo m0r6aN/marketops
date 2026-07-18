@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s | MarketOps",
   },
   description:
-    "Internal operator workspace for MarketOps planning, execution, and reporting.",
+    "MarketOps is the operating system of modern growth: a command center for strategy, campaigns, claims, content, and governed AI execution.",
 };
 
 export default function RootLayout({

@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import { DashboardMetricCard } from "@/components/dashboard-metric-card"
 import { InitiativeTable } from "@/components/initiative-table"
-import { portfolioMetrics } from "@/lib/initiatives"
+import { getPortfolioMetrics, listInitiatives } from "@/lib/initiatives/repository"
 
 export const metadata: Metadata = {
   title: "Initiatives",
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 }
 
 export default function InitiativesPage() {
+  const initiatives = listInitiatives()
+  const portfolioMetrics = getPortfolioMetrics()
   const launchStageDistribution = [
     portfolioMetrics.launchStageDistribution["public-proof"],
     portfolioMetrics.launchStageDistribution.alpha,
@@ -53,7 +56,16 @@ export default function InitiativesPage() {
         />
       </section>
 
-      <InitiativeTable />
+      <section className="flex items-center justify-end">
+        <Link
+          href="/initiatives/new"
+          className="inline-flex items-center rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Add initiative
+        </Link>
+      </section>
+
+      <InitiativeTable initiatives={initiatives} />
     </div>
   )
 }

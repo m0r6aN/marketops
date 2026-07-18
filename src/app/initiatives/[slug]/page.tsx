@@ -1,10 +1,10 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { InitiativeDetailSections } from "@/components/initiative-detail-sections";
-import { getInitiativeBySlug, initiatives } from "@/lib/initiatives";
+import { getInitiativeBySlug } from "@/lib/initiatives/repository";
 import { getInitiativeReadinessView } from "@/lib/readiness/service";
 
 type InitiativePageProps = {
@@ -13,11 +13,6 @@ type InitiativePageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return initiatives.map((initiative) => ({
-    slug: initiative.slug,
-  }));
-}
 
 export async function generateMetadata({
   params,

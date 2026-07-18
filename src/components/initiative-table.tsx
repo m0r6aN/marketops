@@ -1,13 +1,15 @@
-import { ArrowUpRight } from "lucide-react"
-import Link from "next/link"
-
+import { InitiativeRowActions } from "@/components/initiative-row-actions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { initiatives } from "@/lib/initiatives"
+import type { Initiative } from "@/lib/initiatives"
 
 const joinAudiences = (labels: string[]) => labels.join(", ")
 
-export function InitiativeTable() {
+type InitiativeTableProps = {
+  initiatives: Initiative[]
+}
+
+export function InitiativeTable({ initiatives }: InitiativeTableProps) {
   return (
     <div className="space-y-4">
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-background shadow-sm">
@@ -19,7 +21,7 @@ export function InitiativeTable() {
               <th className="px-5 py-3 font-medium">Audience + CTA</th>
               <th className="px-5 py-3 font-medium">Current focus</th>
               <th className="px-5 py-3 font-medium">Canon posture</th>
-              <th className="px-5 py-3 font-medium">Record</th>
+              <th className="px-5 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/70 bg-background">
@@ -62,14 +64,7 @@ export function InitiativeTable() {
                   </div>
                 </td>
                 <td className="px-5 py-5">
-                  <Link
-                    href={`/initiatives/${initiative.slug}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-border/70 px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-muted/50"
-                    aria-label={`Open ${initiative.name} detail page`}
-                  >
-                    Open
-                    <ArrowUpRight className="size-4" aria-hidden="true" />
-                  </Link>
+                  <InitiativeRowActions slug={initiative.slug} name={initiative.name} />
                 </td>
               </tr>
             ))}
@@ -125,14 +120,7 @@ export function InitiativeTable() {
                   </div>
                   <div className="text-sm text-muted-foreground">{initiative.oneLiner}</div>
                 </div>
-                <Link
-                  href={`/initiatives/${initiative.slug}`}
-                  className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
-                  aria-label={`Open ${initiative.name} detail page`}
-                >
-                  Open
-                  <ArrowUpRight className="size-4" aria-hidden="true" />
-                </Link>
+                <InitiativeRowActions slug={initiative.slug} name={initiative.name} />
               </div>
             </CardContent>
           </Card>
