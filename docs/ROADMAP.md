@@ -9,6 +9,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 | Lane | Branch | Status |
 |---|---|---|
 | Campaign Workspace Foundation | `feat/campaign-workspace-foundation` | In progress |
+| Customer Finder and Outreach Planning | `feat/customer-finder-outreach-planning` | In progress |
 
 ---
 
@@ -104,6 +105,17 @@ These are deferred and not current scope. Do not implement any of the following 
 
 ---
 
+### Customer Finder and Outreach Planning
+
+- Editable target-customer suggestion in the Campaigns workspace
+- Source checklist with supported / unsupported visibility
+- Planning-state campaign creation with provenance retention
+- Candidate deduplication with retained source provenance
+- Review-only outreach drafts with no outbound send path
+- Workspace purge and 90-day retention handling
+
+---
+
 ### AI-Assisted Campaign Generation
 
 - Deferred until core workflow lanes are stable
@@ -124,7 +136,8 @@ These are deferred and not current scope. Do not implement any of the following 
 
 ### Authentication and Multi-Tenant Workspaces
 
-- Deferred; current MarketOps is single-operator, fixture-backed
+- Deferred; current MarketOps remains single-operator for runtime behavior
+- Customer Finder should preserve a future-compatible boundary, but must not invent tenant isolation claims it does not yet enforce
 - Auth candidates: NextAuth, Clerk, custom JWT
 - Multi-tenant requires schema changes, row-level security, and an explicit tenant isolation model
 - Do not add any auth SDK or tenant fields without a full scoped spec reviewed by the team

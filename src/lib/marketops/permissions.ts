@@ -11,6 +11,8 @@ export const permissionPresentationalGroupsByPermission = {
   "mediums.view": "portfolio",
   "campaigns.view": "campaigns",
   "campaigns.edit": "campaigns",
+  "campaigns.discover-customers": "campaigns",
+  "campaigns.plan-outreach": "campaigns",
   "content.view": "content",
   "content.edit": "content",
   "automation.approve": "automation",

@@ -44,8 +44,12 @@ function getContext(pathname: string): AssistantContext {
   if (pathname.startsWith("/campaigns")) {
     return {
       title: "Campaign copilot",
-      description: "Turn approved positioning into campaign lanes and claim-safe execution.",
-      suggestions: ["Help me plan a campaign from approved canon.", "What claims need proof before launch?"],
+      description: "Turn approved positioning into campaign lanes, customer discovery plans, and claim-safe execution.",
+      suggestions: [
+        "Help me plan a campaign from approved canon.",
+        "Identify prospective customers for this initiative.",
+        "What claims need proof before launch?",
+      ],
     };
   }
 
@@ -67,6 +71,9 @@ function localHelp(context: AssistantContext, prompt: string) {
   }
   if (lower.includes("canon")) {
     return "Canon is durable source-of-truth material: positioning, product facts, audience definitions, glossary, claims, and proof-backed statements. Approve only if it should guide future marketing.";
+  }
+  if (lower.includes("prospective customers") || lower.includes("customer finder") || lower.includes("identify prospective customers")) {
+    return "Use the Customer Finder from the Campaigns workspace to suggest a target description, choose supported sources, create a planning campaign, and prepare review-only outreach drafts.";
   }
   if (lower.includes("public") || lower.includes("safe") || lower.includes("claim")) {
     return "Before using content publicly, confirm it is non-sensitive, proof-backed, not roadmap-as-current-capability, and linked to source evidence when required.";

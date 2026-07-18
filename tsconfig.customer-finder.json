@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/app/actions/customer-finder.ts",
+    "src/app/campaigns/page.tsx",
+    "src/app/campaigns/finder/page.tsx",
+    "src/app/campaigns/[id]/page.tsx",
+    "src/app/page.tsx",
+    "src/components/campaign-card.tsx",
+    "src/components/campaign-discovery-review.tsx",
+    "src/components/campaign-status-badge.tsx",
+    "src/components/customer-finder-wizard.tsx",
+    "src/components/customer-finder-workspace-actions.tsx",
+    "src/components/ai-assistant-sidebar.tsx",
+    "src/lib/campaigns.ts",
+    "src/lib/customer-finder/**/*.ts",
+    "src/lib/marketops/status.ts",
+    "src/lib/marketops/permissions.ts",
+    "tests/customer-finder.test.ts",
+    "next-env.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

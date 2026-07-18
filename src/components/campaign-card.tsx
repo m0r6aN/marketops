@@ -29,7 +29,9 @@ export function CampaignCard({ campaign, initiativeName, density = "default" }: 
       <CardHeader className={cn("space-y-3", isCompact && "pb-0")}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-base font-semibold leading-tight">{campaign.name}</p>
+            <Link href={`/campaigns/${campaign.id}`} className="text-base font-semibold leading-tight hover:underline">
+              {campaign.name}
+            </Link>
             {initiativeName && (
               <Link
                 href={`/initiatives/${campaign.initiativeSlug}`}
@@ -71,6 +73,11 @@ export function CampaignCard({ campaign, initiativeName, density = "default" }: 
           <div className="rounded-lg border border-amber-400/40 bg-amber-50/20 px-3 py-2 dark:bg-amber-950/10">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Note</p>
             <p className="mt-1 text-sm leading-6 text-foreground">{campaign.notes}</p>
+            {campaign.targetDescription ? (
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Target description: {campaign.targetDescription}
+              </p>
+            ) : null}
           </div>
         )}
       </CardContent>

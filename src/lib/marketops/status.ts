@@ -49,6 +49,8 @@ export type ReceiptKind = (typeof receiptKinds)[number];
 export const agentCapabilities = [
   "propose-offer",
   "prepare-campaign",
+  "discover-customers",
+  "plan-outreach",
   "draft-content",
   "publish-asset",
   "sync-integration",

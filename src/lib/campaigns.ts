@@ -1,8 +1,16 @@
-export type CampaignStatus = "active" | "paused" | "planning" | "complete";
+import { listDiscoveryCampaigns } from "@/lib/customer-finder/repository";
+
+export type CampaignStatus =
+  | "active"
+  | "paused"
+  | "planning"
+  | "discovering"
+  | "review-ready"
+  | "complete";
 
 export type CampaignSensitivity = "high" | "medium" | "low";
 
-export type CampaignLaunchReadiness = "ready" | "in-progress" | "planning";
+export type CampaignLaunchReadiness = "ready" | "in-progress" | "planning" | "review-ready";
 
 export type Campaign = {
   id: string;
@@ -18,9 +26,14 @@ export type Campaign = {
   claimSensitivity: CampaignSensitivity;
   launchReadiness: CampaignLaunchReadiness;
   notes: string;
+  campaignKind?: "fixture" | "customer-discovery";
+  createdAt?: string;
+  targetDescription?: string;
+  discoveryStatus?: string;
+  candidateCount?: number;
 };
 
-export const campaigns: Campaign[] = [
+const fixtureCampaigns: Campaign[] = [
   {
     id: "keon-proof-push",
     initiativeSlug: "keon-systems",
@@ -35,6 +48,7 @@ export const campaigns: Campaign[] = [
     claimSensitivity: "high",
     launchReadiness: "in-progress",
     notes: "Must stay verifier-bound and avoid proof overclaims.",
+    campaignKind: "fixture",
   },
   {
     id: "biostack-alpha-push",
@@ -50,6 +64,7 @@ export const campaigns: Campaign[] = [
     claimSensitivity: "high",
     launchReadiness: "in-progress",
     notes: "Must remain observational and avoid medical claims.",
+    campaignKind: "fixture",
   },
   {
     id: "silentapply-waitlist",
@@ -70,6 +85,7 @@ export const campaigns: Campaign[] = [
     claimSensitivity: "medium",
     launchReadiness: "planning",
     notes: "Must avoid guaranteed interview or job outcome claims.",
+    campaignKind: "fixture",
   },
   {
     id: "forgepilot-narrative-test",
@@ -85,18 +101,64 @@ export const campaigns: Campaign[] = [
     claimSensitivity: "medium",
     launchReadiness: "planning",
     notes: "Must avoid autonomous shipping or guaranteed PMF claims.",
+    campaignKind: "fixture",
   },
 ];
 
-export const getCampaignsByInitiativeSlug = (slug: string): Campaign[] =>
-  campaigns.filter((c) => c.initiativeSlug === slug);
+function mapDiscoveryCampaignToViewModel(): Campaign[] {
+  return listDiscoveryCampaigns().map((campaign) => ({
+    id: campaign.id,
+    initiativeSlug: campaign.initiativeSlug,
+    name: campaign.campaignName,
+    status: campaign.status as CampaignStatus,
+    goal: `Identify and verify prospective customers for ${campaign.targetDescription}.`,
+    channel: "customer discovery / planning",
+    audience: campaign.targetDescription,
+    primaryCta: "Review candidates",
+    currentFocus:
+      campaign.discoveryStatus === "completed"
+        ? "Candidate review"
+        : campaign.discoveryStatus === "partial"
+          ? "Partial discovery review"
+          : "Discovery planning",
+    assetTypes: ["source plan", "candidate records", "review-required drafts"],
+    claimSensitivity: "high",
+    launchReadiness: campaign.discoveryStatus === "completed" ? "review-ready" : "planning",
+    notes:
+      campaign.notes ||
+      "Discovery records preserve provenance and require human review before any external outreach.",
+    campaignKind: "customer-discovery",
+    createdAt: campaign.createdAt,
+    targetDescription: campaign.targetDescription,
+    discoveryStatus: campaign.discoveryStatus,
+  }));
+}
 
-export const getActiveCampaigns = (): Campaign[] =>
-  campaigns.filter((c) => c.status === "active");
+export function listCampaigns(): Campaign[] {
+  return [...mapDiscoveryCampaignToViewModel(), ...fixtureCampaigns];
+}
 
-export const campaignMetrics = {
-  total: campaigns.length,
-  active: campaigns.filter((c) => c.status === "active").length,
-  planning: campaigns.filter((c) => c.status === "planning").length,
-  highSensitivity: campaigns.filter((c) => c.claimSensitivity === "high").length,
-};
+export function getCampaignsByInitiativeSlug(slug: string): Campaign[] {
+  return listCampaigns().filter((campaign) => campaign.initiativeSlug === slug);
+}
+
+export function getActiveCampaigns(): Campaign[] {
+  return listCampaigns().filter((campaign) => campaign.status === "active");
+}
+
+export function getCampaignById(id: string): Campaign | undefined {
+  return listCampaigns().find((campaign) => campaign.id === id);
+}
+
+export function getCampaignMetrics(campaigns: Campaign[]) {
+  return {
+    total: campaigns.length,
+    active: campaigns.filter((campaign) => campaign.status === "active").length,
+    planning: campaigns.filter((campaign) => campaign.status === "planning").length,
+    highSensitivity: campaigns.filter((campaign) => campaign.claimSensitivity === "high").length,
+  };
+}
+
+export const campaigns = fixtureCampaigns;
+
+export const campaignMetrics = getCampaignMetrics(listCampaigns());
