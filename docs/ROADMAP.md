@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Full Marketing Campaign Lifecycle | `feat/marketops-02-full-campaign` | In progress |
+| Brand Voice Guidelines | `feat/marketops-03-brand-voice` | In progress |
 
 ---
 
@@ -139,4 +139,5 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 2 | Go-live readiness: checklist cards, readiness summary, domain hardening | ✅ |
 | PR 3 | Positioning Canon + Claim Hygiene: narrative fields, claim validation helpers, PositioningCanonCard, ClaimHygienePanel | ✅ |
 | PR 1 | Customer Finder and Outreach Planning: discovery sources, planning campaigns, provenance, and review-only drafts | ✅ |
+| PR 4 | Full Marketing Campaign Lifecycle: planning, review, manual execution evidence, measurement, and optimization | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |
