@@ -15,6 +15,7 @@ import {
 } from "@/lib/campaigns/lifecycle-repository";
 import { getDiscoveryCampaignDetail } from "@/lib/customer-finder/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives";
+import { listApprovedBrandVoiceVersions } from "@/lib/brand-voice/repository";
 
 type CampaignDetailPageProps = {
   params: Promise<{
@@ -51,6 +52,10 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
       : [];
   const lifecycleEvents =
     campaign.campaignKind === "managed" ? listCampaignLifecycleEvents(id) : [];
+  const brandVoiceVersions =
+    campaign.campaignKind === "managed"
+      ? listApprovedBrandVoiceVersions(campaign.initiativeSlug, true)
+      : [];
 
   return (
     <div className="space-y-6">
@@ -117,6 +122,7 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
             channelPlan: campaign.channel,
           }}
           candidates={audienceCandidates}
+          brandVoiceVersions={brandVoiceVersions}
           events={lifecycleEvents}
         />
       )}

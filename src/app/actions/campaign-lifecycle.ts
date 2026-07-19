@@ -9,6 +9,11 @@ import {
 } from "@/lib/campaigns/lifecycle-repository";
 import { validateCampaignLifecycleInput } from "@/lib/campaigns/lifecycle-service";
 import type { CampaignLifecycleInput } from "@/lib/campaigns/lifecycle-types";
+import {
+  getBrandVoiceGuideline,
+  listApprovedBrandVoiceVersions,
+} from "@/lib/brand-voice/repository";
+import { buildBrandVoiceContext } from "@/lib/brand-voice/service";
 
 export async function saveCampaignLifecycleAction(
   campaignId: string,
@@ -22,7 +27,21 @@ export async function saveCampaignLifecycleAction(
   const candidateIds = new Set(
     listCampaignAudienceCandidates(campaign.initiativeSlug).map((candidate) => candidate.id)
   );
-  const validated = validateCampaignLifecycleInput(input, candidateIds);
+  const approvedVersions = listApprovedBrandVoiceVersions(campaign.initiativeSlug, true);
+  const allowedBrandVoiceIds = new Set(approvedVersions.map((version) => version.id));
+  let effectiveInput = input;
+  if (input.brandVoiceGuidelineId) {
+    const guideline = getBrandVoiceGuideline(input.brandVoiceGuidelineId);
+    if (
+      !guideline ||
+      guideline.initiativeSlug !== campaign.initiativeSlug ||
+      (guideline.status !== "approved" && guideline.status !== "superseded")
+    ) {
+      throw new Error("Brand voice guidelines must be approved versions from the same initiative.");
+    }
+    effectiveInput = { ...input, brandVoiceSummary: buildBrandVoiceContext(guideline) };
+  }
+  const validated = validateCampaignLifecycleInput(effectiveInput, candidateIds, allowedBrandVoiceIds);
   const saved = saveCampaignLifecycle(campaignId, validated);
 
   revalidatePath(`/campaigns/${campaignId}`);
