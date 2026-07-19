@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeCampaignLifecycleProgress } from "@/lib/campaigns/lifecycle-service";
+import type { BrandVoiceVersionSummary } from "@/lib/brand-voice/types";
 import {
   campaignExecutionModeOptions,
   campaignExecutionStatusOptions,
@@ -25,6 +26,7 @@ type CampaignLifecycleWorkspaceProps = {
   lifecycle?: CampaignLifecycleRecord;
   defaults?: Partial<CampaignLifecycleInput>;
   candidates: CampaignAudienceCandidate[];
+  brandVoiceVersions: BrandVoiceVersionSummary[];
   events: CampaignLifecycleEvent[];
 };
 
@@ -41,6 +43,7 @@ function asInput(
     offer: record.offer,
     audienceSegment: record.audienceSegment,
     selectedCandidateIds: record.selectedCandidateIds,
+    brandVoiceGuidelineId: record.brandVoiceGuidelineId,
     brandVoiceSummary: record.brandVoiceSummary,
     assetPlan: record.assetPlan,
     channelPlan: record.channelPlan,
@@ -63,6 +66,7 @@ export function CampaignLifecycleWorkspace({
   lifecycle,
   defaults,
   candidates,
+  brandVoiceVersions,
   events,
 }: CampaignLifecycleWorkspaceProps) {
   const router = useRouter();
@@ -80,6 +84,12 @@ export function CampaignLifecycleWorkspace({
     const availableIds = new Set(candidates.map((candidate) => candidate.id));
     return form.selectedCandidateIds.filter((candidateId) => !availableIds.has(candidateId));
   }, [candidates, form.selectedCandidateIds]);
+  const pinnedBrandVoice = brandVoiceVersions.find(
+    (version) => version.id === form.brandVoiceGuidelineId
+  );
+  const unavailableBrandVoiceId = form.brandVoiceGuidelineId && !pinnedBrandVoice
+    ? form.brandVoiceGuidelineId
+    : undefined;
 
   const update = <K extends keyof CampaignLifecycleInput>(
     key: K,
@@ -252,14 +262,48 @@ export function CampaignLifecycleWorkspace({
 
         <LifecycleSection
           title="3. Assets, voice, and distribution"
-          description="Record the working voice constraints, required assets, and channel plan."
+          description="Pin an approved initiative voice version or record interim constraints, then plan assets and channels."
         >
+          <label className="space-y-2 text-sm">
+            <span className="font-medium">Approved brand voice version</span>
+            <select
+              className={inputClass}
+              value={unavailableBrandVoiceId ? "" : form.brandVoiceGuidelineId}
+              onChange={(event) => {
+                const selected = brandVoiceVersions.find((version) => version.id === event.target.value);
+                setForm((current) => ({
+                  ...current,
+                  brandVoiceGuidelineId: selected?.id ?? "",
+                  brandVoiceSummary: selected?.context ?? current.brandVoiceSummary,
+                }));
+                setSaved(false);
+              }}
+            >
+              <option value="">Manual interim guidance</option>
+              {brandVoiceVersions.map((version) => (
+                <option key={version.id} value={version.id}>
+                  v{version.versionNumber} · {version.name} · {version.status}
+                </option>
+              ))}
+            </select>
+            <span className="block text-xs leading-5 text-muted-foreground">
+              A pinned campaign keeps this exact approved-version snapshot when later versions are approved.
+            </span>
+          </label>
           <TextAreaField
-            label="Working brand voice"
+            label={pinnedBrandVoice ? `Pinned brand voice snapshot · v${pinnedBrandVoice.versionNumber}` : "Working brand voice"}
             value={form.brandVoiceSummary}
+            disabled={Boolean(pinnedBrandVoice)}
             onChange={(value) => update("brandVoiceSummary", value)}
-            placeholder="Interim voice, claim, tone, and terminology constraints. Capability 3 will make this reusable."
+            placeholder="Interim voice, claim, tone, and terminology constraints."
           />
+          {unavailableBrandVoiceId ? (
+            <div className="rounded-lg border border-amber-400/50 bg-amber-50/40 p-4 text-sm dark:bg-amber-950/10 md:col-span-2">
+              <p className="font-medium">Unavailable brand voice reference</p>
+              <p className="mt-1 text-muted-foreground">The pinned version is no longer available to this initiative. Clear it before saving.</p>
+              <Button type="button" className="mt-3" size="sm" variant="outline" onClick={() => update("brandVoiceGuidelineId", "")}>Clear {unavailableBrandVoiceId}</Button>
+            </div>
+          ) : null}
           <TextAreaField
             label="Asset plan (one per line)"
             value={assetPlanText}
@@ -491,11 +535,13 @@ function TextAreaField({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="space-y-2 text-sm">
@@ -503,6 +549,7 @@ function TextAreaField({
       <textarea
         className={textareaClass}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
       />

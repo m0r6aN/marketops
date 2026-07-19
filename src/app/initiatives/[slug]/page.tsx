@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { InitiativeDetailSections } from "@/components/initiative-detail-sections";
+import { BrandVoiceSummaryCard } from "@/components/brand-voice-summary-card";
+import { listBrandVoiceGuidelines } from "@/lib/brand-voice/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives/repository";
 import { getInitiativeReadinessView } from "@/lib/readiness/service";
 
@@ -37,6 +39,7 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
   }
 
   const readiness = getInitiativeReadinessView(slug);
+  const brandVoiceVersions = listBrandVoiceGuidelines(slug);
 
   return (
     <div className="space-y-6">
@@ -60,6 +63,8 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
           already approved.
         </p>
       </section>
+
+      <BrandVoiceSummaryCard initiativeSlug={slug} versions={brandVoiceVersions} />
 
       <InitiativeDetailSections initiative={initiative} readiness={readiness} />
     </div>
