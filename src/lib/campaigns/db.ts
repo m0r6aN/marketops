@@ -27,6 +27,7 @@ db.exec(`
     offer TEXT NOT NULL DEFAULT '',
     audience_segment TEXT NOT NULL DEFAULT '',
     selected_candidate_ids_json TEXT NOT NULL DEFAULT '[]',
+    brand_voice_guideline_id TEXT NOT NULL DEFAULT '',
     brand_voice_summary TEXT NOT NULL DEFAULT '',
     asset_plan_json TEXT NOT NULL DEFAULT '[]',
     channel_plan TEXT NOT NULL DEFAULT '',
@@ -57,6 +58,11 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_campaign_lifecycle_events_campaign
     ON campaign_lifecycle_events(campaign_id, recorded_at DESC);
 `);
+
+const lifecycleColumns = db.prepare(`PRAGMA table_info(campaign_lifecycles)`).all() as Array<{ name: string }>;
+if (!lifecycleColumns.some((column) => column.name === "brand_voice_guideline_id")) {
+  db.exec(`ALTER TABLE campaign_lifecycles ADD COLUMN brand_voice_guideline_id TEXT NOT NULL DEFAULT ''`);
+}
 
 const insert = db.prepare(`
   INSERT INTO campaigns (

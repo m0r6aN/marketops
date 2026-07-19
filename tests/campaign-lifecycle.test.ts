@@ -20,6 +20,7 @@ function buildInput(overrides: Partial<CampaignLifecycleInput> = {}): CampaignLi
     offer: "A governed AI execution review and proof walkthrough.",
     audienceSegment: "Security and platform leaders evaluating agent execution controls.",
     selectedCandidateIds: [],
+    brandVoiceGuidelineId: "",
     brandVoiceSummary: "Architecture-first, evidence-backed, and free of autonomous-execution hype.",
     assetPlan: ["Proof tour", "Executive brief", "Founder post"],
     channelPlan: "Owned website, founder-led LinkedIn, and manual one-to-one follow-up.",
@@ -101,6 +102,16 @@ describe("full campaign lifecycle", () => {
         new Set(["allowed-candidate"])
       )
     ).toThrow(/same initiative/i);
+  });
+
+  test("rejects brand voice versions outside the approved initiative set", () => {
+    expect(() =>
+      validateCampaignLifecycleInput(
+        buildInput({ brandVoiceGuidelineId: "voice-from-another-initiative" }),
+        new Set(),
+        new Set(["approved-voice"])
+      )
+    ).toThrow(/approved versions from the same initiative/i);
   });
 
   test("computes lifecycle progress from observable phase evidence", () => {

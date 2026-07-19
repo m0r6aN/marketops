@@ -23,6 +23,7 @@ type LifecycleRow = {
   offer: string;
   audience_segment: string;
   selected_candidate_ids_json: string;
+  brand_voice_guideline_id: string;
   brand_voice_summary: string;
   asset_plan_json: string;
   channel_plan: string;
@@ -66,6 +67,7 @@ function mapLifecycleRow(row: LifecycleRow): CampaignLifecycleRecord {
     offer: row.offer,
     audienceSegment: row.audience_segment,
     selectedCandidateIds: parseStringArray(row.selected_candidate_ids_json),
+    brandVoiceGuidelineId: row.brand_voice_guideline_id ?? "",
     brandVoiceSummary: row.brand_voice_summary,
     assetPlan: parseStringArray(row.asset_plan_json),
     channelPlan: row.channel_plan,
@@ -141,13 +143,13 @@ export function saveCampaignLifecycle(
       `
         INSERT INTO campaign_lifecycles (
           campaign_id, brief, offer, audience_segment, selected_candidate_ids_json,
-          brand_voice_summary, asset_plan_json, channel_plan, outreach_plan, review_status,
+          brand_voice_guideline_id, brand_voice_summary, asset_plan_json, channel_plan, outreach_plan, review_status,
           execution_mode, execution_status, execution_evidence, measurement_plan,
           primary_metric, target_value, actual_outcome, optimization_notes, next_iteration,
           created_at, updated_at
         ) VALUES (
           @campaign_id, @brief, @offer, @audience_segment, @selected_candidate_ids_json,
-          @brand_voice_summary, @asset_plan_json, @channel_plan, @outreach_plan, @review_status,
+          @brand_voice_guideline_id, @brand_voice_summary, @asset_plan_json, @channel_plan, @outreach_plan, @review_status,
           @execution_mode, @execution_status, @execution_evidence, @measurement_plan,
           @primary_metric, @target_value, @actual_outcome, @optimization_notes, @next_iteration,
           @created_at, @updated_at
@@ -157,6 +159,7 @@ export function saveCampaignLifecycle(
           offer = excluded.offer,
           audience_segment = excluded.audience_segment,
           selected_candidate_ids_json = excluded.selected_candidate_ids_json,
+          brand_voice_guideline_id = excluded.brand_voice_guideline_id,
           brand_voice_summary = excluded.brand_voice_summary,
           asset_plan_json = excluded.asset_plan_json,
           channel_plan = excluded.channel_plan,
@@ -179,6 +182,7 @@ export function saveCampaignLifecycle(
       offer: input.offer,
       audience_segment: input.audienceSegment,
       selected_candidate_ids_json: JSON.stringify(input.selectedCandidateIds),
+      brand_voice_guideline_id: input.brandVoiceGuidelineId,
       brand_voice_summary: input.brandVoiceSummary,
       asset_plan_json: JSON.stringify(input.assetPlan),
       channel_plan: input.channelPlan,

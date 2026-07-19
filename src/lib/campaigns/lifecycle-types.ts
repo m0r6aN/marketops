@@ -23,6 +23,7 @@ export type CampaignLifecycleInput = {
   offer: string;
   audienceSegment: string;
   selectedCandidateIds: string[];
+  brandVoiceGuidelineId: string;
   brandVoiceSummary: string;
   assetPlan: string[];
   channelPlan: string;
@@ -96,6 +97,7 @@ export function createEmptyCampaignLifecycleInput(): CampaignLifecycleInput {
     offer: "",
     audienceSegment: "",
     selectedCandidateIds: [],
+    brandVoiceGuidelineId: "",
     brandVoiceSummary: "",
     assetPlan: [],
     channelPlan: "",

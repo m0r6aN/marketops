@@ -37,7 +37,8 @@ function normalizeList(values: string[], field: string) {
 
 export function validateCampaignLifecycleInput(
   input: CampaignLifecycleInput,
-  allowedCandidateIds: ReadonlySet<string>
+  allowedCandidateIds: ReadonlySet<string>,
+  allowedBrandVoiceGuidelineIds: ReadonlySet<string> = new Set()
 ): CampaignLifecycleInput {
   assertOption(input.reviewStatus, campaignReviewStatusOptions, "Review status");
   assertOption(input.executionMode, campaignExecutionModeOptions, "Execution mode");
@@ -47,6 +48,11 @@ export function validateCampaignLifecycleInput(
   const unavailableCandidate = selectedCandidateIds.find((candidateId) => !allowedCandidateIds.has(candidateId));
   if (unavailableCandidate) {
     throw new Error("Selected candidates must belong to the same initiative and remain available for review.");
+  }
+
+  const brandVoiceGuidelineId = normalizeText(input.brandVoiceGuidelineId, "Brand voice guideline");
+  if (brandVoiceGuidelineId && !allowedBrandVoiceGuidelineIds.has(brandVoiceGuidelineId)) {
+    throw new Error("Brand voice guidelines must be approved versions from the same initiative.");
   }
 
   if (input.executionMode === "provider-ready" && input.executionStatus !== "not-started") {
@@ -69,6 +75,7 @@ export function validateCampaignLifecycleInput(
     offer: normalizeText(input.offer, "Offer"),
     audienceSegment: normalizeText(input.audienceSegment, "Audience segment"),
     selectedCandidateIds,
+    brandVoiceGuidelineId,
     brandVoiceSummary: normalizeText(input.brandVoiceSummary, "Brand voice summary"),
     assetPlan: normalizeList(input.assetPlan, "Asset plan"),
     channelPlan: normalizeText(input.channelPlan, "Channel plan"),
