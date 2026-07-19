@@ -6,7 +6,7 @@ Updated: 2026-07-19
 |---|---|---|---|---|---|---|
 | 1 | Customer Finder and Outreach | merged | `codex/customer-finder-outreach` | [#3](https://github.com/m0r6aN/marketops/pull/3) | Test, typecheck, lint, build, and scan passed | Closed at merge commit `c7f3521` |
 | 2 | Run Full Marketing Campaign | merged | `feat/marketops-02-full-campaign` | [#4](https://github.com/m0r6aN/marketops/pull/4) | 12 tests, typecheck, lint, build, diff check, runtime smoke, and focused security review passed | Closed at merge commit `0f8e92f` |
-| 3 | Generate Brand Voice Guidelines | ready-for-review | `feat/marketops-03-brand-voice` | pending | 18 tests, typecheck, lint, build, diff check, runtime smoke, dependency audit, and focused security review passed | Open and review the capability-3 draft PR |
+| 3 | Generate Brand Voice Guidelines | in-review | `feat/marketops-03-brand-voice` | [#5](https://github.com/m0r6aN/marketops/pull/5) | 18 tests, typecheck, lint, build, diff check, runtime smoke, dependency audit, and focused security review passed | Review and disposition PR #5 |
 | 4 | Draft Marketing Content / Write Engaging Content | proposed | not created | not created | not started | Wait for capability 3 |
 | 5 | Apply Persuasion Psychology | proposed | not created | not created | not started | Wait for capability 4 |
 | 6 | Short-Form Video Script Writer | proposed | not created | not created | not started | Wait for capability 5 |
