@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| SEO / AEO / GEO Audit | `feat/marketops-09-seo-aeo-geo-audit` | Verified; draft PR pending |
+| SEO / AEO / GEO Audit | `feat/marketops-09-seo-aeo-geo-audit` | Draft PR #11 open |
 
 ---
 
