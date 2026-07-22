@@ -73,7 +73,7 @@ Give each initiative one source-backed workspace for drafting, AI-assisted gener
 - [x] Claim findings are recomputed server-side and block unsafe approval.
 - [x] Initiative route and summary integration exist.
 - [x] Automated tests, typecheck, lint, production build, diff check, runtime smoke, dependency audit, and focused security review are required before PR.
-- [ ] Draft PR opened and branch/head recorded in the coordinator ledger.
+- [x] Draft PR opened and branch/head recorded in the coordinator ledger.
 
 ## Verification
 
