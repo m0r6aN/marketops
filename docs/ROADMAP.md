@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Brand Voice Guidelines | `feat/marketops-03-brand-voice` | In progress |
+| Content Workspace | `feat/marketops-04-content-workspace` | In progress |
 
 ---
 
