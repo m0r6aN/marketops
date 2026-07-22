@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Email Marketing Campaign Builder | `feat/marketops-08-email-campaign-builder` | Verified; draft PR pending |
+| Email Marketing Campaign Builder | `feat/marketops-08-email-campaign-builder` | Draft PR #10 open |
 
 ---
 

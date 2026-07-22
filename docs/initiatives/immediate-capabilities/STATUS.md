@@ -11,13 +11,13 @@ Updated: 2026-07-22
 | 5 | Apply Persuasion Psychology | merged | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `a64e4d6` |
 | 6 | Short-Form Video Script Writer | merged | `feat/marketops-06-short-form-video` | [#8](https://github.com/m0r6aN/marketops/pull/8) | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `f193674` |
 | 7 | Grab YouTube Transcripts | merged | `feat/marketops-07-youtube-transcripts` | [#9](https://github.com/m0r6aN/marketops/pull/9) | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `708ca9a` |
-| 8 | Email Marketing Campaign Builder | ready-for-review | `feat/marketops-08-email-campaign-builder` | not created | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Commit, push, and open PR |
+| 8 | Email Marketing Campaign Builder | in-review | `feat/marketops-08-email-campaign-builder` | [#10](https://github.com/m0r6aN/marketops/pull/10) | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Review and disposition PR #10 |
 | 9 | SEO / AEO / GEO Audit | proposed | not created | not created | not started | Wait for capability 8 |
 | 10 | Optimize for AI Citations | proposed | not created | not created | not started | Wait for capability 9 |
 
 ## Current Gate
 
-Capability 7 is merged. Capability 8 is verified on a clean branch based on merge commit `708ca9a` and is ready for review. Capability 9 remains blocked until capability 8 is merged, rejected, or explicitly superseded.
+Capability 7 is merged. Capability 8 is in review through PR #10 on a clean branch based on merge commit `708ca9a`. Capability 9 remains blocked until capability 8 is merged, rejected, or explicitly superseded.
 
 ## Known External and Release Constraints
 
