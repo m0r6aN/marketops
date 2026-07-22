@@ -7,11 +7,13 @@ import { InitiativeDetailSections } from "@/components/initiative-detail-section
 import { BrandVoiceSummaryCard } from "@/components/brand-voice-summary-card";
 import { ContentWorkspaceSummaryCard } from "@/components/content-workspace-summary-card";
 import { PersuasionReviewSummaryCard } from "@/components/persuasion-review-summary-card";
+import { VideoScriptSummaryCard } from "@/components/video-script-summary-card";
 import { listBrandVoiceGuidelines } from "@/lib/brand-voice/repository";
 import { listContentVersions } from "@/lib/content-workspace/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives/repository";
 import { listPersuasionReviews } from "@/lib/persuasion-review/repository";
 import { getInitiativeReadinessView } from "@/lib/readiness/service";
+import { listVideoScriptVersions } from "@/lib/video-scripts/repository";
 
 type InitiativePageProps = {
   params: Promise<{
@@ -46,6 +48,7 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
   const brandVoiceVersions = listBrandVoiceGuidelines(slug);
   const contentVersions = listContentVersions(slug);
   const persuasionReviews = listPersuasionReviews(slug);
+  const videoScriptVersions = listVideoScriptVersions(slug);
 
   return (
     <div className="space-y-6">
@@ -73,6 +76,7 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
       <BrandVoiceSummaryCard initiativeSlug={slug} versions={brandVoiceVersions} />
       <ContentWorkspaceSummaryCard initiativeSlug={slug} versions={contentVersions} />
       <PersuasionReviewSummaryCard initiativeSlug={slug} reviews={persuasionReviews} />
+      <VideoScriptSummaryCard initiativeSlug={slug} versions={videoScriptVersions} />
 
       <InitiativeDetailSections initiative={initiative} readiness={readiness} />
     </div>
