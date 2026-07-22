@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Email Marketing Campaign Builder | `feat/marketops-08-email-campaign-builder` | Draft PR #10 open |
+| SEO / AEO / GEO Audit | `feat/marketops-09-seo-aeo-geo-audit` | Verified; draft PR pending |
 
 ---
 
@@ -145,4 +145,5 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 7 | Persuasion Review: ethical seven-lens review, blocked tactics, and new-draft-only application | ✅ |
 | PR 8 | Short-Form Video Scripts: source-backed, timed, versioned production plans | ✅ |
 | PR 9 | YouTube Transcripts: GenSpark-backed immutable transcript attempts and provenance | ✅ |
+| PR 10 | Email Marketing Campaign Builder: source-backed sequences and delivery-readiness planning | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |

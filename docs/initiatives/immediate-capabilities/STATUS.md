@@ -11,13 +11,13 @@ Updated: 2026-07-22
 | 5 | Apply Persuasion Psychology | merged | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `a64e4d6` |
 | 6 | Short-Form Video Script Writer | merged | `feat/marketops-06-short-form-video` | [#8](https://github.com/m0r6aN/marketops/pull/8) | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `f193674` |
 | 7 | Grab YouTube Transcripts | merged | `feat/marketops-07-youtube-transcripts` | [#9](https://github.com/m0r6aN/marketops/pull/9) | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `708ca9a` |
-| 8 | Email Marketing Campaign Builder | in-review | `feat/marketops-08-email-campaign-builder` | [#10](https://github.com/m0r6aN/marketops/pull/10) | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Review and disposition PR #10 |
-| 9 | SEO / AEO / GEO Audit | proposed | not created | not created | not started | Wait for capability 8 |
+| 8 | Email Marketing Campaign Builder | merged | `feat/marketops-08-email-campaign-builder` | [#10](https://github.com/m0r6aN/marketops/pull/10) | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Closed at merge commit `0325ac8` |
+| 9 | SEO / AEO / GEO Audit | ready-for-review | `feat/marketops-09-seo-aeo-geo-audit` | not created | 48 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Commit, push, and open PR |
 | 10 | Optimize for AI Citations | proposed | not created | not created | not started | Wait for capability 9 |
 
 ## Current Gate
 
-Capability 7 is merged. Capability 8 is in review through PR #10 on a clean branch based on merge commit `708ca9a`. Capability 9 remains blocked until capability 8 is merged, rejected, or explicitly superseded.
+Capability 8 is merged. Capability 9 is verified on a clean branch based on merge commit `0325ac8` and is ready for review. Capability 10 remains blocked until capability 9 is merged, rejected, or explicitly superseded.
 
 ## Known External and Release Constraints
 
@@ -29,4 +29,5 @@ Capability 7 is merged. Capability 8 is in review through PR #10 on a clean bran
 - Short-form scripts are deterministic planning artifacts only. MarketOps does not generate media, clear rights, certify accessibility, or publish from Capability 6.
 - YouTube transcripts depend on the server-side GenSpark CLI, provider credentials and credits, YouTube availability, and captions. The live contract check returned insufficient credits; MarketOps records unavailable outcomes without fabricating text.
 - Email campaign building is planning-only. MarketOps does not access lists or contacts, create provider campaigns, send, schedule, verify consent, certify sender authentication, or claim delivery from Capability 8.
+- Discoverability audits use deterministic source heuristics and optional GenSpark raw crawling. They do not claim ranking, traffic, answer placement, AI citation likelihood, or page modification.
 - Existing dependency advisories and their mitigations are recorded in `02-full-campaign-security-review.md`.
