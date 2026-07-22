@@ -1,0 +1,5 @@
+export const auditSourceModeOptions=["genspark","manual-html"] as const;export type AuditSourceMode=(typeof auditSourceModeOptions)[number];export type AuditStatus="succeeded"|"failed"|"unavailable";export type AuditDimension="seo"|"aeo"|"geo";export type AuditCheckStatus="pass"|"warning"|"fail";
+export type DiscoverabilityFinding={id:string;dimension:AuditDimension;status:AuditCheckStatus;check:string;evidence:string;recommendation:string};
+export type DiscoverabilityAuditInput={url:string;sourceMode:AuditSourceMode;manualHtml:string};
+export type DiscoverabilityAuditRecord={id:string;initiativeSlug:string;requestedUrl:string;finalUrl:string;sourceMode:AuditSourceMode;status:AuditStatus;provider:string;providerVersion:string;contentHash:string;htmlSnapshot:string;seoCoverage:number;aeoCoverage:number;geoCoverage:number;findings:DiscoverabilityFinding[];errorMessage:string;createdAt:string};
+export type CrawlProviderResult={status:AuditStatus;finalUrl:string;html:string;provider:string;providerVersion:string;errorMessage:string};
