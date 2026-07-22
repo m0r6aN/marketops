@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Content Workspace | `feat/marketops-04-content-workspace` | In progress |
+| Persuasion Review | `feat/marketops-05-persuasion-review` | Implementation complete; draft PR pending |
 
 ---
 
@@ -140,4 +140,6 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 3 | Positioning Canon + Claim Hygiene: narrative fields, claim validation helpers, PositioningCanonCard, ClaimHygienePanel | ✅ |
 | PR 1 | Customer Finder and Outreach Planning: discovery sources, planning campaigns, provenance, and review-only drafts | ✅ |
 | PR 4 | Full Marketing Campaign Lifecycle: planning, review, manual execution evidence, measurement, and optimization | ✅ |
+| PR 5 | Generate Brand Voice Guidelines: approved versioning, provenance, claims, examples, and channel guidance | ✅ |
+| PR 6 | Content Workspace: source-backed drafting, generation evidence, approval state, and immutable versions | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |
