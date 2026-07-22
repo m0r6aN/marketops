@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Short-Form Video Scripts | `feat/marketops-06-short-form-video` | Draft PR #8 open |
+| Email Marketing Campaign Builder | `feat/marketops-08-email-campaign-builder` | Verified; draft PR pending |
 
 ---
 
@@ -143,4 +143,6 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 5 | Generate Brand Voice Guidelines: approved versioning, provenance, claims, examples, and channel guidance | ✅ |
 | PR 6 | Content Workspace: source-backed drafting, generation evidence, approval state, and immutable versions | ✅ |
 | PR 7 | Persuasion Review: ethical seven-lens review, blocked tactics, and new-draft-only application | ✅ |
+| PR 8 | Short-Form Video Scripts: source-backed, timed, versioned production plans | ✅ |
+| PR 9 | YouTube Transcripts: GenSpark-backed immutable transcript attempts and provenance | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |
