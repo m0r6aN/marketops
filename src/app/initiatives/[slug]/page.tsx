@@ -10,6 +10,7 @@ import { PersuasionReviewSummaryCard } from "@/components/persuasion-review-summ
 import { VideoScriptSummaryCard } from "@/components/video-script-summary-card";
 import { YouTubeTranscriptSummaryCard } from "@/components/youtube-transcript-summary-card";
 import { EmailCampaignSummaryCard } from "@/components/email-campaign-summary-card";
+import { DiscoverabilityAuditSummaryCard } from "@/components/discoverability-audit-summary-card";
 import { listBrandVoiceGuidelines } from "@/lib/brand-voice/repository";
 import { listContentVersions } from "@/lib/content-workspace/repository";
 import { getInitiativeBySlug } from "@/lib/initiatives/repository";
@@ -18,6 +19,7 @@ import { getInitiativeReadinessView } from "@/lib/readiness/service";
 import { listVideoScriptVersions } from "@/lib/video-scripts/repository";
 import { listYouTubeTranscripts } from "@/lib/youtube-transcripts/repository";
 import { listEmailCampaignVersions } from "@/lib/email-campaigns/repository";
+import { listDiscoverabilityAudits } from "@/lib/discoverability-audits/repository";
 
 type InitiativePageProps = {
   params: Promise<{
@@ -55,6 +57,7 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
   const videoScriptVersions = listVideoScriptVersions(slug);
   const youtubeTranscripts = listYouTubeTranscripts(slug);
   const emailCampaignVersions = listEmailCampaignVersions(slug);
+  const discoverabilityAudits = listDiscoverabilityAudits(slug);
 
   return (
     <div className="space-y-6">
@@ -85,6 +88,7 @@ export default async function InitiativePage({ params }: InitiativePageProps) {
       <VideoScriptSummaryCard initiativeSlug={slug} versions={videoScriptVersions} />
       <YouTubeTranscriptSummaryCard initiativeSlug={slug} records={youtubeTranscripts} />
       <EmailCampaignSummaryCard initiativeSlug={slug} versions={emailCampaignVersions} />
+      <DiscoverabilityAuditSummaryCard initiativeSlug={slug} audits={discoverabilityAudits} />
 
       <InitiativeDetailSections initiative={initiative} readiness={readiness} />
     </div>
