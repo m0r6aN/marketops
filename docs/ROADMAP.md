@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Short-Form Video Scripts | `feat/marketops-06-short-form-video` | Implementation complete; draft PR pending |
+| Short-Form Video Scripts | `feat/marketops-06-short-form-video` | Draft PR #8 open |
 
 ---
 

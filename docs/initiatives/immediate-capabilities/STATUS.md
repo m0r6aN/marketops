@@ -9,7 +9,7 @@ Updated: 2026-07-22
 | 3 | Generate Brand Voice Guidelines | merged | `feat/marketops-03-brand-voice` | [#5](https://github.com/m0r6aN/marketops/pull/5) | 18 tests, typecheck, lint, build, diff check, runtime smoke, dependency audit, and focused security review passed | Closed at merge commit `e0b5a56` |
 | 4 | Draft Marketing Content / Write Engaging Content | merged | `feat/marketops-04-content-workspace` | [#6](https://github.com/m0r6aN/marketops/pull/6) | 23 tests, typecheck, lint, Webpack production build, diff check, runtime smoke, dependency audit, and focused security review passed | Closed at merge commit `072653b` |
 | 5 | Apply Persuasion Psychology | merged | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `a64e4d6` |
-| 6 | Short-Form Video Script Writer | implementation-complete | `feat/marketops-06-short-form-video` | draft PR pending | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Commit, rebase, push, and open draft PR |
+| 6 | Short-Form Video Script Writer | in-review | `feat/marketops-06-short-form-video` | [#8](https://github.com/m0r6aN/marketops/pull/8) | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Review and disposition PR #8 |
 | 7 | Grab YouTube Transcripts | proposed | not created | not created | not started | Wait for capability 6 |
 | 8 | Email Marketing Campaign Builder | proposed | not created | not created | not started | Wait for capability 7 |
 | 9 | SEO / AEO / GEO Audit | proposed | not created | not created | not started | Wait for capability 8 |
@@ -17,7 +17,7 @@ Updated: 2026-07-22
 
 ## Current Gate
 
-Capability 5 is merged. Capability 6 is implemented on a clean branch based on merge commit `a64e4d6`. Capability 7 remains blocked until capability 6 is merged, rejected, or explicitly superseded.
+Capability 5 is merged. Capability 6 is in review on a clean branch based on merge commit `a64e4d6`. Capability 7 remains blocked until capability 6 is merged, rejected, or explicitly superseded.
 
 ## Known External and Release Constraints
 

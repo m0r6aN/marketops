@@ -143,14 +143,14 @@ Medium. The initiative detail page, roadmap, and coordinator ledger are serializ
 ## Session Handoff
 
 - Starting commit: `a64e4d6`
-- Ending commit: pending publication commit
+- Ending commit: branch head linked to draft PR #8
 - Files changed: parcel docs, video-script domain/persistence/actions/route/components, initiative integration, and tests
 - Commands run: test, typecheck, lint, Webpack build, dependency audit, diff check, and isolated runtime smoke
 - Tests passed: 33
 - Tests failed: 0
 - Decisions needed: none
 - Blockers: GenSpark credits exhausted; local implementation authorized.
-- Next safe action: create logical commits, rebase current main, push, and open a draft PR.
+- Next safe action: review and disposition PR #8.
 - Do not touch: provider execution, media generation, YouTube transcripts, publishing, auth, or commercialization controls.
 
 ## Stop-and-Report Rule
