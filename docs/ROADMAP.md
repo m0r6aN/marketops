@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| AI Citation Readiness | `feat/marketops-10-ai-citation-readiness` | Verified; draft PR pending |
+| AI Citation Readiness | `feat/marketops-10-ai-citation-readiness` | Draft PR #12 open |
 
 ---
 

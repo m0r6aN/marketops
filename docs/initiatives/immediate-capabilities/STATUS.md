@@ -13,11 +13,11 @@ Updated: 2026-07-22
 | 7 | Grab YouTube Transcripts | merged | `feat/marketops-07-youtube-transcripts` | [#9](https://github.com/m0r6aN/marketops/pull/9) | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `708ca9a` |
 | 8 | Email Marketing Campaign Builder | merged | `feat/marketops-08-email-campaign-builder` | [#10](https://github.com/m0r6aN/marketops/pull/10) | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Closed at merge commit `0325ac8` |
 | 9 | SEO / AEO / GEO Audit | merged | `feat/marketops-09-seo-aeo-geo-audit` | [#11](https://github.com/m0r6aN/marketops/pull/11) | 48 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `b20ef6b` |
-| 10 | Optimize for AI Citations | ready-for-review | `feat/marketops-10-ai-citation-readiness` | not created | 53 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Commit, push, and open PR |
+| 10 | Optimize for AI Citations | in-review | `feat/marketops-10-ai-citation-readiness` | [#12](https://github.com/m0r6aN/marketops/pull/12) | 53 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Review and disposition PR #12 |
 
 ## Current Gate
 
-Capability 9 is merged. Capability 10 is verified on a clean branch based on merge commit `b20ef6b` and is ready for review. It is the final immediate capability.
+Capability 9 is merged. Capability 10 is in review through PR #12 on a clean branch based on merge commit `b20ef6b`. It is the final immediate capability.
 
 ## Known External and Release Constraints
 
