@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "@/components/ui/card";
+import type { VideoScriptVersionRecord } from "@/lib/video-scripts/types";
+export function VideoScriptSummaryCard({initiativeSlug,versions}:{initiativeSlug:string;versions:VideoScriptVersionRecord[]}){ const items=new Set(versions.map((item)=>item.videoScriptItemId)).size,approved=versions.filter((item)=>item.status==="approved").length; return <Card><CardHeader className="flex-row items-start justify-between gap-3"><div><CardTitle className="text-base">Short-form video scripts</CardTitle><CardDescription>Timed, source-backed production plans with narration, screen text, visuals, claims, and approval state.</CardDescription></div><Link href={`/initiatives/${initiativeSlug}/video-scripts`} className={buttonVariants({size:"sm"})}>{items?"Open scripts":"Create script"}</Link></CardHeader><CardContent className="flex gap-2"><Badge variant="outline">{items} script{items===1?"":"s"}</Badge><Badge variant="outline">{approved} approved</Badge></CardContent></Card>; }
