@@ -12,12 +12,12 @@ Updated: 2026-07-22
 | 6 | Short-Form Video Script Writer | merged | `feat/marketops-06-short-form-video` | [#8](https://github.com/m0r6aN/marketops/pull/8) | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `f193674` |
 | 7 | Grab YouTube Transcripts | merged | `feat/marketops-07-youtube-transcripts` | [#9](https://github.com/m0r6aN/marketops/pull/9) | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `708ca9a` |
 | 8 | Email Marketing Campaign Builder | merged | `feat/marketops-08-email-campaign-builder` | [#10](https://github.com/m0r6aN/marketops/pull/10) | 43 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Closed at merge commit `0325ac8` |
-| 9 | SEO / AEO / GEO Audit | in-review | `feat/marketops-09-seo-aeo-geo-audit` | [#11](https://github.com/m0r6aN/marketops/pull/11) | 48 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Review and disposition PR #11 |
-| 10 | Optimize for AI Citations | proposed | not created | not created | not started | Wait for capability 9 |
+| 9 | SEO / AEO / GEO Audit | merged | `feat/marketops-09-seo-aeo-geo-audit` | [#11](https://github.com/m0r6aN/marketops/pull/11) | 48 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Closed at merge commit `b20ef6b` |
+| 10 | Optimize for AI Citations | in-review | `feat/marketops-10-ai-citation-readiness` | [#12](https://github.com/m0r6aN/marketops/pull/12) | 53 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, GenSpark contract inspection, and focused security review completed | Review and disposition PR #12 |
 
 ## Current Gate
 
-Capability 8 is merged. Capability 9 is in review through PR #11 on a clean branch based on merge commit `0325ac8`. Capability 10 remains blocked until capability 9 is merged, rejected, or explicitly superseded.
+Capability 9 is merged. Capability 10 is in review through PR #12 on a clean branch based on merge commit `b20ef6b`. It is the final immediate capability.
 
 ## Known External and Release Constraints
 
@@ -30,4 +30,5 @@ Capability 8 is merged. Capability 9 is in review through PR #11 on a clean bran
 - YouTube transcripts depend on the server-side GenSpark CLI, provider credentials and credits, YouTube availability, and captions. The live contract check returned insufficient credits; MarketOps records unavailable outcomes without fabricating text.
 - Email campaign building is planning-only. MarketOps does not access lists or contacts, create provider campaigns, send, schedule, verify consent, certify sender authentication, or claim delivery from Capability 8.
 - Discoverability audits use deterministic source heuristics and optional GenSpark raw crawling. They do not claim ranking, traffic, answer placement, AI citation likelihood, or page modification.
+- AI citation readiness is a source-mapped page-improvement plan. It does not search, edit, publish, rank, measure, or claim citation placement from Capability 10.
 - Existing dependency advisories and their mitigations are recorded in `02-full-campaign-security-review.md`.
