@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Persuasion Review | `feat/marketops-05-persuasion-review` | Implementation complete; draft PR pending |
+| Persuasion Review | `feat/marketops-05-persuasion-review` | Draft PR #7 open |
 
 ---
 
