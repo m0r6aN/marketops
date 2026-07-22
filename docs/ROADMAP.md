@@ -6,9 +6,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 ## Active / In Progress
 
-| Lane | Branch | Status |
-|---|---|---|
-| AI Citation Readiness | `feat/marketops-10-ai-citation-readiness` | Draft PR #12 open |
+No immediate-capability lane is active. The ten-item sequence is complete through PR #12. Deferred lanes below require explicit reprioritization before implementation.
 
 ---
 
@@ -147,4 +145,5 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 9 | YouTube Transcripts: GenSpark-backed immutable transcript attempts and provenance | ✅ |
 | PR 10 | Email Marketing Campaign Builder: source-backed sequences and delivery-readiness planning | ✅ |
 | PR 11 | SEO / AEO / GEO Audit: immutable source evidence and deterministic discoverability checks | ✅ |
+| PR 12 | AI Citation Readiness: audit-pinned source mapping and page-improvement plans | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |

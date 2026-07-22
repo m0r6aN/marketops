@@ -59,4 +59,4 @@ GenSpark CLI 1.4.0 exposes separate general web-search and scholarly-search acti
 
 ## Sequence closeout
 
-Capability 10 is the final item in the immediate-capability sequence. After merge, the coordinator should reconcile all ten items and close the sequence without starting deferred functionality automatically.
+Capability 10 merged through PR #12 at merge commit `c3bbb2c`. All ten immediate capabilities are complete. No deferred functionality starts automatically from this closeout.
