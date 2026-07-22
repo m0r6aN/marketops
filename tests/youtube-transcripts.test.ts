@@ -1,0 +1,15 @@
+import { afterEach,beforeEach,describe,expect,test } from "vitest";
+import { parseGenSparkTranscriptEnvelope } from "@/lib/youtube-transcripts/provider";
+import { listYouTubeTranscripts,purgeYouTubeTranscriptData,recordYouTubeTranscript } from "@/lib/youtube-transcripts/repository";
+import { canonicalYouTubeUrl,extractYouTubeVideoId,validateTranscriptRequest } from "@/lib/youtube-transcripts/service";
+
+const slug="keon-systems",videoId="dQw4w9WgXcQ";
+beforeEach(()=>purgeYouTubeTranscriptData(slug));
+afterEach(()=>purgeYouTubeTranscriptData(slug));
+describe("YouTube transcript capture",()=>{
+  test("normalizes supported YouTube references without accepting arbitrary hosts",()=>{expect(extractYouTubeVideoId(videoId)).toBe(videoId);expect(extractYouTubeVideoId(`https://youtu.be/${videoId}?t=4`)).toBe(videoId);expect(extractYouTubeVideoId(`https://www.youtube.com/shorts/${videoId}`)).toBe(videoId);expect(()=>extractYouTubeVideoId(`https://example.com/watch?v=${videoId}`)).toThrow(/supported YouTube/i);});
+  test("requires intended use and an explicit rights acknowledgement",()=>{expect(()=>validateTranscriptRequest({videoReference:videoId,rightsBasis:"public-research",intendedUse:"Research",rightsAcknowledged:false})).toThrow(/acknowledge/i);expect(validateTranscriptRequest({videoReference:videoId,rightsBasis:"owned-channel",intendedUse:" Repurpose owned content ",rightsAcknowledged:true})).toEqual({videoId,sourceUrl:canonicalYouTubeUrl(videoId),rightsBasis:"owned-channel",intendedUse:"Repurpose owned content"});});
+  test("parses text and segment transcript envelopes and rejects false success",()=>{expect(parseGenSparkTranscriptEnvelope({status:"success",data:{title:"Demo",transcript:"Hello"}}).transcriptText).toBe("Hello");expect(parseGenSparkTranscriptEnvelope({status:"success",data:{segments:[{text:"One"},{text:"Two"}]}}).transcriptText).toBe("One\nTwo");expect(()=>parseGenSparkTranscriptEnvelope({status:"error",message:"Insufficient credits"})).toThrow(/credits/i);expect(()=>parseGenSparkTranscriptEnvelope({status:"success",data:{}})).toThrow(/without transcript/i);});
+  test("stores immutable provider outcomes with deterministic transcript hashes",()=>{const result={status:"succeeded" as const,title:"Demo",channel:"Keon",language:"en",transcriptText:"Evidence-bound transcript",errorMessage:"",providerVersion:"1.0"};const record=recordYouTubeTranscript({initiativeSlug:slug,videoId,sourceUrl:canonicalYouTubeUrl(videoId),rightsBasis:"public-research",intendedUse:"Research",result});expect(record.contentHash).toMatch(/^[a-f0-9]{64}$/);expect(listYouTubeTranscripts(slug)).toEqual([record]);});
+  test("preserves unavailable attempts without claiming transcript success",()=>{const record=recordYouTubeTranscript({initiativeSlug:slug,videoId,sourceUrl:canonicalYouTubeUrl(videoId),rightsBasis:"public-research",intendedUse:"Research",result:{status:"unavailable",title:"",channel:"",language:"",transcriptText:"",errorMessage:"Insufficient credits",providerVersion:"unknown"}});expect(record.status).toBe("unavailable");expect(record.transcriptText).toBe("");expect(record.contentHash).toBe("");});
+});
