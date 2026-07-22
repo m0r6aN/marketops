@@ -8,8 +8,8 @@ Updated: 2026-07-22
 | 2 | Run Full Marketing Campaign | merged | `feat/marketops-02-full-campaign` | [#4](https://github.com/m0r6aN/marketops/pull/4) | 12 tests, typecheck, lint, build, diff check, runtime smoke, and focused security review passed | Closed at merge commit `0f8e92f` |
 | 3 | Generate Brand Voice Guidelines | merged | `feat/marketops-03-brand-voice` | [#5](https://github.com/m0r6aN/marketops/pull/5) | 18 tests, typecheck, lint, build, diff check, runtime smoke, dependency audit, and focused security review passed | Closed at merge commit `e0b5a56` |
 | 4 | Draft Marketing Content / Write Engaging Content | merged | `feat/marketops-04-content-workspace` | [#6](https://github.com/m0r6aN/marketops/pull/6) | 23 tests, typecheck, lint, Webpack production build, diff check, runtime smoke, dependency audit, and focused security review passed | Closed at merge commit `072653b` |
-| 5 | Apply Persuasion Psychology | in-review | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Review and disposition PR #7 |
-| 6 | Short-Form Video Script Writer | proposed | not created | not created | not started | Wait for capability 5 |
+| 5 | Apply Persuasion Psychology | merged | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `a64e4d6` |
+| 6 | Short-Form Video Script Writer | implementation-complete | `feat/marketops-06-short-form-video` | draft PR pending | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Commit, rebase, push, and open draft PR |
 | 7 | Grab YouTube Transcripts | proposed | not created | not created | not started | Wait for capability 6 |
 | 8 | Email Marketing Campaign Builder | proposed | not created | not created | not started | Wait for capability 7 |
 | 9 | SEO / AEO / GEO Audit | proposed | not created | not created | not started | Wait for capability 8 |
@@ -17,7 +17,7 @@ Updated: 2026-07-22
 
 ## Current Gate
 
-Capability 4 is merged. Capability 5 is in review on a clean branch based on merge commit `072653b`. Capability 6 remains blocked until capability 5 is merged, rejected, or explicitly superseded.
+Capability 5 is merged. Capability 6 is implemented on a clean branch based on merge commit `a64e4d6`. Capability 7 remains blocked until capability 6 is merged, rejected, or explicitly superseded.
 
 ## Known External and Release Constraints
 
@@ -26,4 +26,5 @@ Capability 4 is merged. Capability 5 is in review on a clean branch based on mer
 - Brand voice URL sources are operator-supplied references only; MarketOps does not fetch, validate ownership of, or import their contents.
 - Content generation is optional and provider-backed. Missing configuration and provider failures cannot claim successful generation; content is never published by Capability 4.
 - Persuasion review is deterministic and provider-free. Its tested heuristics are guardrails rather than exhaustive ethical, factual, or legal classification; operator review remains required.
+- Short-form scripts are deterministic planning artifacts only. MarketOps does not generate media, clear rights, certify accessibility, or publish from Capability 6.
 - Existing dependency advisories and their mitigations are recorded in `02-full-campaign-security-review.md`.

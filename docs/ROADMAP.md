@@ -8,7 +8,7 @@ This roadmap tracks deferred lanes and future work that is explicitly out of sco
 
 | Lane | Branch | Status |
 |---|---|---|
-| Persuasion Review | `feat/marketops-05-persuasion-review` | Draft PR #7 open |
+| Short-Form Video Scripts | `feat/marketops-06-short-form-video` | Implementation complete; draft PR pending |
 
 ---
 
@@ -142,4 +142,5 @@ These are deferred and not current scope. Do not implement any of the following 
 | PR 4 | Full Marketing Campaign Lifecycle: planning, review, manual execution evidence, measurement, and optimization | ✅ |
 | PR 5 | Generate Brand Voice Guidelines: approved versioning, provenance, claims, examples, and channel guidance | ✅ |
 | PR 6 | Content Workspace: source-backed drafting, generation evidence, approval state, and immutable versions | ✅ |
+| PR 7 | Persuasion Review: ethical seven-lens review, blocked tactics, and new-draft-only application | ✅ |
 | chore/project-hygiene-verification | Developer workflow docs, typecheck script | ✅ |
