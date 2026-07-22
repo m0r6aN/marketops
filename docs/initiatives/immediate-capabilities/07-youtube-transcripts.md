@@ -53,6 +53,7 @@ Capture initiative-scoped, source-linked YouTube transcript snapshots through an
 | Dependency audit | Existing 3 high / 4 moderate advisories; no dependency added; forced fixes are breaking |
 | Security review | No new Critical, High, or Medium capability-specific finding |
 | Diff check | Passed |
+| Draft pull request | [#9](https://github.com/m0r6aN/marketops/pull/9) |
 
 ## Sequence gate
 

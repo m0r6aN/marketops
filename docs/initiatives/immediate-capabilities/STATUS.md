@@ -10,14 +10,14 @@ Updated: 2026-07-22
 | 4 | Draft Marketing Content / Write Engaging Content | merged | `feat/marketops-04-content-workspace` | [#6](https://github.com/m0r6aN/marketops/pull/6) | 23 tests, typecheck, lint, Webpack production build, diff check, runtime smoke, dependency audit, and focused security review passed | Closed at merge commit `072653b` |
 | 5 | Apply Persuasion Psychology | merged | `feat/marketops-05-persuasion-review` | [#7](https://github.com/m0r6aN/marketops/pull/7) | 28 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `a64e4d6` |
 | 6 | Short-Form Video Script Writer | merged | `feat/marketops-06-short-form-video` | [#8](https://github.com/m0r6aN/marketops/pull/8) | 33 tests, typecheck, lint, Webpack production build, runtime smoke, dependency audit, diff check, and focused security review passed | Closed at merge commit `f193674` |
-| 7 | Grab YouTube Transcripts | ready-for-review | `feat/marketops-07-youtube-transcripts` | not created | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Commit, push, and open PR |
+| 7 | Grab YouTube Transcripts | in-review | `feat/marketops-07-youtube-transcripts` | [#9](https://github.com/m0r6aN/marketops/pull/9) | 38 tests, typecheck, lint, Webpack build, runtime smoke, dependency audit, diff check, live unavailable-path check, and focused security review completed | Review and disposition PR #9 |
 | 8 | Email Marketing Campaign Builder | proposed | not created | not created | not started | Wait for capability 7 |
 | 9 | SEO / AEO / GEO Audit | proposed | not created | not created | not started | Wait for capability 8 |
 | 10 | Optimize for AI Citations | proposed | not created | not created | not started | Wait for capability 9 |
 
 ## Current Gate
 
-Capability 6 is merged. Capability 7 is verified on a clean branch based on merge commit `f193674` and is ready for review. Capability 8 remains blocked until capability 7 is merged, rejected, or explicitly superseded.
+Capability 6 is merged. Capability 7 is in review through PR #9 on a clean branch based on merge commit `f193674`. Capability 8 remains blocked until capability 7 is merged, rejected, or explicitly superseded.
 
 ## Known External and Release Constraints
 
