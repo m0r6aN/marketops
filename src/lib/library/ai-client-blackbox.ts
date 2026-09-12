@@ -5,6 +5,8 @@
  * Default model is `blackbox-pro`.
  */
 
+import { defaultEnvProvider } from "./ai-client-secrets";
+
 type BlackboxResponse = {
   choices?: Array<{
     message?: {
@@ -17,12 +19,8 @@ export function getBlackboxApiConfig(): {
   apiKey: string;
   baseUrl: string;
 } {
-  const apiKey = process.env.BLACKBOX_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "BLACKBOX_API_KEY is not set. Add it to .env.local to use Blackbox processing."
-    );
-  }
+  // Fail-closed via provider: missing key throws (no fallback, no default).
+  const apiKey = defaultEnvProvider.getRequiredSecret("BLACKBOX_API_KEY");
 
   const baseUrl = (process.env.BLACKBOX_API_BASE_URL ?? "https://api.blackbox.ai/v1")
     .trim()

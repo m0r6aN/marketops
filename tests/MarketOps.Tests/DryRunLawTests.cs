@@ -59,7 +59,7 @@ public sealed class DryRunLawTests
         var ledger = generator.GenerateProofLedger(
             runId, "tenant-test", ExecutionMode.DryRun,
             new List<SideEffectIntent>(), new List<SideEffectReceipt>());
-        var signer = new FcSigner();
+        var signer = new FcSigner("test-only-fc-hmac-key-not-a-secret-0123456789");
 
         var advisory = generator.GenerateAdvisoryReceipt(
             runId,

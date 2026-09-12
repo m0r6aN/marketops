@@ -124,7 +124,7 @@ public sealed class EndToEndDryRunTests
             receipts: new List<SideEffectReceipt> { releaseResult, postResult, tagResult, prResult });
 
         // Generate advisory receipt (non-enforceable) — binds to plan + ledger hashes
-        var fcSigner = new FcSigner();
+        var fcSigner = new FcSigner("test-only-fc-hmac-key-not-a-secret-0123456789");
         var advisory = artifactGen.GenerateAdvisoryReceipt(
             runId: runId,
             tenantId: "tenant-test",
@@ -226,7 +226,7 @@ public sealed class EndToEndDryRunTests
         var ledger = artifactGen.GenerateProofLedger(
             runId, "tenant-test", ExecutionMode.Prod,
             new List<SideEffectIntent>(), new List<SideEffectReceipt>());
-        var fcSigner = new FcSigner();
+        var fcSigner = new FcSigner("test-only-fc-hmac-key-not-a-secret-0123456789");
 
         // Generate ADVISORY receipt (enforceable=false)
         var advisory = artifactGen.GenerateAdvisoryReceipt(
