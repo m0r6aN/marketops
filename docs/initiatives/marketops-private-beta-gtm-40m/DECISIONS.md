@@ -6,3 +6,5 @@
 | d-stripe-realm | Stripe test vs live keys realm for pilots | pending | coordinator |
 | d-claim-threshold | Claim-eval threshold (block vs needs-review) — needs product sign-off, agents halt not guess | pending | product |
 | d-public-scope | Public site stays private-beta only; full SaaS deferred | decided | coordinator |
+| ca-001 | Amendment: C#/fixture files in w0 scope (new files only) | approved | coordinator |
+| d-lockfile | Committed lock out of sync; sync chore before W1 | open | coordinator |

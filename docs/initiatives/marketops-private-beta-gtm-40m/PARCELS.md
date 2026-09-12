@@ -2,7 +2,7 @@
 
 | Parcel | Wave | Branch | Worktree | Status | Collision |
 |---|---|---|---|---|---|
-| w0-contracts-beta | W0 | feat/w0-contracts-beta | C:\Repos\MarketOps.w0-contracts-beta | dispatched | Low |
+| w0-contracts-beta | W0 | feat/w0-contracts-beta | C:\Repos\MarketOps.w0-contracts-beta | in-review (#15) | Low |
 | w0-spike-tenant-deny-receipt | W0 | feat/w0-spike-tenant-deny-receipt | C:\Repos\MarketOps.w0-spike-tenant-deny-receipt | proposed (blocked on contracts) | Low |
 | w1-auth-middleware-scope | W1 | feat/w1-auth-tenant-scope | pending | proposed | Medium |
 | w1-postgres-rls-migrate | W1 | feat/w1-postgres-rls-migrate | pending | proposed | High |
