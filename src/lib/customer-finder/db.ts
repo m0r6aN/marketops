@@ -114,3 +114,14 @@ db.exec(`
 `);
 
 export { db };
+
+// Read-only suppression lookup for compliance gates (e.g. the email-campaigns
+// evaluation path). No schema change, no writes: returns true when the exact
+// contact fingerprint is present in the suppression list.
+export function isContactFingerprintSuppressed(contactFingerprint: string): boolean {
+  if (!contactFingerprint.trim()) return false;
+  const row = db
+    .prepare(`SELECT 1 AS hit FROM customer_finder_suppressions WHERE contact_fingerprint = ? LIMIT 1`)
+    .get(contactFingerprint) as { hit: number } | undefined;
+  return row !== undefined;
+}
