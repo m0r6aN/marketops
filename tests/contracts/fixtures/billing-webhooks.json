@@ -1,0 +1,41 @@
+[
+  {
+    "eventId": "evt_checkout_completed_001",
+    "type": "checkout.session.completed",
+    "created": "2026-09-01T10:00:00Z",
+    "tenantId": "tenant-keon",
+    "data": {
+      "mode": "subscription",
+      "paymentStatus": "paid"
+    }
+  },
+  {
+    "eventId": "evt_subscription_updated_001",
+    "type": "customer.subscription.updated",
+    "created": "2026-09-05T10:00:00Z",
+    "tenantId": "tenant-keon",
+    "data": {
+      "status": "active",
+      "currentPeriodEnd": "2027-09-01T00:00:00Z"
+    }
+  },
+  {
+    "eventId": "evt_subscription_deleted_001",
+    "type": "customer.subscription.deleted",
+    "created": "2026-09-06T10:00:00Z",
+    "tenantId": "tenant-biostack",
+    "data": {
+      "status": "canceled"
+    }
+  },
+  {
+    "eventId": "evt_invoice_payment_failed_001",
+    "type": "invoice.payment_failed",
+    "created": "2026-09-02T10:00:00Z",
+    "tenantId": "tenant-biostack",
+    "data": {
+      "billingReason": "subscription_cycle",
+      "attemptCount": 1
+    }
+  }
+]

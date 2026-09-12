@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BillingWebhookEvent",
+  "description": "Inbound Stripe webhook event the system will eventually consume (spec/contract only: no charge path, no Stripe SDK, no network calls in this parcel). Idempotency semantics: eventId is globally unique; consumers must deduplicate on eventId and a replayed event must not double-apply any entitlement transition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "type", "created", "tenantId", "data"],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stripe event id (evt_...). Unique idempotency key: the consumer must record processed eventIds and ignore replays so no entitlement transition is applied twice."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "checkout.session.completed",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+        "invoice.payment_failed"
+      ],
+      "description": "Stripe event type. Unknown types must be rejected, never applied."
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event creation timestamp in UTC (ISO-8601). Used for ordering/staleness checks; replayed stale events must not regress newer entitlement state."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key mapped from the Stripe object (e.g. subscription/charge metadata or client_reference_id). Entitlements are always evaluated for this tenantId."
+    },
+    "data": {
+      "type": "object",
+      "description": "Minimal event payload (status hints, amounts, period ends). Free-form: consumers read only the fields they need and must tolerate unknown fields.",
+      "additionalProperties": true
+    }
+  }
+}
