@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 
@@ -8,6 +9,7 @@ import {
 } from "@/lib/readiness/repository";
 
 export async function toggleReadinessItem(formData: FormData) {
+  await requireSessionTenant();
   const initiativeSlugRaw = formData.get("initiativeSlug");
   const definitionIdRaw = formData.get("definitionId");
 

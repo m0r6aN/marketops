@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 
@@ -19,6 +20,7 @@ export async function saveCampaignLifecycleAction(
   campaignId: string,
   input: CampaignLifecycleInput
 ) {
+  await requireSessionTenant();
   const campaign = getCampaignById(campaignId);
   if (!campaign || campaign.campaignKind !== "managed") {
     throw new Error("Full campaign lifecycle planning is available only for managed campaigns.");

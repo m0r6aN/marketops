@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 import { getInitiativeBySlug } from "@/lib/initiatives/repository";
@@ -8,6 +9,7 @@ import { validateTranscriptRequest } from "@/lib/youtube-transcripts/service";
 import type { YouTubeTranscriptRequest } from "@/lib/youtube-transcripts/types";
 
 export async function fetchYouTubeTranscriptAction(initiativeSlug:string,input:YouTubeTranscriptRequest){
+  await requireSessionTenant();
   if(!getInitiativeBySlug(initiativeSlug))throw new Error("Initiative not found.");
   const request=validateTranscriptRequest(input);
   const result=await fetchTranscriptWithGenSpark(request.videoId);

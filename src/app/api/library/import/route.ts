@@ -5,6 +5,7 @@
  * Creates an import batch, source documents, extracts text, and runs the
  * LLM processing pipeline for each file.
  */
+import { SESSION_COOKIE_NAME, TenantScopeError, requireTenantMatch, verifySessionToken } from "@/lib/auth/session";
 import { enqueueImportBatch } from "@/lib/library/import-worker";
 import {
   detectSensitiveFilename,
@@ -28,8 +29,47 @@ function normalizeClientRelativePath(path: string | null | undefined, fileName: 
 }
 
 export async function POST(request: NextRequest) {
+  // w1-auth-middleware-scope: deny-by-default tenant gate. No session (or no
+  // HMAC key) => 401 JSON. An optional caller-supplied `tenantId` form hint is
+  // compared against the session tenant => 403 + TENANT_MISMATCH denial on
+  // mismatch. Per-record tenant columns do not exist yet (DB schema changes
+  // are forbidden this parcel), so absent hint + valid session => allowed;
+  // column-level scoping is deferred follow-up (see PR).
+  const session = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null);
+  if (!session) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        denialCode: "UNAUTHENTICATED",
+        denialMessage: "Import denied: no authenticated tenant session.",
+        failureStage: "decision",
+      },
+      { status: 401 },
+    );
+  }
+
   try {
     const formData = await request.formData();
+
+    const rawTenantHint = formData.get("tenantId");
+    if (typeof rawTenantHint === "string" && rawTenantHint.trim().length > 0) {
+      try {
+        requireTenantMatch(session.tenantId, rawTenantHint.trim(), "library import");
+      } catch (error) {
+        if (error instanceof TenantScopeError) {
+          return NextResponse.json(error.toResponseBody(), { status: error.httpStatus });
+        }
+        return NextResponse.json(
+          {
+            error: "Forbidden",
+            denialCode: "TENANT_MISMATCH",
+            denialMessage: "Import denied: tenant mismatch.",
+            failureStage: "decision",
+          },
+          { status: 403 },
+        );
+      }
+    }
 
     // ── Parse modes and strategy ──────────────────────────────────────────
     const rawModes = formData.get("modes");

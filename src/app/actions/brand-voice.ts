@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 
@@ -29,6 +30,7 @@ export async function createBrandVoiceVersionAction(
   initiativeSlug: string,
   baseVersionId?: string
 ) {
+  await requireSessionTenant();
   const initiative = getInitiativeBySlug(initiativeSlug);
   if (!initiative) throw new Error("Initiative not found or inactive.");
 
@@ -71,6 +73,7 @@ export async function saveBrandVoiceGuidelineAction(
   guidelineId: string,
   input: BrandVoiceGuidelineInput
 ) {
+  await requireSessionTenant();
   const existing = getBrandVoiceGuideline(guidelineId);
   if (!existing) throw new Error("Brand voice version not found.");
   const initiative = getInitiativeBySlug(existing.initiativeSlug);

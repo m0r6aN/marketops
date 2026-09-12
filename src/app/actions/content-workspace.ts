@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 import { getCampaignsByInitiativeSlug } from "@/lib/campaigns";
@@ -47,6 +48,7 @@ function serverDerived(input: ContentVersionInput, slug: string) {
 }
 
 export async function createContentItemAction(initiativeSlug: string, title: string) {
+  await requireSessionTenant();
   if (!getInitiativeBySlug(initiativeSlug)) throw new Error("Initiative not found or inactive.");
   const validated = validateContentVersionInput(createEmptyContentVersionInput(title), context(initiativeSlug));
   const created = createContentItem(initiativeSlug, validated);
@@ -55,6 +57,7 @@ export async function createContentItemAction(initiativeSlug: string, title: str
 }
 
 export async function createContentVersionAction(baseVersionId: string) {
+  await requireSessionTenant();
   const base = getContentVersion(baseVersionId);
   if (!base) throw new Error("Base content version not found.");
   const input: ContentVersionInput = { ...base, status: "draft", notes: `Created from version ${base.versionNumber}.`, claimFindings: [] };
@@ -65,6 +68,7 @@ export async function createContentVersionAction(baseVersionId: string) {
 }
 
 export async function saveContentVersionAction(versionId: string, input: ContentVersionInput) {
+  await requireSessionTenant();
   const existing = getContentVersion(versionId);
   if (!existing) throw new Error("Content version not found.");
   if (input.authorship !== "operator-authored" && !contentItemHasSuccessfulGeneration(existing.contentItemId)) {
@@ -77,6 +81,7 @@ export async function saveContentVersionAction(versionId: string, input: Content
 }
 
 export async function generateContentDraftAction(versionId: string, input: ContentVersionInput) {
+  await requireSessionTenant();
   const existing = getContentVersion(versionId);
   if (!existing) throw new Error("Content version not found.");
   if (["approved", "superseded"].includes(existing.status)) throw new Error("Immutable content versions cannot be regenerated.");

@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 /**
  * Library Canon Foundry — server actions.
  *
@@ -105,6 +106,7 @@ export async function resolveMarketingRedFlag(
   id: string,
   resolutionNote?: string
 ): Promise<void> {
+  await requireSessionTenant();
   repoResolveMarketingRedFlag(id, resolutionNote);
   revalidateLibrary();
 }
@@ -114,6 +116,7 @@ export async function updateAssetOpportunityStatus(
   status: MarketingAssetStatus,
   notes?: string | null
 ): Promise<void> {
+  await requireSessionTenant();
   repoUpdateAssetOpportunityStatus(id, status, notes ?? undefined);
   revalidateLibrary();
 }
@@ -126,6 +129,7 @@ export async function approveAsCanon(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "content" | "canonicalStatement" | "canonCategory" | "tags" | "summary">>
 ) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -144,6 +148,7 @@ export async function approveAsMarketing(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "copyText" | "suggestedUse" | "suggestedChannel" | "emotionalAngle" | "audience" | "tags">>
 ) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -161,6 +166,7 @@ export async function approveAsInternal(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "content" | "summary" | "internalCategory" | "sensitivityLevel" | "whyItMatters" | "reviewPriority" | "tags">>
 ) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -176,6 +182,7 @@ export async function approveAsInternal(
 }
 
 export async function rejectEntry(entryId: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, { status: "rejected" });
   revalidateLibrary();
 }
@@ -184,6 +191,7 @@ export async function editAndApprove(
   entryId: string,
   updates: Partial<LibraryEntry>
 ) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -197,6 +205,7 @@ export async function editAndApprove(
 }
 
 export async function flagSensitive(entryId: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, {
     sensitive: true,
     publicSafe: false,
@@ -208,6 +217,7 @@ export async function flagSensitive(entryId: string) {
 export async function runReviewQueueAssistant(
   options: ProcessingClientOptions = { useOllama: true }
 ): Promise<ReviewQueueAssistantResult> {
+  await requireSessionTenant();
   const entries = listReviewQueue();
   const conflicts = listUnresolvedConflicts();
   const conflictedEntryIds = new Set(
@@ -374,6 +384,7 @@ export async function requestStrongModelReview(
   entryId: string,
   options: ProcessingClientOptions = {}
 ) {
+  await requireSessionTenant();
   // Run a public-safety review and update the entry with the result.
   // This is the same review used during promotion to public.
   const result = await runPublicSafetyReview(entryId, options);
@@ -392,6 +403,7 @@ export async function requestStrongModelReview(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function lockCanon(entryId: string) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
   if (entry.status !== "approved") {
@@ -403,6 +415,7 @@ export async function lockCanon(entryId: string) {
 }
 
 export async function deprecateCanon(entryId: string, supersededById?: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, {
     status: "deprecated",
     locked: false,
@@ -414,6 +427,7 @@ export async function deprecateCanon(entryId: string, supersededById?: string) {
 }
 
 export async function togglePublicAutomation(entryId: string, allowed: boolean) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -466,6 +480,7 @@ export async function resolveConflict(
   conflictId: string,
   resolution: ConflictResolution
 ) {
+  await requireSessionTenant();
   repoResolveConflict(conflictId, resolution);
 
   // If resolution keeps the challenger, mark it as resolved
@@ -478,6 +493,7 @@ export async function resolveConflict(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function moveToTrash(sourceDocId: string, reason: string) {
+  await requireSessionTenant();
   const { getSourceDocument } = await import("@/lib/library/repository");
   const doc = getSourceDocument(sourceDocId);
   if (!doc) throw new Error(`Source document ${sourceDocId} not found`);
@@ -494,6 +510,7 @@ export async function moveToTrash(sourceDocId: string, reason: string) {
 }
 
 export async function restoreFromTrash(trashRecordId: string) {
+  await requireSessionTenant();
   repoRestoreFromTrash(trashRecordId);
   revalidateLibrary();
 }
@@ -503,6 +520,7 @@ export async function restoreFromTrash(trashRecordId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function promoteToPublicCandidate(entryId: string) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
 
@@ -541,11 +559,13 @@ export async function promoteToPublicCandidate(entryId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function markInternalImportant(entryId: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, { status: "important", reviewPriority: "high" });
   revalidateLibrary();
 }
 
 export async function archiveEntry(entryId: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, { status: "archived" });
   revalidateLibrary();
 }
@@ -562,6 +582,7 @@ export async function rewriteAsMarketing(
   entryId: string,
   options: ProcessingClientOptions = {}
 ) {
+  await requireSessionTenant();
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
   const client = buildProcessingClient(options);
@@ -618,6 +639,7 @@ export async function rewriteAsMarketing(
  * Clears all approval state so it can be re-evaluated from scratch.
  */
 export async function sendToReview(entryId: string) {
+  await requireSessionTenant();
   updateLibraryEntry(entryId, {
     status: "candidate",
     visibility: "private",

@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 
@@ -113,6 +114,7 @@ function validateDiscoveryInput(input: DiscoveryCampaignEditableInput) {
 }
 
 export async function createCampaignAction(input: ManagedCampaignInput) {
+  await requireSessionTenant();
   const validated = validateManagedInput(input);
   const created = createManagedCampaign(validated);
   revalidateCampaignPaths(created.id, created.initiativeSlug);
@@ -123,6 +125,7 @@ export async function updateCampaignAction(
   id: string,
   input: ManagedCampaignInput | DiscoveryCampaignEditableInput
 ) {
+  await requireSessionTenant();
   const existing = getCampaignById(id);
   if (!existing) {
     throw new Error("Campaign not found.");
@@ -141,6 +144,7 @@ export async function updateCampaignAction(
 }
 
 export async function deleteCampaignAction(id: string) {
+  await requireSessionTenant();
   const existing = getCampaignById(id);
   if (!existing || existing.campaignKind !== "managed") {
     throw new Error("Only managed campaigns can be deleted from this surface.");
