@@ -1,0 +1,16 @@
+[
+  {
+    "tenantId": "tenant-keon",
+    "displayName": "Keon Systems",
+    "betaStatus": "active",
+    "public_safe": true,
+    "createdAtUtc": "2026-08-01T09:00:00Z"
+  },
+  {
+    "tenantId": "tenant-biostack",
+    "displayName": "BioStack",
+    "betaStatus": "active",
+    "public_safe": false,
+    "createdAtUtc": "2026-08-15T09:00:00Z"
+  }
+]

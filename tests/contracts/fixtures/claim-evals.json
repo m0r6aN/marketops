@@ -1,0 +1,38 @@
+[
+  {
+    "claimId": "claim-001",
+    "claimText": "Our beta customers review every claim before publish.",
+    "tenantId": "tenant-keon",
+    "paraphrases": [
+      {
+        "text": "Every claim is reviewed by our beta customers prior to publishing.",
+        "verdict": "safe"
+      },
+      {
+        "text": "Before anything is published, our beta customers check each claim.",
+        "verdict": "safe"
+      }
+    ],
+    "verdict": "safe",
+    "reasons": ["concrete", "reviewable", "scoped to beta customers"],
+    "evaluatedAtUtc": "2026-09-10T10:00:00Z"
+  },
+  {
+    "claimId": "claim-002",
+    "claimText": "The most powerful autonomous AI ever built.",
+    "tenantId": null,
+    "paraphrases": [
+      {
+        "text": "The most powerful AI for marketing ever created.",
+        "verdict": "blocked"
+      },
+      {
+        "text": "An AI assistant that helps draft marketing content.",
+        "verdict": "needs-proof"
+      }
+    ],
+    "verdict": "blocked",
+    "reasons": ["superlative", "unverifiable", "no evidence cited"],
+    "evaluatedAtUtc": "2026-09-10T10:05:00Z"
+  }
+]

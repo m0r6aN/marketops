@@ -1,0 +1,20 @@
+{
+  "packId": "pack-fixture-001",
+  "tenantId": "tenant-keon",
+  "createdAtUtc": "2026-09-10T12:00:00Z",
+  "runs": [
+    {
+      "runId": "00b61575-e041-42a5-aba9-dce48e7d9d80",
+      "mode": "dry_run",
+      "path": "runs/00b61575-e041-42a5-aba9-dce48e7d9d80/RUN_MANIFEST.json",
+      "sha256": "578449db0aca7c3784ea120271be277f6254c8a7346e5f82d2b3a3d9f775a754"
+    },
+    {
+      "runId": "5a94c079-3caa-44cb-b257-bcb77b853727",
+      "mode": "dry_run",
+      "path": "runs/5a94c079-3caa-44cb-b257-bcb77b853727/RUN_MANIFEST.json",
+      "sha256": "14c7104577a950856cc2ac6ced0aa487ae2691654e8dbb1f115d8703764d81ea"
+    }
+  ],
+  "packSha256": "b28e253fb8485e3d6c2bf6d95cd9ee60dae3cee0560530768a9e3b154a26a5cc"
+}

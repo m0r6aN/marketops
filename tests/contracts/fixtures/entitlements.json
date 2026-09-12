@@ -1,0 +1,18 @@
+[
+  {
+    "tenantId": "tenant-keon",
+    "plan": "pilot",
+    "features": ["claim-review", "approval-workflow", "proofpack-export"],
+    "status": "active",
+    "expiresAtUtc": "2026-12-31T23:59:59Z",
+    "updatedAtUtc": "2026-09-01T09:00:00Z"
+  },
+  {
+    "tenantId": "tenant-biostack",
+    "plan": "pilot",
+    "features": ["claim-review", "approval-workflow"],
+    "status": "lapsed",
+    "expiresAtUtc": "2026-09-01T00:00:00Z",
+    "updatedAtUtc": "2026-09-02T09:00:00Z"
+  }
+]

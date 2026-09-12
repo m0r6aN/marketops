@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ComplianceCheck",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenantId",
+    "consentBasis",
+    "suppressionChecked",
+    "unsubscribeLinkPresent",
+    "senderAuthPass",
+    "physicalAddressPresent",
+    "verdict",
+    "checkedAtUtc"
+  ],
+  "properties": {
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. Suppression lists are evaluated in this tenant's scope; cross-tenant suppression state must never leak."
+    },
+    "campaignId": { "type": ["string", "null"] },
+    "consentBasis": {
+      "type": "string",
+      "enum": ["opt-in", "legitimate-interest", "none"],
+      "description": "Lawful basis for contacting the recipients. 'none' (or missing consent evidence) forces verdict 'blocked' with a reason; send adapters must never execute on a blocked check."
+    },
+    "suppressionChecked": { "type": "boolean" },
+    "unsubscribeLinkPresent": { "type": "boolean" },
+    "senderAuthPass": {
+      "type": "boolean",
+      "description": "SPF/DKIM/DMARC verifier outcome for the sending domain. False forces verdict 'blocked'."
+    },
+    "physicalAddressPresent": { "type": "boolean" },
+    "verdict": { "type": "string", "enum": ["pass", "blocked"] },
+    "blockedReasons": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "checkedAtUtc": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "verdict": { "const": "blocked" } } },
+      "then": { "required": ["blockedReasons"] }
+    }
+  ]
+}
