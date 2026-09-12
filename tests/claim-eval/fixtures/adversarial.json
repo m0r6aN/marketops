@@ -1,0 +1,146 @@
+[
+  {
+    "id": "adv-001",
+    "groupId": "g-scoped-safe-beta",
+    "category": "scoped-safe",
+    "variant": "original",
+    "text": "Our beta customers review every claim before publish.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-001",
+    "note": "Scoped-safe original; concrete, reviewable, scoped to beta customers."
+  },
+  {
+    "id": "adv-002",
+    "groupId": "g-scoped-safe-beta",
+    "category": "scoped-safe",
+    "variant": "paraphrase",
+    "text": "Every claim is reviewed by our beta customers prior to publishing.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-001/paraphrase-1",
+    "note": "Paraphrase of adv-001; same scoped-safe intent with rewording."
+  },
+  {
+    "id": "adv-003",
+    "groupId": "g-scoped-safe-beta",
+    "category": "scoped-safe",
+    "variant": "paraphrase",
+    "text": "Before anything is published, our beta customers check each claim.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-001/paraphrase-2",
+    "note": "Paraphrase of adv-001; same scoped-safe intent with reordering."
+  },
+  {
+    "id": "adv-004",
+    "groupId": "g-superlative-powerful",
+    "category": "paraphrase-attack",
+    "variant": "original",
+    "text": "The most powerful autonomous AI ever built.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-002",
+    "note": "Superlative original; literal banned phrase 'most powerful autonomous AI'."
+  },
+  {
+    "id": "adv-005",
+    "groupId": "g-superlative-powerful",
+    "category": "paraphrase-attack",
+    "variant": "paraphrase",
+    "text": "The most powerful AI for marketing ever created.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-002/paraphrase-1",
+    "note": "Paraphrase attack: drops 'autonomous', swaps 'built' for 'created'; evades literal substring."
+  },
+  {
+    "id": "adv-006",
+    "groupId": "g-superlative-powerful",
+    "category": "paraphrase-attack",
+    "variant": "scoped-rewrite",
+    "text": "An AI assistant that helps draft marketing content.",
+    "source": "tests/contracts/fixtures/claim-evals.json:claim-002/paraphrase-2",
+    "note": "Softened rewrite of adv-004; no superlative, operational framing."
+  },
+  {
+    "id": "adv-007",
+    "groupId": "g-banned-guarantee",
+    "category": "paraphrase-attack",
+    "variant": "original",
+    "text": "Get guaranteed job offers in 14 days with SilentApply.",
+    "source": "synthetic: mirrors SilentApply banned rule 'guaranteed job offers'",
+    "note": "Literal banned phrase present; characterizes direct-match detection."
+  },
+  {
+    "id": "adv-008",
+    "groupId": "g-banned-guarantee",
+    "category": "paraphrase-attack",
+    "variant": "paraphrase",
+    "text": "Secure assured employment offers within two weeks with SilentApply.",
+    "source": "synthetic: paraphrase of adv-007 via synonym swap",
+    "note": "Paraphrase attack: synonyms for 'guaranteed' and 'job', same outcome promise."
+  },
+  {
+    "id": "adv-009",
+    "groupId": "g-needsproof-runtime",
+    "category": "paraphrase-attack",
+    "variant": "original",
+    "text": "Our platform provides production Runtime enforcement for every action.",
+    "source": "synthetic: mirrors Keon needsProof rule 'production Runtime enforcement' (mixed case)",
+    "note": "Literal needs-proof phrase present with mixed case; characterizes case-insensitive includes()."
+  },
+  {
+    "id": "adv-010",
+    "groupId": "g-needsproof-runtime",
+    "category": "paraphrase-attack",
+    "variant": "paraphrase",
+    "text": "Our platform enforces policy at runtime in production for each action.",
+    "source": "synthetic: paraphrase of adv-009 via word-order change",
+    "note": "Paraphrase attack: same operational intent, token order changed; evades literal substring."
+  },
+  {
+    "id": "adv-011",
+    "groupId": "g-needsproof-runtime",
+    "category": "paraphrase-attack",
+    "variant": "paraphrase",
+    "text": "Live runtime policy checks run on all production workloads.",
+    "source": "synthetic: targets Keon needsProof rule 'live policy checks' with an inserted token",
+    "note": "Paraphrase attack: inserted token 'runtime' breaks the literal 'live policy checks' substring."
+  },
+  {
+    "id": "adv-012",
+    "groupId": "g-superlative-social-proof",
+    "category": "superlative",
+    "variant": "original",
+    "text": "Trusted by thousands of customers worldwide.",
+    "source": "synthetic: aligns with persuasion-review fabricated-social-proof pattern",
+    "note": "Superlative/social-proof; clean under claims.ts literal rules but matched by persuasion-review regex. Documents layer gap."
+  },
+  {
+    "id": "adv-013",
+    "groupId": "g-superlative-social-proof",
+    "category": "superlative",
+    "variant": "paraphrase",
+    "text": "The #1 platform for marketing teams.",
+    "source": "synthetic: aligns with persuasion-review fabricated-social-proof pattern",
+    "note": "Superlative; clean under claims.ts literal rules but matched by persuasion-review regex."
+  },
+  {
+    "id": "adv-014",
+    "groupId": "g-scoped-safe-observational",
+    "category": "scoped-safe",
+    "variant": "original",
+    "text": "BioStack helps organize supplement protocol patterns for review.",
+    "source": "synthetic: mirrors BioStack allowed claim 'supplement stack organization'",
+    "note": "Scoped-safe observational framing; no banned or needs-proof phrase."
+  },
+  {
+    "id": "adv-015",
+    "groupId": "g-scoped-safe-observational",
+    "category": "scoped-safe",
+    "variant": "scoped-rewrite",
+    "text": "BioStack tracks protocol patterns and does not provide medical advice.",
+    "source": "synthetic: scoped disclaimer carrying BioStack banned phrase 'medical advice' under negation",
+    "note": "Scoped-safe disclaimer; negation still triggers literal 'medical advice' match. Characterizes negation blindness."
+  },
+  {
+    "id": "adv-016",
+    "groupId": "g-superlative-social-proof",
+    "category": "superlative",
+    "variant": "paraphrase",
+    "text": "Industry-leading AI for every workflow.",
+    "source": "synthetic: aligns with persuasion-review fabricated-social-proof pattern",
+    "note": "Superlative; clean under claims.ts literal rules but matched by persuasion-review regex."
+  }
+]
