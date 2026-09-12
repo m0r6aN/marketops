@@ -2,9 +2,9 @@
 
 | Gate | Description | Status | Owner |
 |---|---|---|---|
-| contracts-merged | Contracts PR merged | pending | coordinator |
-| spike-ok | Thin spike tenant-write + deny receipt | pending | coordinator |
-| w1-merged | W1 foundation merged (7 parcels) | pending | coordinator |
+| contracts-merged | Contracts PR merged (#15) | passing | coordinator |
+| spike-ok | Thin spike tenant-write + deny receipt (#16) | passing | coordinator |
+| w1-merged | W1 foundation merged (4/8 merged, 4 in review: #22-25) | pending | coordinator |
 | w2-wired | W2 assembly wired | pending | coordinator |
 | int-beta-pass | INT matrix passes in local+beta | pending | coordinator |
 | hardening-done | Hardening complete, no-send enforced | pending | coordinator |
