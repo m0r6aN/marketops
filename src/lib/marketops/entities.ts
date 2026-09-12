@@ -234,6 +234,37 @@ export type Entitlement = TimestampFields & {
 
 export type ClaimVerdict = "safe" | "needs-proof" | "blocked";
 
+// ---------------------------------------------------------------------------
+// Billing webhook contract types (w1-pricing-entitlement-spec, additive
+// only). JSON-schema mirror lives in contracts/BillingWebhook.json;
+// fixtures in tests/contracts/fixtures/billing-webhooks.json. Spec/types
+// only: no Stripe SDK, no network calls, no charge paths.
+// ---------------------------------------------------------------------------
+
+export type BillingWebhookEventType =
+  | "checkout.session.completed"
+  | "customer.subscription.updated"
+  | "customer.subscription.deleted"
+  | "invoice.payment_failed";
+
+export type BillingWebhookEvent = {
+  /**
+   * Stripe event id (evt_...). Unique idempotency key: consumers must
+   * deduplicate on eventId so replays never double-apply a transition.
+   */
+  eventId: string;
+  type: BillingWebhookEventType;
+  /** Event creation timestamp in UTC (ISO-8601). */
+  created: IsoTimestamp;
+  /**
+   * Canonical tenant key mapped from the Stripe object. Entitlements are
+   * always evaluated for this tenantId.
+   */
+  tenantId: string;
+  /** Minimal event payload; consumers tolerate unknown fields. */
+  data: Record<string, unknown>;
+};
+
 export type ClaimParaphrase = {
   text: string;
   verdict: ClaimVerdict;
