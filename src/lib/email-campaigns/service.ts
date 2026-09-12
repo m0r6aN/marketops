@@ -4,6 +4,10 @@ import { contentStatusOptions,type ContentVersionRecord } from "@/lib/content-wo
 import type { Initiative } from "@/lib/initiatives/types";
 import type { ManagedCampaignRecord } from "@/lib/campaigns/types";
 import { emailConsentBasisOptions,type EmailCampaignVersionInput,type EmailSequenceStep } from "@/lib/email-campaigns/types";
+// Evaluation-only compliance gates (no send capability): re-exported here so
+// the email-campaigns service path exposes check evaluation in one place.
+export { EMAIL_COMPLIANCE_BLOCKED_REASONS,evaluateCompliance,evaluateEmailCampaignCompliance } from "@/lib/email-campaigns/compliance";
+export type { EmailComplianceEvaluation,EmailComplianceEvaluationInput,EmailComplianceGateInput } from "@/lib/email-campaigns/compliance";
 
 const MAX_TEXT=30_000,MAX_STEPS=12,EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function text(value:string,field:string){const v=value.trim();if(v.length>MAX_TEXT)throw new Error(`${field} exceeds ${MAX_TEXT.toLocaleString()} characters.`);return v;}
