@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Private beta hero graphic: governed execution with reviewable receipts, invite only">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101418"/>
+      <stop offset="1" stop-color="#1d2733"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="640" height="480" rx="24" fill="url(#bg)"/>
+  <rect x="48" y="48" width="220" height="40" rx="20" fill="none" stroke="#7dd3fc" stroke-width="2"/>
+  <text x="158" y="74" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" letter-spacing="4" fill="#7dd3fc">INVITE ONLY</text>
+
+  <g>
+    <rect x="48" y="120" width="260" height="312" rx="16" fill="#ffffff" opacity="0.06"/>
+    <rect x="48" y="120" width="260" height="312" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2"/>
+    <circle cx="108" cy="180" r="26" fill="none" stroke="url(#accent)" stroke-width="4"/>
+    <path d="M96 180 l9 9 l17 -18" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="148" y="173" font-family="ui-sans-serif, system-ui, sans-serif" font-size="18" fill="#f1f5f9">Policy check</text>
+    <text x="148" y="196" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#94a3b8">before execution</text>
+    <line x1="72" y1="232" x2="284" y2="232" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2"/>
+    <rect x="72" y="252" width="212" height="12" rx="6" fill="#7dd3fc" opacity="0.85"/>
+    <rect x="72" y="276" width="160" height="12" rx="6" fill="#ffffff" opacity="0.35"/>
+    <rect x="72" y="300" width="188" height="12" rx="6" fill="#ffffff" opacity="0.35"/>
+    <rect x="72" y="348" width="212" height="56" rx="12" fill="none" stroke="#7dd3fc" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="178" y="372" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#7dd3fc">reviewable receipt</text>
+    <text x="178" y="392" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" fill="#94a3b8">recorded per action</text>
+  </g>
+
+  <g>
+    <rect x="348" y="180" width="244" height="180" rx="16" fill="#ffffff" opacity="0.06"/>
+    <rect x="348" y="180" width="244" height="180" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2"/>
+    <text x="372" y="220" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" letter-spacing="2" fill="#94a3b8">BETA ROSTER</text>
+    <circle cx="384" cy="262" r="8" fill="#7dd3fc"/>
+    <text x="402" y="267" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" fill="#f1f5f9">Keon Systems</text>
+    <text x="402" y="288" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" fill="#94a3b8">private beta</text>
+    <circle cx="384" cy="318" r="8" fill="none" stroke="#7dd3fc" stroke-width="2"/>
+    <text x="402" y="323" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" fill="#f1f5f9">BioStack</text>
+    <text x="402" y="344" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" fill="#94a3b8">private alpha</text>
+  </g>
+
+  <text x="48" y="120" font-family="ui-sans-serif, system-ui, sans-serif" font-size="1" fill="none">spacer</text>
+</svg>

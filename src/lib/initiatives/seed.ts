@@ -37,6 +37,8 @@ export const initiativeSeed: Initiative[] = [
       "Keon is a governed execution layer that sits between AI cognition and real-world effects. It enforces policies, records receipts, and ensures no AI action reaches production without a reviewable decision trail. It does not replace security teams. It gives them a surface.",
     toneNotes:
       "Technical and precise. Avoid outcome promises. Stay close to mechanism: govern, record, enforce, verify.",
+    publicUrl: "https://beta.marketops.internal/r/keon-systems?invite=required",
+    repoUrl: "https://beta.marketops.internal/repos/keon-systems?invite=required",
     needsPositioningReview: false,
     isActive: true,
   },
@@ -78,6 +80,8 @@ export const initiativeSeed: Initiative[] = [
       "BioStack gives people a structured way to log, visualize, and compare supplement protocols over time. It surfaces pattern data without interpreting it clinically. It is an observation tool, not a health advisor.",
     toneNotes:
       "Observational and measured. Never clinical. Avoid words like 'optimize' unless tied to tracking, not outcomes.",
+    publicUrl: "https://beta.marketops.internal/r/biostack?invite=required",
+    repoUrl: "https://beta.marketops.internal/repos/biostack?invite=required",
     needsPositioningReview: false,
     isActive: true,
   },
