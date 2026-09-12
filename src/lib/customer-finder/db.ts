@@ -1,4 +1,7 @@
-import { db } from "@/lib/readiness/db";
+// w1-postgres-rls-migrate: db comes from the provider; parent import kept as
+// a side effect so table-creation order is unchanged on the sqlite default.
+import "@/lib/readiness/db";
+import { db } from "@/lib/db/provider";
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS customer_finder_campaigns (

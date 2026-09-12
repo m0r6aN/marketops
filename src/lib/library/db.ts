@@ -1,11 +1,14 @@
 /**
  * Library Canon Foundry — database schema initialisation.
  *
- * Imports the shared better-sqlite3 connection from readiness/db.ts and adds
+ * Imports the shared better-sqlite3 connection from the db provider and adds
  * all Library tables in a single migration block.  Tables are created with
  * CREATE TABLE IF NOT EXISTS so this is safe to call on every server start.
  */
-import { db } from "@/lib/readiness/db";
+// w1-postgres-rls-migrate: db comes from the provider; parent import kept as
+// a side effect so table-creation order is unchanged on the sqlite default.
+import "@/lib/readiness/db";
+import { db } from "@/lib/db/provider";
 
 db.exec(`
   -- ──────────────────────────────────────────────────────────────────────────
