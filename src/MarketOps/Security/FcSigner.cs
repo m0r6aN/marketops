@@ -8,13 +8,16 @@ namespace MarketOps.Security;
 /// <summary>
 /// Federation Core HMAC-SHA256 signer for advisory receipts.
 /// Signs canonical JSON payloads and verifies signatures.
-/// 
-/// Key management: reads from MARKETOPS_FC_HMAC_KEY env var,
-/// falls back to a deterministic dev key (NOT for production).
+///
+/// Key management (fail-closed, no DevKey fallback):
+/// reads from MARKETOPS_FC_HMAC_KEY env var locally via <see cref="EnvSecretProvider"/>,
+/// or from Azure Key Vault via <see cref="KeyVaultSecretProvider"/> in beta.
+/// Missing/empty key throws <see cref="InvalidOperationException"/> at construct/boot.
+/// Never logs secret values.
 /// </summary>
 public sealed class FcSigner
 {
-    private const string DevKey = "marketops-fc-dev-signing-key-v1-NOT-FOR-PRODUCTION";
+    public const string HmacKeyEnvVar = "MARKETOPS_FC_HMAC_KEY";
     private const string Algorithm = "hmac-sha256";
 
     private readonly byte[] _keyBytes;
@@ -32,10 +35,33 @@ public sealed class FcSigner
         string? keyId = null,
         string? issuerId = null,
         string? issuerEndpoint = null)
+        : this(secrets: null, hmacKey: hmacKey, keyId: keyId, issuerId: issuerId, issuerEndpoint: issuerEndpoint)
     {
-        var key = hmacKey
-            ?? Environment.GetEnvironmentVariable("MARKETOPS_FC_HMAC_KEY")
-            ?? DevKey;
+    }
+
+    /// <summary>
+    /// Provider-based construction (preferred for DI / Key Vault).
+    /// Explicit <paramref name="hmacKey"/> wins; otherwise reads
+    /// <c>MARKETOPS_FC_HMAC_KEY</c> via <paramref name="secrets"/>
+    /// (defaults to env). Missing/empty throws — fail-closed, no fallback.
+    /// </summary>
+    public FcSigner(
+        ISecretProvider? secrets,
+        string? hmacKey = null,
+        string? keyId = null,
+        string? issuerId = null,
+        string? issuerEndpoint = null)
+    {
+        string? key = hmacKey;
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            var provider = secrets ?? EnvSecretProvider.Instance;
+            key = provider.GetSecret(HmacKeyEnvVar);
+        }
+
+        if (string.IsNullOrWhiteSpace(key))
+            throw new InvalidOperationException(
+                $"{HmacKeyEnvVar} is not set. Set it in the environment (.env.local locally) or configure Azure Key Vault (beta). Refusing to start with a fallback key.");
 
         _keyBytes = Encoding.UTF8.GetBytes(key);
         _keyId = keyId ?? "fc-marketops-k1";

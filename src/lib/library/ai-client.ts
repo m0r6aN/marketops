@@ -6,17 +6,15 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 
+import { defaultEnvProvider } from "./ai-client-secrets";
+
 // Lazy-init so the missing key error surfaces at call time, not import time.
 let _client: Anthropic | null = null;
 
 function getClient(): Anthropic {
   if (!_client) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        "ANTHROPIC_API_KEY is not set.  Add it to .env.local to use Library processing."
-      );
-    }
+    // Fail-closed via provider: missing key throws (no fallback, no default).
+    const apiKey = defaultEnvProvider.getRequiredSecret("ANTHROPIC_API_KEY");
     _client = new Anthropic({ apiKey });
   }
   return _client;
