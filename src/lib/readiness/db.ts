@@ -1,15 +1,6 @@
-import Database from "better-sqlite3";
-import fs from "node:fs";
-import path from "node:path";
-
-const dataDir = path.join(process.cwd(), ".marketops");
-const dbPath = path.join(dataDir, "marketops.sqlite");
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-const db = new Database(dbPath);
+// w1-postgres-rls-migrate: connection moved to @/lib/db/provider (sqlite
+// default, same file). This module keeps the readiness_state DDL only.
+import { db, dbPath } from "@/lib/db/provider";
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS readiness_state (
