@@ -1,5 +1,6 @@
 # Repository-local tooling and scratch files
 .claude/
+.coordinator/
 .marketops/
 test_output.txt
 
