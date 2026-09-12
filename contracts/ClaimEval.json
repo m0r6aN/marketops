@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClaimEval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claimId", "claimText", "paraphrases", "verdict", "evaluatedAtUtc"],
+  "properties": {
+    "claimId": { "type": "string", "minLength": 1 },
+    "claimText": { "type": "string", "minLength": 1 },
+    "tenantId": {
+      "type": ["string", "null"],
+      "description": "Canonical tenant key when the claim was evaluated in tenant scope; null for tenant-agnostic harness evaluations."
+    },
+    "paraphrases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "verdict"],
+        "properties": {
+          "text": { "type": "string", "minLength": 1 },
+          "verdict": { "type": "string", "enum": ["safe", "needs-proof", "blocked"] }
+        }
+      }
+    },
+    "verdict": { "type": "string", "enum": ["safe", "needs-proof", "blocked"] },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evaluatedAtUtc": { "type": "string", "format": "date-time" }
+  }
+}

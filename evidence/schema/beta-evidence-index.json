@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "marketops.beta.evidence-index.v1",
+  "description": "Index of W0 beta contracts, versions, and fixture paths. Generated view aid; coordinator DB remains the source of truth.",
+  "contracts": [
+    { "id": "BetaTenant", "path": "contracts/BetaTenant.json", "version": "v1" },
+    { "id": "Entitlement", "path": "contracts/Entitlement.json", "version": "v1" },
+    { "id": "ClaimEval", "path": "contracts/ClaimEval.json", "version": "v1" },
+    { "id": "ComplianceCheck", "path": "contracts/ComplianceCheck.json", "version": "v1" },
+    { "id": "ProofpackManifest", "path": "contracts/ProofpackManifest.json", "version": "v1" }
+  ],
+  "csharpMirrors": "src/MarketOps/Contracts/BetaContracts.cs",
+  "typescriptMirrors": "src/lib/marketops/entities.ts",
+  "fixtures": [
+    "tests/contracts/fixtures/tenants.json",
+    "tests/contracts/fixtures/entitlements.json",
+    "tests/contracts/fixtures/claim-evals.json",
+    "tests/contracts/fixtures/compliance-checks.json",
+    "tests/contracts/fixtures/proofpack-manifest.json"
+  ],
+  "tests": "tests/contracts/beta-contracts.test.ts"
+}

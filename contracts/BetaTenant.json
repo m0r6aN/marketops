@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BetaTenant",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["tenantId", "displayName", "betaStatus", "public_safe", "createdAtUtc"],
+  "properties": {
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. Every tenant-scoped row, receipt, and proof artifact carries this value; cross-tenant access with a mismatched tenantId must be denied with a receipt."
+    },
+    "displayName": { "type": "string", "minLength": 1 },
+    "betaStatus": {
+      "type": "string",
+      "enum": ["invited", "active", "suspended", "graduated"]
+    },
+    "public_safe": {
+      "type": "boolean",
+      "description": "True only when this tenant's name, data, and outcomes may appear in public proof or marketing. False (default for beta) keeps the tenant private; public claims about a non-public_safe tenant are forbidden."
+    },
+    "createdAtUtc": { "type": "string", "format": "date-time" }
+  }
+}

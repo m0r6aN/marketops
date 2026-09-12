@@ -187,3 +187,113 @@ type ReviewedApprovalState = ApprovalStateBase & {
 };
 
 export type ApprovalState = PendingApprovalState | ReviewedApprovalState;
+
+// ---------------------------------------------------------------------------
+// Private-beta / GTM contracts (w0-contracts-beta, additive only).
+// JSON-schema mirrors live in contracts/*.json; fixtures in
+// tests/contracts/fixtures/*.json. Do not reshape existing entities here.
+// ---------------------------------------------------------------------------
+
+export type BetaStatus = "invited" | "active" | "suspended" | "graduated";
+
+export type BetaTenant = TimestampFields & {
+  /**
+   * Canonical tenant key. Every tenant-scoped row, receipt, and proof
+   * artifact carries this value; cross-tenant access with a mismatched
+   * tenantId must be denied with a receipt.
+   */
+  tenantId: string;
+  displayName: string;
+  betaStatus: BetaStatus;
+  /**
+   * True only when this tenant's name, data, and outcomes may appear in
+   * public proof or marketing. False (default for beta) keeps the tenant
+   * private; public claims about a non-public_safe tenant are forbidden.
+   */
+  public_safe: boolean;
+  createdAtUtc: IsoTimestamp;
+};
+
+export type EntitlementPlan = "beta" | "pilot";
+
+export type EntitlementStatus = "active" | "lapsed" | "cancelled";
+
+export type Entitlement = TimestampFields & {
+  /**
+   * Canonical tenant key. Entitlements are always evaluated for the
+   * requesting tenantId; a lapsed or cancelled entitlement gates beta
+   * features off.
+   */
+  tenantId: string;
+  plan: EntitlementPlan;
+  features: string[];
+  status: EntitlementStatus;
+  expiresAtUtc?: IsoTimestamp | null;
+  updatedAtUtc: IsoTimestamp;
+};
+
+export type ClaimVerdict = "safe" | "needs-proof" | "blocked";
+
+export type ClaimParaphrase = {
+  text: string;
+  verdict: ClaimVerdict;
+};
+
+export type ClaimEval = TimestampFields & {
+  claimId: string;
+  claimText: string;
+  /** Canonical tenant key when evaluated in tenant scope; null for harness evals. */
+  tenantId?: string | null;
+  paraphrases: ClaimParaphrase[];
+  verdict: ClaimVerdict;
+  reasons?: string[];
+  evaluatedAtUtc: IsoTimestamp;
+};
+
+export type ConsentBasis = "opt-in" | "legitimate-interest" | "none";
+
+export type ComplianceVerdict = "pass" | "blocked";
+
+export type ComplianceCheck = TimestampFields & {
+  /**
+   * Canonical tenant key. Suppression lists are evaluated in this tenant's
+   * scope; cross-tenant suppression state must never leak.
+   */
+  tenantId: string;
+  campaignId?: string | null;
+  /**
+   * Lawful basis for contacting the recipients. 'none' (or missing consent
+   * evidence) forces verdict 'blocked' with a reason; send adapters must
+   * never execute on a blocked check.
+   */
+  consentBasis: ConsentBasis;
+  suppressionChecked: boolean;
+  unsubscribeLinkPresent: boolean;
+  /** SPF/DKIM/DMARC verifier outcome for the sending domain. False blocks. */
+  senderAuthPass: boolean;
+  physicalAddressPresent: boolean;
+  verdict: ComplianceVerdict;
+  blockedReasons?: string[];
+  checkedAtUtc: IsoTimestamp;
+};
+
+export type ProofpackRunMode = "dry_run" | "prod";
+
+export type ProofpackRun = {
+  runId: string;
+  mode: ProofpackRunMode;
+  path: string;
+  sha256: string;
+};
+
+export type ProofpackManifest = TimestampFields & {
+  packId: string;
+  /**
+   * Canonical tenant key. A proofpack seals evidence for exactly one
+   * tenant; multi-tenant packs are forbidden.
+   */
+  tenantId: string;
+  createdAtUtc: IsoTimestamp;
+  runs: ProofpackRun[];
+  packSha256: string;
+};

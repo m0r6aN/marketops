@@ -1,0 +1,50 @@
+[
+  {
+    "tenantId": "tenant-keon",
+    "campaignId": "camp-keon-001",
+    "consentBasis": "opt-in",
+    "suppressionChecked": true,
+    "unsubscribeLinkPresent": true,
+    "senderAuthPass": true,
+    "physicalAddressPresent": true,
+    "verdict": "pass",
+    "blockedReasons": [],
+    "checkedAtUtc": "2026-09-10T11:00:00Z"
+  },
+  {
+    "tenantId": "tenant-biostack",
+    "campaignId": "camp-biostack-001",
+    "consentBasis": "none",
+    "suppressionChecked": true,
+    "unsubscribeLinkPresent": true,
+    "senderAuthPass": true,
+    "physicalAddressPresent": true,
+    "verdict": "blocked",
+    "blockedReasons": ["missing consent basis"],
+    "checkedAtUtc": "2026-09-10T11:05:00Z"
+  },
+  {
+    "tenantId": "tenant-biostack",
+    "campaignId": "camp-biostack-002",
+    "consentBasis": "opt-in",
+    "suppressionChecked": true,
+    "unsubscribeLinkPresent": false,
+    "senderAuthPass": true,
+    "physicalAddressPresent": true,
+    "verdict": "blocked",
+    "blockedReasons": ["missing unsubscribe link"],
+    "checkedAtUtc": "2026-09-10T11:06:00Z"
+  },
+  {
+    "tenantId": "tenant-keon",
+    "campaignId": "camp-keon-002",
+    "consentBasis": "opt-in",
+    "suppressionChecked": true,
+    "unsubscribeLinkPresent": true,
+    "senderAuthPass": false,
+    "physicalAddressPresent": true,
+    "verdict": "blocked",
+    "blockedReasons": ["sender authentication failed (SPF/DKIM/DMARC)"],
+    "checkedAtUtc": "2026-09-10T11:07:00Z"
+  }
+]
