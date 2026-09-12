@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { randomUUID } from "node:crypto";
 
@@ -49,6 +50,7 @@ export async function suggestTargetCustomerDescription(input: {
   prompt: string;
   initiativeSlug?: string;
 }) {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
   const initiative = input.initiativeSlug
     ? (getInitiativeBySlug(input.initiativeSlug) ?? undefined)
@@ -64,6 +66,7 @@ export async function suggestTargetCustomerDescription(input: {
 export async function getDiscoverySourceChecklist(input: {
   targetDescription: string;
 }) {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
   return buildSourceProposals(input.targetDescription);
 }
@@ -71,6 +74,7 @@ export async function getDiscoverySourceChecklist(input: {
 export async function createDiscoveryCampaign(
   input: CreateDiscoveryCampaignInput
 ): Promise<CreateDiscoveryCampaignResult> {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
 
   const nowIso = new Date().toISOString();
@@ -259,6 +263,7 @@ export async function createDiscoveryCampaign(
 }
 
 export async function generateOutreachDrafts(input: DraftGenerationInput) {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
 
   const campaignDetail = getDiscoveryCampaignDetail(input.campaignId);
@@ -314,16 +319,19 @@ export async function generateOutreachDrafts(input: DraftGenerationInput) {
 }
 
 export async function purgeCustomerFinderWorkspace() {
+  await requireSessionTenant();
   purgeAllCustomerFinderData();
   revalidateCampaignRoutes();
 }
 
 export async function getDiscoveryCampaignForClient(campaignId: string) {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
   return getDiscoveryCampaignDetail(campaignId);
 }
 
 export async function getDiscoveryCandidatesForClient(campaignId: string) {
+  await requireSessionTenant();
   purgeExpiredCustomerFinderData();
   return listCandidateRecordsForCampaign(campaignId);
 }

@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 import { getCampaignsByInitiativeSlug } from "@/lib/campaigns";
@@ -65,6 +66,7 @@ function reviewSource(version: ContentVersionRecord) {
 }
 
 export async function createPersuasionReviewAction(contentVersionId: string) {
+  await requireSessionTenant();
   const version = getContentVersion(contentVersionId);
   if (!version) throw new Error("Content version not found.");
   const { claimFindings } = reviewSource(version);
@@ -74,6 +76,7 @@ export async function createPersuasionReviewAction(contentVersionId: string) {
 }
 
 export async function applyPersuasionReviewAction(reviewId: string) {
+  await requireSessionTenant();
   const review = getPersuasionReview(reviewId);
   if (!review) throw new Error("Persuasion review not found.");
   const currentSource = getContentVersion(review.contentVersionId);

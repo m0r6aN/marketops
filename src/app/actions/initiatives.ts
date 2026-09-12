@@ -1,4 +1,5 @@
 "use server";
+import { requireSessionTenant } from "@/lib/auth/session";
 
 import {
     archiveInitiative,
@@ -13,12 +14,14 @@ function revalidateInitiatives() {
 }
 
 export async function createInitiativeAction(input: InitiativeInput) {
+  await requireSessionTenant();
   const created = createInitiative(input);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${created.slug}`);
 }
 
 export async function updateInitiativeAction(slug: string, input: InitiativeInput) {
+  await requireSessionTenant();
   const updated = updateInitiative(slug, input);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${slug}`);
@@ -31,6 +34,7 @@ export async function updateInitiativeAction(slug: string, input: InitiativeInpu
 }
 
 export async function deleteInitiativeAction(slug: string) {
+  await requireSessionTenant();
   archiveInitiative(slug);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${slug}`);
