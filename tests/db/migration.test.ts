@@ -92,16 +92,22 @@ afterEach(async () => {
 // ── migration files: ordering ──────────────────────────────────────────────
 
 describe("migration ordering", () => {
-  test("db/migrations applies 001, 002, 003 in numeric order", () => {
+  test("db/migrations apply in numeric order with intact checksums", () => {
     const files = listMigrationFiles(getMigrationsDir());
-    expect(files.map((file) => file.version)).toEqual(["001", "002", "003"]);
+    const versions = files.map((file) => file.version);
+    // Ordered, unique, zero-padded numeric versions — tolerant of new
+    // migrations (004+) so tenant-wire-style additions never break this.
+    expect(versions).toEqual([...versions].sort());
+    expect(new Set(versions).size).toBe(versions.length);
     for (const file of files) {
       expect(file.sql.trim().length).toBeGreaterThan(0);
       expect(file.checksum).toMatch(/^[0-9a-f]{64}$/);
     }
-    expect(files[0].fileName).toBe("001_tenants-and-bookkeeping.sql");
-    expect(files[1].fileName).toBe("002_core-schema.sql");
-    expect(files[2].fileName).toBe("003_rls-policies.sql");
+    expect(files.slice(0, 3).map((file) => file.fileName)).toEqual([
+      "001_tenants-and-bookkeeping.sql",
+      "002_core-schema.sql",
+      "003_rls-policies.sql",
+    ]);
   });
 
   test("temp-dir fixtures order numerically regardless of creation order", () => {
