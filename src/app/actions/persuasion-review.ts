@@ -1,5 +1,6 @@
 "use server";
 import { requireSessionTenant } from "@/lib/auth/session";
+import { enforceEntitlement } from "@/lib/entitlements/gate";
 
 import { revalidatePath } from "next/cache";
 import { getCampaignsByInitiativeSlug } from "@/lib/campaigns";
@@ -84,6 +85,9 @@ export async function createPersuasionReviewAction(contentVersionId: string) {
   const version = getContentVersion(contentVersionId);
   if (!version) throw new Error("Content version not found.");
   requireContentRowTenant(sessionTenant, version, "create persuasion review");
+  // w2-billing-wire: claim-review entitlement gate (lapsed/cancelled tenants
+  // deny with ENTITLEMENT_INACTIVE). Tenant checks above keep precedence.
+  enforceEntitlement(sessionTenant, "claim-review", "create persuasion review");
   const { claimFindings } = reviewSource(version, tenantCtx);
   const review = createPersuasionReview(buildPersuasionReview(version, claimFindings));
   paths(version.initiativeSlug);
