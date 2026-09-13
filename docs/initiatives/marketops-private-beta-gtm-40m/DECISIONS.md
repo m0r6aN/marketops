@@ -21,3 +21,5 @@
 | d-receipt-canon | Claim receipts live in additive persuasion tables mapped to Receipt/ApprovalState; needs canon confirmation | open | coordinator |
 | d-approval-entitlement | Whether claim approval sits behind approval-workflow entitlement | open | product |
 | db-migrate-claim-tables | PG migration for claim_decision_receipts + claim_approvals queued (blocks beta PG) | open | coordinator |
+| d-verify58 | VERIFY.ps1 58/58 closed locally (EdVerify built); rerun in beta required | decided | coordinator |
+| infra-beta-provision | Azure beta env provisioning inputs needed (subscription/tenant) before INT-beta | open | coordinator |
