@@ -6,11 +6,16 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { getInitiativeBySlug } from "@/lib/initiatives";
+import {
+  requireRowTenantMatch as requireCustomerFinderRowTenant,
+} from "@/lib/customer-finder/repository";
+import { requireRowTenantMatch as requireInitiativeRowTenant } from "@/lib/initiatives/repository";
 import { buildSourceProposals } from "@/lib/customer-finder/sources";
 import {
   createDiscoveryCampaignRecord,
   findDiscoveryCampaignByFingerprint,
   getDiscoveryCampaignDetail,
+  getDiscoveryCampaignRecord,
   listCandidateRecordsForCampaign,
   purgeAllCustomerFinderData,
   purgeExpiredCustomerFinderData,
@@ -50,11 +55,13 @@ export async function suggestTargetCustomerDescription(input: {
   prompt: string;
   initiativeSlug?: string;
 }) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "suggest target customer" });
   purgeExpiredCustomerFinderData();
   const initiative = input.initiativeSlug
     ? (getInitiativeBySlug(input.initiativeSlug) ?? undefined)
     : undefined;
+  // w2-tenant-wire: referenced initiative row must belong to the session tenant.
+  if (initiative) requireInitiativeRowTenant(sessionTenant, initiative, "suggest target customer");
   const suggestion = buildTargetCustomerSuggestion(input.prompt, initiative);
 
   return {
@@ -66,7 +73,7 @@ export async function suggestTargetCustomerDescription(input: {
 export async function getDiscoverySourceChecklist(input: {
   targetDescription: string;
 }) {
-  await requireSessionTenant();
+  await requireSessionTenant({ action: "get discovery source checklist" });
   purgeExpiredCustomerFinderData();
   return buildSourceProposals(input.targetDescription);
 }
@@ -74,7 +81,7 @@ export async function getDiscoverySourceChecklist(input: {
 export async function createDiscoveryCampaign(
   input: CreateDiscoveryCampaignInput
 ): Promise<CreateDiscoveryCampaignResult> {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "create discovery campaign" });
   purgeExpiredCustomerFinderData();
 
   const nowIso = new Date().toISOString();
@@ -89,6 +96,9 @@ export async function createDiscoveryCampaign(
 
   const existing = findDiscoveryCampaignByFingerprint(fingerprint);
   if (existing) {
+    // w2-tenant-wire: a fingerprint hit in another tenant must not be
+    // disclosed — enforce record tenant before returning it.
+    requireCustomerFinderRowTenant(sessionTenant, existing, "create discovery campaign");
     return {
       campaignId: existing.id,
       created: false,
@@ -101,6 +111,8 @@ export async function createDiscoveryCampaign(
   const initiative = input.initiativeSlug
     ? (getInitiativeBySlug(input.initiativeSlug) ?? undefined)
     : undefined;
+  // w2-tenant-wire: referenced initiative row must belong to the session tenant.
+  if (initiative) requireInitiativeRowTenant(sessionTenant, initiative, "create discovery campaign");
   const campaignId = randomUUID();
   const campaignName = toCampaignName(input.targetDescription);
   const slug = `${toSlug(input.targetDescription)}-${campaignId.slice(0, 8)}`;
@@ -263,19 +275,23 @@ export async function createDiscoveryCampaign(
 }
 
 export async function generateOutreachDrafts(input: DraftGenerationInput) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "generate outreach drafts" });
   purgeExpiredCustomerFinderData();
 
   const campaignDetail = getDiscoveryCampaignDetail(input.campaignId);
   if (!campaignDetail) {
     throw new Error(`Campaign ${input.campaignId} was not found.`);
   }
+  // w2-tenant-wire: record tenant must match the session tenant.
+  requireCustomerFinderRowTenant(sessionTenant, campaignDetail.campaign, "generate outreach drafts");
 
   const nowIso = new Date().toISOString();
   const initiative =
     campaignDetail.campaign.initiativeSlug !== "workspace-discovery"
       ? (getInitiativeBySlug(campaignDetail.campaign.initiativeSlug) ?? undefined)
       : undefined;
+  // w2-tenant-wire: referenced initiative row must belong to the session tenant.
+  if (initiative) requireInitiativeRowTenant(sessionTenant, initiative, "generate outreach drafts");
   const candidates = campaignDetail.candidates.filter((candidate) =>
     input.candidateIds.includes(candidate.id)
   );
@@ -319,19 +335,30 @@ export async function generateOutreachDrafts(input: DraftGenerationInput) {
 }
 
 export async function purgeCustomerFinderWorkspace() {
-  await requireSessionTenant();
+  // w2-tenant-wire: session tenant captured (purge is operator-scoped). On
+  // sqlite this clears the single-tenant local workspace; on PG, RLS confines
+  // deletes to the session tenant (see 003). Per-row predicates do not apply
+  // to a bulk GC path with no row address.
+  await requireSessionTenant({ action: "purge customer finder workspace" });
   purgeAllCustomerFinderData();
   revalidateCampaignRoutes();
 }
 
 export async function getDiscoveryCampaignForClient(campaignId: string) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "get discovery campaign" });
   purgeExpiredCustomerFinderData();
-  return getDiscoveryCampaignDetail(campaignId);
+  const detail = getDiscoveryCampaignDetail(campaignId);
+  // w2-tenant-wire: record tenant must match the session tenant.
+  if (detail) requireCustomerFinderRowTenant(sessionTenant, detail.campaign, "get discovery campaign");
+  return detail;
 }
 
 export async function getDiscoveryCandidatesForClient(campaignId: string) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "get discovery candidates" });
   purgeExpiredCustomerFinderData();
+  const campaign = getDiscoveryCampaignRecord(campaignId);
+  // w2-tenant-wire: parent campaign tenant must match the session tenant
+  // before any candidate rows are disclosed.
+  if (campaign) requireCustomerFinderRowTenant(sessionTenant, campaign, "get discovery candidates");
   return listCandidateRecordsForCampaign(campaignId);
 }

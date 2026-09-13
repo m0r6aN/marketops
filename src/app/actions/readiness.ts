@@ -7,9 +7,14 @@ import {
   getChecklistDefinitionsForInitiative,
   upsertChecklistState,
 } from "@/lib/readiness/repository";
+import { getInitiativeBySlugAnyStatus, requireRowTenantMatch as requireInitiativeRowTenant } from "@/lib/initiatives/repository";
 
 export async function toggleReadinessItem(formData: FormData) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant. The owning
+  // initiative is resolved first; a missing initiative row keeps the legacy
+  // behavior (static definitions still gate validity) while PG RLS scopes the
+  // state row itself (see 003).
+  const sessionTenant = await requireSessionTenant({ action: "toggle readiness item" });
   const initiativeSlugRaw = formData.get("initiativeSlug");
   const definitionIdRaw = formData.get("definitionId");
 
@@ -23,6 +28,11 @@ export async function toggleReadinessItem(formData: FormData) {
   const initiativeSlug = initiativeSlugRaw;
   const definitionId = definitionIdRaw;
   const complete = formData.get("complete") === "true";
+
+  // w2-tenant-wire: owning initiative tenant must match the session tenant
+  // when the initiative row exists (legacy unknown slugs keep prior behavior).
+  const initiative = getInitiativeBySlugAnyStatus(initiativeSlug);
+  if (initiative) requireInitiativeRowTenant(sessionTenant, initiative, "toggle readiness item");
 
   const validDefinitions = getChecklistDefinitionsForInitiative(initiativeSlug);
   const validDefinitionIds = new Set(validDefinitions.map((definition) => definition.id));

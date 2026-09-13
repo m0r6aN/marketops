@@ -7,6 +7,7 @@ import { getCampaignById } from "@/lib/campaigns";
 import {
     createManagedCampaign,
     getManagedCampaignById,
+    requireRowTenantMatch,
     softDeleteManagedCampaign,
     updateDiscoveryCampaignEditableFields,
     updateManagedCampaign,
@@ -35,10 +36,15 @@ function assertOneOf<T extends string>(value: string, options: T[], field: strin
   }
 }
 
-function assertInitiativeExists(slug: string) {
+function assertInitiativeExists(slug: string, tenantCtx?: { sessionTenant: string; action: string }) {
   const initiative = getInitiativeBySlugAnyStatus(slug);
   if (!initiative) {
     throw new Error("Initiative does not exist.");
+  }
+  // w2-tenant-wire: the parent initiative row's tenant must match the session
+  // tenant — no path may rely on session-presence alone.
+  if (tenantCtx) {
+    requireRowTenantMatch(tenantCtx.sessionTenant, initiative, tenantCtx.action);
   }
 }
 
@@ -60,7 +66,7 @@ function revalidateCampaignPaths(id: string, initiativeSlug: string, previousIni
   }
 }
 
-function validateManagedInput(input: ManagedCampaignInput, existingId?: string): ManagedCampaignInput {
+function validateManagedInput(input: ManagedCampaignInput, existingId?: string, tenantCtx?: { sessionTenant: string; action: string }): ManagedCampaignInput {
   assertNonEmpty(input.id, "Campaign id");
   if (existingId && input.id !== existingId) {
     throw new Error("Campaign id is immutable.");
@@ -68,7 +74,7 @@ function validateManagedInput(input: ManagedCampaignInput, existingId?: string):
 
   assertNonEmpty(input.name, "Campaign name");
   assertNonEmpty(input.initiativeSlug, "Initiative");
-  assertInitiativeExists(input.initiativeSlug);
+  assertInitiativeExists(input.initiativeSlug, tenantCtx);
   assertNonEmpty(input.goal, "Goal");
   assertNonEmpty(input.channel, "Channel");
   assertNonEmpty(input.audience, "Audience");
@@ -98,10 +104,10 @@ function validateManagedInput(input: ManagedCampaignInput, existingId?: string):
   };
 }
 
-function validateDiscoveryInput(input: DiscoveryCampaignEditableInput) {
+function validateDiscoveryInput(input: DiscoveryCampaignEditableInput, tenantCtx?: { sessionTenant: string; action: string }) {
   assertNonEmpty(input.name, "Campaign name");
   assertNonEmpty(input.initiativeSlug, "Initiative");
-  assertInitiativeExists(input.initiativeSlug);
+  assertInitiativeExists(input.initiativeSlug, tenantCtx);
   assertNonEmpty(input.targetDescription, "Target description");
   assertNonEmpty(input.notes, "Notes");
 
@@ -114,8 +120,9 @@ function validateDiscoveryInput(input: DiscoveryCampaignEditableInput) {
 }
 
 export async function createCampaignAction(input: ManagedCampaignInput) {
-  await requireSessionTenant();
-  const validated = validateManagedInput(input);
+  const sessionTenant = await requireSessionTenant({ action: "create campaign" });
+  const tenantCtx = { sessionTenant, action: "create campaign" };
+  const validated = validateManagedInput(input, undefined, tenantCtx);
   const created = createManagedCampaign(validated);
   revalidateCampaignPaths(created.id, created.initiativeSlug);
   return created;
@@ -125,35 +132,43 @@ export async function updateCampaignAction(
   id: string,
   input: ManagedCampaignInput | DiscoveryCampaignEditableInput
 ) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "update campaign" });
+  const tenantCtx = { sessionTenant, action: "update campaign" };
   const existing = getCampaignById(id);
   if (!existing) {
     throw new Error("Campaign not found.");
   }
+  // w2-tenant-wire: the campaign's owning initiative must belong to the
+  // session tenant (campaign rows resolve tenant via their initiative).
+  assertInitiativeExists(existing.initiativeSlug, tenantCtx);
 
   if (existing.campaignKind === "managed") {
-    const validated = validateManagedInput(input as ManagedCampaignInput, id);
+    const validated = validateManagedInput(input as ManagedCampaignInput, id, tenantCtx);
     const updated = updateManagedCampaign(id, validated);
     revalidateCampaignPaths(id, updated.initiativeSlug, existing.initiativeSlug);
     return updated;
   }
 
-  const validatedDiscovery = validateDiscoveryInput(input as DiscoveryCampaignEditableInput);
+  const validatedDiscovery = validateDiscoveryInput(input as DiscoveryCampaignEditableInput, tenantCtx);
   updateDiscoveryCampaignEditableFields(id, validatedDiscovery);
   revalidateCampaignPaths(id, validatedDiscovery.initiativeSlug, existing.initiativeSlug);
 }
 
 export async function deleteCampaignAction(id: string) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "delete campaign" });
+  const tenantCtx = { sessionTenant, action: "delete campaign" };
   const existing = getCampaignById(id);
   if (!existing || existing.campaignKind !== "managed") {
     throw new Error("Only managed campaigns can be deleted from this surface.");
   }
+  // w2-tenant-wire: record tenant (via owning initiative) must match session.
+  assertInitiativeExists(existing.initiativeSlug, tenantCtx);
 
   const managed = getManagedCampaignById(id);
   if (!managed) {
     throw new Error("Campaign not found.");
   }
+  requireRowTenantMatch(sessionTenant, managed, "delete campaign");
 
   softDeleteManagedCampaign(id);
   revalidateCampaignPaths(id, managed.initiativeSlug);

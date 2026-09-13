@@ -6,6 +6,7 @@
  * LLM processing pipeline for each file.
  */
 import { SESSION_COOKIE_NAME, TenantScopeError, requireTenantMatch, verifySessionToken } from "@/lib/auth/session";
+import { getInitiativeBySlugAnyStatus, requireRowTenantMatch as requireInitiativeRowTenant } from "@/lib/initiatives/repository";
 import { enqueueImportBatch } from "@/lib/library/import-worker";
 import {
   detectSensitiveFilename,
@@ -29,12 +30,14 @@ function normalizeClientRelativePath(path: string | null | undefined, fileName: 
 }
 
 export async function POST(request: NextRequest) {
-  // w1-auth-middleware-scope: deny-by-default tenant gate. No session (or no
-  // HMAC key) => 401 JSON. An optional caller-supplied `tenantId` form hint is
-  // compared against the session tenant => 403 + TENANT_MISMATCH denial on
-  // mismatch. Per-record tenant columns do not exist yet (DB schema changes
-  // are forbidden this parcel), so absent hint + valid session => allowed;
-  // column-level scoping is deferred follow-up (see PR).
+  // w2-tenant-wire: deny-by-default tenant gate + per-record tenant wiring. No
+  // session (or no HMAC key) => 401 JSON. An optional caller-supplied
+  // `tenantId` form hint is compared against the session tenant => 403 +
+  // TENANT_MISMATCH denial on mismatch. When `initiativeSlug` is supplied, the
+  // owning initiative row's tenant must match the session tenant => 403 on
+  // mismatch (no path relies on session-presence alone). Created batch /
+  // document rows are session-owned; beta PG isolation is enforced by RLS
+  // (003/005) with tenant_id required on insert.
   const session = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null);
   if (!session) {
     return NextResponse.json(
@@ -100,6 +103,31 @@ export async function POST(request: NextRequest) {
       typeof rawInitiativeSlug === "string" && rawInitiativeSlug.trim().length > 0
         ? rawInitiativeSlug.trim()
         : null;
+
+    // w2-tenant-wire: per-record tenant wiring — the owning initiative row's
+    // tenant must match the session tenant before anything is created under it.
+    if (initiativeSlug) {
+      const initiative = getInitiativeBySlugAnyStatus(initiativeSlug);
+      if (!initiative) {
+        return NextResponse.json({ error: "Initiative not found" }, { status: 404 });
+      }
+      try {
+        requireInitiativeRowTenant(session.tenantId, initiative, "library import");
+      } catch (error) {
+        if (error instanceof TenantScopeError) {
+          return NextResponse.json(error.toResponseBody(), { status: error.httpStatus });
+        }
+        return NextResponse.json(
+          {
+            error: "Forbidden",
+            denialCode: "TENANT_MISMATCH",
+            denialMessage: "Import denied: tenant mismatch.",
+            failureStage: "decision",
+          },
+          { status: 403 },
+        );
+      }
+    }
 
     const rawFileMetadata = formData.get("fileMetadata");
     let fileMetadata: ImportFileMetadata[] = [];

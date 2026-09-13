@@ -17,9 +17,16 @@ import {
 } from "@/lib/library/prompts";
 import {
     createTrashRecord,
+    getConflict,
     getLibraryEntry,
+    getMarketingAssetOpportunity,
+    getMarketingRedFlag,
+    getSourceDocument,
+    isRowVisibleToTenant,
     listReviewQueue,
+    listTrashRecords,
     listUnresolvedConflicts,
+    requireRowTenantMatch,
     resolveConflict as repoResolveConflict,
     resolveMarketingRedFlag as repoResolveMarketingRedFlag,
     restoreFromTrash as repoRestoreFromTrash,
@@ -106,7 +113,11 @@ export async function resolveMarketingRedFlag(
   id: string,
   resolutionNote?: string
 ): Promise<void> {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "resolve marketing red flag" });
+  const flag = getMarketingRedFlag(id);
+  if (!flag) throw new Error(`Marketing red flag ${id} not found`);
+  requireRowTenantMatch(sessionTenant, flag, "resolve marketing red flag");
   repoResolveMarketingRedFlag(id, resolutionNote);
   revalidateLibrary();
 }
@@ -116,7 +127,11 @@ export async function updateAssetOpportunityStatus(
   status: MarketingAssetStatus,
   notes?: string | null
 ): Promise<void> {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "update asset opportunity status" });
+  const opportunity = getMarketingAssetOpportunity(id);
+  if (!opportunity) throw new Error(`Asset opportunity ${id} not found`);
+  requireRowTenantMatch(sessionTenant, opportunity, "update asset opportunity status");
   repoUpdateAssetOpportunityStatus(id, status, notes ?? undefined);
   revalidateLibrary();
 }
@@ -129,9 +144,11 @@ export async function approveAsCanon(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "content" | "canonicalStatement" | "canonCategory" | "tags" | "summary">>
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "approve as canon" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "approve as canon");
 
   updateLibraryEntry(entryId, {
     entryType: "canon",
@@ -148,9 +165,11 @@ export async function approveAsMarketing(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "copyText" | "suggestedUse" | "suggestedChannel" | "emotionalAngle" | "audience" | "tags">>
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "approve as marketing" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "approve as marketing");
 
   updateLibraryEntry(entryId, {
     entryType: "marketing_nugget",
@@ -166,9 +185,11 @@ export async function approveAsInternal(
   entryId: string,
   edits?: Partial<Pick<LibraryEntry, "title" | "content" | "summary" | "internalCategory" | "sensitivityLevel" | "whyItMatters" | "reviewPriority" | "tags">>
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "approve as internal" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "approve as internal");
 
   updateLibraryEntry(entryId, {
     entryType: "internal_note",
@@ -182,7 +203,12 @@ export async function approveAsInternal(
 }
 
 export async function rejectEntry(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "reject entry" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "reject entry");
   updateLibraryEntry(entryId, { status: "rejected" });
   revalidateLibrary();
 }
@@ -191,9 +217,11 @@ export async function editAndApprove(
   entryId: string,
   updates: Partial<LibraryEntry>
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "edit and approve" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "edit and approve");
 
   updateLibraryEntry(entryId, {
     ...updates,
@@ -205,7 +233,12 @@ export async function editAndApprove(
 }
 
 export async function flagSensitive(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "flag sensitive" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "flag sensitive");
   updateLibraryEntry(entryId, {
     sensitive: true,
     publicSafe: false,
@@ -217,9 +250,14 @@ export async function flagSensitive(entryId: string) {
 export async function runReviewQueueAssistant(
   options: ProcessingClientOptions = { useOllama: true }
 ): Promise<ReviewQueueAssistantResult> {
-  await requireSessionTenant();
-  const entries = listReviewQueue();
-  const conflicts = listUnresolvedConflicts();
+  // w2-tenant-wire: session tenant captured; the queue is scoped to rows
+  // visible to this tenant (legacy sqlite rows without a tenant column stay
+  // visible locally; PG rows are RLS- plus predicate-scoped).
+  const sessionTenant = await requireSessionTenant({ action: "run review queue assistant" });
+  const entries = listReviewQueue().filter((entry) => isRowVisibleToTenant(sessionTenant, entry));
+  const conflicts = listUnresolvedConflicts().filter((conflict) =>
+    isRowVisibleToTenant(sessionTenant, conflict),
+  );
   const conflictedEntryIds = new Set(
     conflicts.flatMap((c) => [c.existingEntryId, c.challengerEntryId])
   );
@@ -384,7 +422,11 @@ export async function requestStrongModelReview(
   entryId: string,
   options: ProcessingClientOptions = {}
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "request strong model review" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "request strong model review");
   // Run a public-safety review and update the entry with the result.
   // This is the same review used during promotion to public.
   const result = await runPublicSafetyReview(entryId, options);
@@ -403,9 +445,11 @@ export async function requestStrongModelReview(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function lockCanon(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "lock canon" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "lock canon");
   if (entry.status !== "approved") {
     throw new Error("Only approved canon can be locked");
   }
@@ -415,7 +459,12 @@ export async function lockCanon(entryId: string) {
 }
 
 export async function deprecateCanon(entryId: string, supersededById?: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "deprecate canon" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "deprecate canon");
   updateLibraryEntry(entryId, {
     status: "deprecated",
     locked: false,
@@ -427,9 +476,11 @@ export async function deprecateCanon(entryId: string, supersededById?: string) {
 }
 
 export async function togglePublicAutomation(entryId: string, allowed: boolean) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "toggle public automation" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "toggle public automation");
 
   if (allowed) {
     // Must pass all safety gates before enabling.
@@ -480,7 +531,11 @@ export async function resolveConflict(
   conflictId: string,
   resolution: ConflictResolution
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "resolve conflict" });
+  const conflict = getConflict(conflictId);
+  if (!conflict) throw new Error(`Conflict ${conflictId} not found`);
+  requireRowTenantMatch(sessionTenant, conflict, "resolve conflict");
   repoResolveConflict(conflictId, resolution);
 
   // If resolution keeps the challenger, mark it as resolved
@@ -493,10 +548,11 @@ export async function resolveConflict(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function moveToTrash(sourceDocId: string, reason: string) {
-  await requireSessionTenant();
-  const { getSourceDocument } = await import("@/lib/library/repository");
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "move to trash" });
   const doc = getSourceDocument(sourceDocId);
   if (!doc) throw new Error(`Source document ${sourceDocId} not found`);
+  requireRowTenantMatch(sessionTenant, doc, "move to trash");
 
   createTrashRecord({
     sourceDocumentId: sourceDocId,
@@ -510,7 +566,15 @@ export async function moveToTrash(sourceDocId: string, reason: string) {
 }
 
 export async function restoreFromTrash(trashRecordId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (both the
+  // trash record and its source document).
+  const sessionTenant = await requireSessionTenant({ action: "restore from trash" });
+  const trashRecord = listTrashRecords().find((record) => record.id === trashRecordId);
+  if (!trashRecord) throw new Error(`Trash record ${trashRecordId} not found`);
+  requireRowTenantMatch(sessionTenant, trashRecord, "restore from trash");
+  const doc = getSourceDocument(trashRecord.sourceDocumentId);
+  if (!doc) throw new Error(`Source document ${trashRecord.sourceDocumentId} not found`);
+  requireRowTenantMatch(sessionTenant, doc, "restore from trash");
   repoRestoreFromTrash(trashRecordId);
   revalidateLibrary();
 }
@@ -520,9 +584,11 @@ export async function restoreFromTrash(trashRecordId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function promoteToPublicCandidate(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "promote to public candidate" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "promote to public candidate");
 
   // Run strong-model safety review before any visibility change
   const safetyResult = await runPublicSafetyReview(entryId);
@@ -559,13 +625,23 @@ export async function promoteToPublicCandidate(entryId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function markInternalImportant(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "mark internal important" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "mark internal important");
   updateLibraryEntry(entryId, { status: "important", reviewPriority: "high" });
   revalidateLibrary();
 }
 
 export async function archiveEntry(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "archive entry" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "archive entry");
   updateLibraryEntry(entryId, { status: "archived" });
   revalidateLibrary();
 }
@@ -582,9 +658,11 @@ export async function rewriteAsMarketing(
   entryId: string,
   options: ProcessingClientOptions = {}
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "rewrite as marketing" });
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "rewrite as marketing");
   const client = buildProcessingClient(options);
 
   // Assemble the best source text available for this entry
@@ -639,7 +717,12 @@ export async function rewriteAsMarketing(
  * Clears all approval state so it can be re-evaluated from scratch.
  */
 export async function sendToReview(entryId: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant (fail-closed:
+  // unknown rows are read first so a missing row throws instead of no-op).
+  const sessionTenant = await requireSessionTenant({ action: "send to review" });
+  const entry = getLibraryEntry(entryId);
+  if (!entry) throw new Error(`Entry ${entryId} not found`);
+  requireRowTenantMatch(sessionTenant, entry, "send to review");
   updateLibraryEntry(entryId, {
     status: "candidate",
     visibility: "private",
