@@ -88,7 +88,6 @@ export type PersuasionApplyRun = {
   createdAt: string;
   completedAt: string;
 };
-
 export type PersuasionReviewEvent = {
   id: string;
   persuasionReviewId: string;
@@ -99,3 +98,12 @@ export type PersuasionReviewEvent = {
   detail: Record<string, unknown>;
   recordedAt: string;
 };
+
+// ── w2-claim-approval-wire: strict claim-gate vocabulary ─────────────────────
+// Policy verdicts mirror src/lib/claims/policy.ts (blocked | needs-review |
+// safe). Decision receipts additionally record "approved-apply" for an apply
+// that proceeded under a recorded operator approval. Denial codes mirror the
+// GateResult denial vocabulary (denialCode + failureStage "decision").
+export type ClaimPolicyVerdict = "blocked" | "needs-review" | "safe";
+export type ClaimDecisionVerdict = ClaimPolicyVerdict | "approved-apply";
+export type ClaimGateDenialCode = "CLAIM_BLOCKED" | "APPROVAL_REQUIRED";
