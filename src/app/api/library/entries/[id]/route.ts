@@ -3,16 +3,56 @@
  * PATCH /api/library/entries/[id] — partial update
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getLibraryEntry, updateLibraryEntry } from "@/lib/library/repository";
+import { SESSION_COOKIE_NAME, TenantScopeError, verifySessionToken } from "@/lib/auth/session";
+import { getLibraryEntry, requireRowTenantMatch, updateLibraryEntry } from "@/lib/library/repository";
+
+function requireSession(request: NextRequest) {
+  return verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null);
+}
+
+function unauthenticated() {
+  return NextResponse.json(
+    {
+      error: "Unauthorized",
+      denialCode: "UNAUTHENTICATED",
+      denialMessage: "Library entry denied: no authenticated tenant session.",
+      failureStage: "decision",
+    },
+    { status: 401 },
+  );
+}
+
+function mismatch(fallbackMessage: string, error: unknown) {
+  if (error instanceof TenantScopeError) {
+    return NextResponse.json(error.toResponseBody(), { status: error.httpStatus });
+  }
+  return NextResponse.json(
+    {
+      error: "Forbidden",
+      denialCode: "TENANT_MISMATCH",
+      denialMessage: fallbackMessage,
+      failureStage: "decision",
+    },
+    { status: 403 },
+  );
+}
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // w2-tenant-wire: session gate + per-record tenant wiring (403 on mismatch).
+  const session = requireSession(request);
+  if (!session) return unauthenticated();
   const { id } = await params;
   const entry = getLibraryEntry(id);
   if (!entry) {
     return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+  }
+  try {
+    requireRowTenantMatch(session.tenantId, entry, "library entry read");
+  } catch (error) {
+    return mismatch("Library entry denied: tenant mismatch.", error);
   }
   return NextResponse.json({ entry });
 }
@@ -21,10 +61,18 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // w2-tenant-wire: session gate + per-record tenant wiring (403 on mismatch).
+  const session = requireSession(request);
+  if (!session) return unauthenticated();
   const { id } = await params;
   const entry = getLibraryEntry(id);
   if (!entry) {
     return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+  }
+  try {
+    requireRowTenantMatch(session.tenantId, entry, "library entry write");
+  } catch (error) {
+    return mismatch("Library entry denied: tenant mismatch.", error);
   }
 
   let updates: Record<string, unknown>;

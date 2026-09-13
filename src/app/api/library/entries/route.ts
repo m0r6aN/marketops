@@ -4,10 +4,28 @@
  * List library entries with optional filters via query params.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { listLibraryEntries } from "@/lib/library/repository";
+import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
+import { isRowVisibleToTenant, listLibraryEntries } from "@/lib/library/repository";
 import type { LibraryEntryFilters, EntryType, EntryStatus, EntryVisibility } from "@/lib/library/types";
 
 export async function GET(request: NextRequest) {
+  // w2-tenant-wire: session gate + per-record tenant wiring. No session =>
+  // 401; the list is scoped to rows visible to the session tenant (legacy
+  // sqlite rows without a tenant column stay visible locally; PG rows are
+  // RLS- plus predicate-scoped). No path relies on session-presence alone.
+  const session = verifySessionToken(request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null);
+  if (!session) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        denialCode: "UNAUTHENTICATED",
+        denialMessage: "Library entries denied: no authenticated tenant session.",
+        failureStage: "decision",
+      },
+      { status: 401 },
+    );
+  }
+
   const sp = request.nextUrl.searchParams;
 
   const filters: LibraryEntryFilters = {};
@@ -42,6 +60,8 @@ export async function GET(request: NextRequest) {
   const minMemoryValue = sp.get("minMemoryValue");
   if (minMemoryValue) filters.minMemoryValue = parseFloat(minMemoryValue);
 
-  const entries = listLibraryEntries(filters);
+  const entries = listLibraryEntries(filters).filter((entry) =>
+    isRowVisibleToTenant(session.tenantId, entry),
+  );
   return NextResponse.json({ entries, count: entries.length });
 }

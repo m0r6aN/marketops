@@ -7,6 +7,7 @@ import {
   createBrandVoiceGuideline,
   getBrandVoiceGuideline,
   listEligibleBrandVoiceLibrarySources,
+  requireRowTenantMatch,
   updateBrandVoiceGuideline,
 } from "@/lib/brand-voice/repository";
 import {
@@ -14,7 +15,7 @@ import {
   validateBrandVoiceGuidelineInput,
 } from "@/lib/brand-voice/service";
 import type { BrandVoiceGuidelineInput } from "@/lib/brand-voice/types";
-import { getInitiativeBySlug } from "@/lib/initiatives/repository";
+import { getInitiativeBySlug, requireRowTenantMatch as requireInitiativeRowTenant } from "@/lib/initiatives/repository";
 
 function revalidateBrandVoicePaths(initiativeSlug: string) {
   revalidatePath(`/initiatives/${initiativeSlug}`);
@@ -30,9 +31,11 @@ export async function createBrandVoiceVersionAction(
   initiativeSlug: string,
   baseVersionId?: string
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: session tenant captured; record tenant must match it.
+  const sessionTenant = await requireSessionTenant({ action: "create brand voice version" });
   const initiative = getInitiativeBySlug(initiativeSlug);
   if (!initiative) throw new Error("Initiative not found or inactive.");
+  requireInitiativeRowTenant(sessionTenant, initiative, "create brand voice version");
 
   let input = createInitialBrandVoiceInput(initiative);
   if (baseVersionId) {
@@ -40,6 +43,8 @@ export async function createBrandVoiceVersionAction(
     if (!base || base.initiativeSlug !== initiativeSlug) {
       throw new Error("Base version must belong to the current initiative.");
     }
+    // w2-tenant-wire: referenced row tenant must match the session tenant.
+    requireRowTenantMatch(sessionTenant, base, "create brand voice version");
     input = {
       name: base.name,
       status: "draft",
@@ -73,11 +78,14 @@ export async function saveBrandVoiceGuidelineAction(
   guidelineId: string,
   input: BrandVoiceGuidelineInput
 ) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "save brand voice guideline" });
   const existing = getBrandVoiceGuideline(guidelineId);
   if (!existing) throw new Error("Brand voice version not found.");
+  requireRowTenantMatch(sessionTenant, existing, "save brand voice guideline");
   const initiative = getInitiativeBySlug(existing.initiativeSlug);
   if (!initiative) throw new Error("Initiative not found or inactive.");
+  requireInitiativeRowTenant(sessionTenant, initiative, "save brand voice guideline");
 
   const validated = validateBrandVoiceGuidelineInput(input, {
     initiativeSlug: existing.initiativeSlug,

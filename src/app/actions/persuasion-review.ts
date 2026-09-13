@@ -3,17 +3,18 @@ import { requireSessionTenant } from "@/lib/auth/session";
 
 import { revalidatePath } from "next/cache";
 import { getCampaignsByInitiativeSlug } from "@/lib/campaigns";
-import { getBrandVoiceGuideline, listApprovedBrandVoiceVersions } from "@/lib/brand-voice/repository";
+import { getBrandVoiceGuideline, listApprovedBrandVoiceVersions, isRowVisibleToTenant as isBrandVoiceRowVisible, requireRowTenantMatch as requireBrandVoiceRowTenant } from "@/lib/brand-voice/repository";
 import { buildBrandVoiceContext, isEligibleBrandVoiceLibraryEntry } from "@/lib/brand-voice/service";
-import { createContentVersion, getContentVersion } from "@/lib/content-workspace/repository";
+import { createContentVersion, getContentVersion, isRowVisibleToTenant as isContentRowVisible, requireRowTenantMatch as requireContentRowTenant } from "@/lib/content-workspace/repository";
 import { computeContentClaimFindings, validateContentVersionInput } from "@/lib/content-workspace/service";
 import type { ContentVersionRecord } from "@/lib/content-workspace/types";
-import { getInitiativeBySlug } from "@/lib/initiatives/repository";
-import { listLibraryEntries } from "@/lib/library/repository";
+import { getInitiativeBySlug, requireRowTenantMatch as requireInitiativeRowTenant } from "@/lib/initiatives/repository";
+import { listLibraryEntries, isRowVisibleToTenant as isLibraryRowVisible } from "@/lib/library/repository";
 import {
   createPersuasionReview,
   getPersuasionReview,
   recordPersuasionApplyRun,
+  requireRowTenantMatch as requirePersuasionRowTenant,
 } from "@/lib/persuasion-review/repository";
 import {
   assertReviewApplicable,
@@ -27,24 +28,34 @@ function paths(slug: string) {
   revalidatePath(`/initiatives/${slug}/persuasion`);
 }
 
-function validationContext(slug: string) {
+function validationContext(slug: string, tenantCtx?: { sessionTenant: string; action: string }) {
   return {
     initiativeSlug: slug,
     libraryEntryIds: new Set(
       listLibraryEntries({ initiativeSlug: slug })
+        .filter((entry) => !tenantCtx || isLibraryRowVisible(tenantCtx.sessionTenant, entry))
         .filter(isEligibleBrandVoiceLibraryEntry)
         .map((entry) => entry.id)
     ),
-    campaignIds: new Set(getCampaignsByInitiativeSlug(slug).map((campaign) => campaign.id)),
+    campaignIds: new Set(
+      getCampaignsByInitiativeSlug(slug)
+        .filter((campaign) => !tenantCtx || isContentRowVisible(tenantCtx.sessionTenant, campaign))
+        .map((campaign) => campaign.id),
+    ),
     brandVoiceGuidelineIds: new Set(
-      listApprovedBrandVoiceVersions(slug, true).map((voice) => voice.id)
+      listApprovedBrandVoiceVersions(slug, true)
+        .filter((voice) => !tenantCtx || isBrandVoiceRowVisible(tenantCtx.sessionTenant, voice))
+        .map((voice) => voice.id)
     ),
   };
 }
 
-function reviewSource(version: ContentVersionRecord) {
+function reviewSource(version: ContentVersionRecord, tenantCtx?: { sessionTenant: string; action: string }) {
   const initiative = getInitiativeBySlug(version.initiativeSlug);
   if (!initiative) throw new Error("Initiative not found or inactive.");
+  // w2-tenant-wire: record tenant must match the session tenant.
+  if (tenantCtx) requireInitiativeRowTenant(tenantCtx.sessionTenant, initiative, tenantCtx.action);
+  if (tenantCtx) requireContentRowTenant(tenantCtx.sessionTenant, version, tenantCtx.action);
   if (!version.body.trim()) throw new Error("Content must have a body before persuasion review.");
   if (!version.sourceMaterials.length) {
     throw new Error("Content must retain at least one provenance source before persuasion review.");
@@ -55,6 +66,8 @@ function reviewSource(version: ContentVersionRecord) {
   if (!voice || voice.initiativeSlug !== version.initiativeSlug || !["approved", "superseded"].includes(voice.status)) {
     throw new Error("Persuasion review requires an approved brand voice version from the same initiative.");
   }
+  // w2-tenant-wire: referenced guideline row must belong to the session tenant.
+  if (tenantCtx) requireBrandVoiceRowTenant(tenantCtx.sessionTenant, voice, tenantCtx.action);
   if (version.brandVoiceSnapshot !== buildBrandVoiceContext(voice)) {
     throw new Error("The content brand voice snapshot is inconsistent. Save a fresh content version before review.");
   }
@@ -66,24 +79,29 @@ function reviewSource(version: ContentVersionRecord) {
 }
 
 export async function createPersuasionReviewAction(contentVersionId: string) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "create persuasion review" });
+  const tenantCtx = { sessionTenant, action: "create persuasion review" };
   const version = getContentVersion(contentVersionId);
   if (!version) throw new Error("Content version not found.");
-  const { claimFindings } = reviewSource(version);
+  requireContentRowTenant(sessionTenant, version, "create persuasion review");
+  const { claimFindings } = reviewSource(version, tenantCtx);
   const review = createPersuasionReview(buildPersuasionReview(version, claimFindings));
   paths(version.initiativeSlug);
   return review;
 }
 
 export async function applyPersuasionReviewAction(reviewId: string) {
-  await requireSessionTenant();
+  const sessionTenant = await requireSessionTenant({ action: "apply persuasion review" });
+  const tenantCtx = { sessionTenant, action: "apply persuasion review" };
   const review = getPersuasionReview(reviewId);
   if (!review) throw new Error("Persuasion review not found.");
+  requirePersuasionRowTenant(sessionTenant, review, "apply persuasion review");
   const currentSource = getContentVersion(review.contentVersionId);
   if (!currentSource) throw new Error("Source content version not found.");
+  requireContentRowTenant(sessionTenant, currentSource, "apply persuasion review");
 
   try {
-    const { initiative, voice } = reviewSource(currentSource);
+    const { initiative, voice } = reviewSource(currentSource, tenantCtx);
     const claimFindings = computeContentClaimFindings(initiative, review.suggestedBody, voice);
     assertReviewApplicable(review, currentSource, claimFindings);
     const input = validateContentVersionInput(
@@ -91,7 +109,7 @@ export async function applyPersuasionReviewAction(reviewId: string) {
         ...createPersuasionRevisionInput(review, claimFindings),
         brandVoiceSnapshot: buildBrandVoiceContext(voice),
       },
-      validationContext(review.initiativeSlug)
+      validationContext(review.initiativeSlug, tenantCtx)
     );
     const created = createContentVersion(currentSource.id, input);
     recordPersuasionApplyRun({

@@ -4,6 +4,8 @@ import { requireSessionTenant } from "@/lib/auth/session";
 import {
     archiveInitiative,
     createInitiative,
+    getInitiativeBySlugAnyStatus,
+    requireRowTenantMatch,
     updateInitiative,
 } from "@/lib/initiatives/repository";
 import type { InitiativeInput } from "@/lib/initiatives/types";
@@ -14,14 +16,23 @@ function revalidateInitiatives() {
 }
 
 export async function createInitiativeAction(input: InitiativeInput) {
-  await requireSessionTenant();
+  // w2-tenant-wire: session tenant captured; the created row is session-owned
+  // (PG RLS WITH CHECK requires tenant_id on insert — see 003/005).
+  await requireSessionTenant({ action: "create initiative" });
   const created = createInitiative(input);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${created.slug}`);
 }
 
 export async function updateInitiativeAction(slug: string, input: InitiativeInput) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant — no path may
+  // rely on session-presence alone.
+  const sessionTenant = await requireSessionTenant({ action: "update initiative" });
+  const existing = getInitiativeBySlugAnyStatus(slug);
+  if (!existing) {
+    throw new Error("Initiative not found.");
+  }
+  requireRowTenantMatch(sessionTenant, existing, "update initiative");
   const updated = updateInitiative(slug, input);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${slug}`);
@@ -34,7 +45,13 @@ export async function updateInitiativeAction(slug: string, input: InitiativeInpu
 }
 
 export async function deleteInitiativeAction(slug: string) {
-  await requireSessionTenant();
+  // w2-tenant-wire: record tenant must match the session tenant.
+  const sessionTenant = await requireSessionTenant({ action: "delete initiative" });
+  const existing = getInitiativeBySlugAnyStatus(slug);
+  if (!existing) {
+    throw new Error("Initiative not found.");
+  }
+  requireRowTenantMatch(sessionTenant, existing, "delete initiative");
   archiveInitiative(slug);
   revalidateInitiatives();
   revalidatePath(`/initiatives/${slug}`);
