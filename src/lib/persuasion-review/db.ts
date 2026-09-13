@@ -56,6 +56,46 @@ db.exec(`
     recorded_at TEXT NOT NULL
   );
 
+  -- w2-claim-approval-wire (additive only — existing tables untouched):
+  -- claim_decision_receipts persists every strict-gate decision (blocked /
+  -- needs-review / safe / approved-apply) with the policy version, evidence
+  -- refs, and rationale required by the publication-gate ruling. There is no
+  -- pre-existing receipt store for persuasion reviews, so this dedicated
+  -- table is the grounded home; rows map to the canonical Receipt entity in
+  -- repository.ts (subject = the reviewed content version; see the
+  -- CONTENT_ASSET_SUBJECT mapping note there).
+  CREATE TABLE IF NOT EXISTS claim_decision_receipts (
+    id TEXT PRIMARY KEY,
+    persuasion_review_id TEXT NOT NULL,
+    content_version_id TEXT NOT NULL,
+    initiative_slug TEXT NOT NULL,
+    verdict TEXT NOT NULL,
+    policy_version TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+    rationale TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+  );
+
+  -- w2-claim-approval-wire (additive only): operator approvals that authorize
+  -- applying a needs-review item. Rows map to the canonical ApprovalState
+  -- entity in repository.ts. Blocked verdicts can never be approved (enforced
+  -- in service.ts, not by schema).
+  CREATE TABLE IF NOT EXISTS claim_approvals (
+    id TEXT PRIMARY KEY,
+    persuasion_review_id TEXT NOT NULL,
+    content_version_id TEXT NOT NULL,
+    initiative_slug TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    requested_by TEXT NOT NULL DEFAULT '',
+    requested_by_display TEXT NOT NULL DEFAULT '',
+    reviewed_by TEXT NOT NULL DEFAULT '',
+    reviewed_by_display TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    decided_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_persuasion_reviews_initiative
     ON persuasion_reviews(initiative_slug, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_persuasion_reviews_version
@@ -64,6 +104,10 @@ db.exec(`
     ON persuasion_apply_runs(persuasion_review_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_persuasion_events_review
     ON persuasion_review_events(persuasion_review_id, recorded_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_claim_receipts_review
+    ON claim_decision_receipts(persuasion_review_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_claim_approvals_review
+    ON claim_approvals(persuasion_review_id, created_at DESC);
 `);
 
 export { db };

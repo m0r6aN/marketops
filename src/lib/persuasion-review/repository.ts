@@ -35,11 +35,15 @@ export function isRowVisibleToTenant(sessionTenantId: string, row: unknown): boo
 
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/persuasion-review/db";
+import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
+import { buildClaimDecisionSummary } from "@/lib/persuasion-review/service";
 import type {
+  ClaimDecisionVerdict,
   PersuasionApplyRun,
   PersuasionReviewEvent,
   PersuasionReviewRecord,
 } from "@/lib/persuasion-review/types";
+import type { ApprovalState, Receipt } from "@/lib/marketops/entities";
 
 type ReviewRow = {
   id: string;
@@ -334,6 +338,239 @@ export function purgePersuasionReviewData(initiativeSlug?: string) {
   for (const review of reviews) {
     db.prepare(`DELETE FROM persuasion_apply_runs WHERE persuasion_review_id = ?`).run(review.id);
     db.prepare(`DELETE FROM persuasion_review_events WHERE persuasion_review_id = ?`).run(review.id);
+    // w2-claim-approval-wire: claim-gate rows are owned by the review.
+    db.prepare(`DELETE FROM claim_decision_receipts WHERE persuasion_review_id = ?`).run(review.id);
+    db.prepare(`DELETE FROM claim_approvals WHERE persuasion_review_id = ?`).run(review.id);
     db.prepare(`DELETE FROM persuasion_reviews WHERE id = ?`).run(review.id);
   }
+}
+
+// ── w2-claim-approval-wire: claim decision receipts + operator approvals ─────
+// Subject mapping (explicit, see PR open decisions): persuasion reviews and
+// content versions are not canonical Receipt/ApprovalState subject types, so
+// rows carry native persuasion_review_id + content_version_id columns and map
+// to the canonical entities with subjectEntityType "ContentAsset" (the
+// nearest canonical holder of content versions). The review id, content
+// version id, policy version, evidence refs, and rationale are always embedded
+// in the summary/notes so receipts stay readable without resolving the
+// mapping. Additive tables only — no existing schema touched.
+
+type ClaimReceiptRow = {
+  id: string;
+  persuasion_review_id: string;
+  content_version_id: string;
+  initiative_slug: string;
+  verdict: string;
+  policy_version: string;
+  summary: string;
+  evidence_refs_json: string;
+  rationale: string;
+  created_at: string;
+};
+
+type ClaimApprovalRow = {
+  id: string;
+  persuasion_review_id: string;
+  content_version_id: string;
+  initiative_slug: string;
+  decision: string;
+  requested_by: string;
+  requested_by_display: string;
+  reviewed_by: string;
+  reviewed_by_display: string;
+  notes: string;
+  decided_at: string;
+  created_at: string;
+};
+
+function claimEvidenceList(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function mapClaimReceipt(row: ClaimReceiptRow): Receipt {
+  return {
+    id: row.id,
+    slug: `claim-decision-${row.id.slice(0, 8)}`,
+    name: `Claim ${row.verdict} for review ${row.persuasion_review_id.slice(0, 8)}`,
+    kind: row.verdict === "approved-apply" ? "approval" : "verification",
+    subjectEntityId: row.content_version_id,
+    subjectEntityType: "ContentAsset",
+    summary: row.summary,
+    verificationState: "recorded",
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+  };
+}
+
+function mapClaimApproval(row: ClaimApprovalRow): ApprovalState {
+  return {
+    id: row.id,
+    slug: `claim-approval-${row.id.slice(0, 8)}`,
+    name: `Claim approval for review ${row.persuasion_review_id.slice(0, 8)}`,
+    subjectEntityId: row.persuasion_review_id,
+    subjectEntityType: "ContentAsset",
+    requestedById: row.requested_by,
+    requestedByDisplayName: row.requested_by_display || undefined,
+    notes: row.notes || undefined,
+    decision: "approved",
+    reviewedById: row.reviewed_by,
+    reviewedByDisplayName: row.reviewed_by_display || undefined,
+    decidedAt: row.decided_at,
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+  };
+}
+
+/**
+ * Persist a strict-gate decision receipt. The summary always embeds the
+ * policy version, evidence refs, and rationale (built centrally so the ruling
+ * cannot drift per call site).
+ */
+export function recordClaimDecisionReceipt(input: {
+  reviewId: string;
+  contentVersionId: string;
+  initiativeSlug: string;
+  verdict: ClaimDecisionVerdict;
+  rationale: string;
+  evidenceRefs: string[];
+}): Receipt {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  const evidenceRefs = (input.evidenceRefs ?? []).filter(
+    (entry) => typeof entry === "string" && entry.trim().length > 0,
+  );
+  const summary = buildClaimDecisionSummary({
+    verdict: input.verdict,
+    rationale: `${input.rationale} (review ${input.reviewId}, content version ${input.contentVersionId})`,
+    evidenceRefs,
+  });
+  db.prepare(
+    `INSERT INTO claim_decision_receipts
+      (id, persuasion_review_id, content_version_id, initiative_slug, verdict,
+       policy_version, summary, evidence_refs_json, rationale, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    id,
+    input.reviewId,
+    input.contentVersionId,
+    input.initiativeSlug,
+    input.verdict,
+    CLAIM_POLICY_VERSION,
+    summary,
+    JSON.stringify(evidenceRefs),
+    input.rationale,
+    now,
+  );
+  return getClaimDecisionReceipt(id)!;
+}
+
+export function getClaimDecisionReceipt(id: string) {
+  const row = db
+    .prepare(`SELECT * FROM claim_decision_receipts WHERE id = ?`)
+    .get(id) as ClaimReceiptRow | undefined;
+  return row ? mapClaimReceipt(row) : undefined;
+}
+
+/** Every decision receipt for a review, newest first (readable trail). */
+export function listClaimDecisionReceipts(reviewId: string): Receipt[] {
+  return (
+    db
+      .prepare(
+        `SELECT * FROM claim_decision_receipts WHERE persuasion_review_id = ? ORDER BY created_at DESC, id DESC`,
+      )
+      .all(reviewId) as ClaimReceiptRow[]
+  ).map(mapClaimReceipt);
+}
+
+export function getLatestClaimDecisionReceipt(reviewId: string) {
+  return listClaimDecisionReceipts(reviewId)[0];
+}
+
+/** Raw evidence refs behind a review's decision receipts (for the UX). */
+export function listClaimDecisionEvidenceRefs(reviewId: string): string[] {
+  const rows = db
+    .prepare(
+      `SELECT evidence_refs_json FROM claim_decision_receipts WHERE persuasion_review_id = ? ORDER BY created_at DESC, id DESC`,
+    )
+    .all(reviewId) as Array<{ evidence_refs_json: string }>;
+  const seen = new Set<string>();
+  for (const row of rows) {
+    for (const ref of claimEvidenceList(row.evidence_refs_json)) {
+      if (!seen.has(ref)) seen.add(ref);
+    }
+  }
+  return [...seen];
+}
+
+/**
+ * Record an operator approval for a needs-review item. Reuses the canonical
+ * ApprovalState shape (decision "approved", subject = the review id). Blocked
+ * verdicts must never reach this function — the service gate and the server
+ * action refuse them first.
+ */
+export function recordClaimApproval(input: {
+  reviewId: string;
+  contentVersionId: string;
+  initiativeSlug: string;
+  requestedBy: string;
+  requestedByDisplayName?: string;
+  reviewedBy: string;
+  reviewedByDisplayName?: string;
+  notes?: string;
+}): ApprovalState {
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO claim_approvals
+      (id, persuasion_review_id, content_version_id, initiative_slug, decision,
+       requested_by, requested_by_display, reviewed_by, reviewed_by_display,
+       notes, decided_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    id,
+    input.reviewId,
+    input.contentVersionId,
+    input.initiativeSlug,
+    "approved",
+    input.requestedBy,
+    input.requestedByDisplayName ?? "",
+    input.reviewedBy,
+    input.reviewedByDisplayName ?? "",
+    input.notes ?? "",
+    now,
+    now,
+  );
+  return getClaimApproval(id)!;
+}
+
+export function getClaimApproval(id: string) {
+  const row = db
+    .prepare(`SELECT * FROM claim_approvals WHERE id = ?`)
+    .get(id) as ClaimApprovalRow | undefined;
+  return row ? mapClaimApproval(row) : undefined;
+}
+
+/** Latest recorded approval for a review, if any. */
+export function getLatestClaimApprovalForReview(
+  reviewId: string,
+): ApprovalState | undefined {
+  const row = db
+    .prepare(
+      `SELECT * FROM claim_approvals WHERE persuasion_review_id = ? ORDER BY created_at DESC, id DESC LIMIT 1`,
+    )
+    .get(reviewId) as ClaimApprovalRow | undefined;
+  return row ? mapClaimApproval(row) : undefined;
+}
+
+/** True only when an approved ApprovalState is recorded for the review id. */
+export function hasApprovedClaimApproval(reviewId: string): boolean {
+  const approval = getLatestClaimApprovalForReview(reviewId);
+  return approval?.decision === "approved";
 }

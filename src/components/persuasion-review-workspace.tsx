@@ -1,9 +1,15 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { applyPersuasionReviewAction, createPersuasionReviewAction } from "@/app/actions/persuasion-review";
+import { useEffect, useState, useTransition } from "react";
+import {
+  applyPersuasionReviewAction,
+  createPersuasionReviewAction,
+  getClaimGateStatusAction,
+  recordClaimApprovalAction,
+} from "@/app/actions/persuasion-review";
+import type { ClaimGateStatus } from "@/app/actions/persuasion-review";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,10 +31,51 @@ export function PersuasionReviewWorkspace(props: Props) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [gate, setGate] = useState<ClaimGateStatus | null>(null);
   const selectedReviews = props.selectedVersion
     ? props.reviews.filter((review) => review.contentVersionId === props.selectedVersion?.id)
     : [];
   const blocked = props.selectedReview?.issueFlags.some((flag) => flag.status === "blocked") ?? false;
+  // w2-claim-approval-wire: strict claim-gate state. The server is
+  // authoritative (the apply action refuses independently); this status only
+  // drives the blocked-vs-needs-review display and the approval affordance.
+  // Fallback mirrors deriveReviewClaimVerdict so the gate reads correctly
+  // before the status round-trip completes. Stale statuses are ignored via
+  // the reviewId match instead of a synchronous reset (no setState in effect).
+  const reviewId = props.selectedReview?.id;
+  const gateForReview = gate && gate.reviewId === reviewId ? gate : null;
+  const findings = props.selectedReview?.claimFindings ?? [];
+  const fallbackVerdict = !props.selectedReview
+    ? "safe"
+    : !props.selectedReview.body.trim()
+      ? "needs-review"
+      : findings.some((finding) => finding.handling === "avoid")
+        ? "blocked"
+        : findings.length > 0
+          ? "needs-review"
+          : "safe";
+  const verdict = gateForReview?.verdict ?? fallbackVerdict;
+  const hasApproval = gateForReview?.hasApproval ?? false;
+  const evidenceRefs = gateForReview?.evidenceRefs ?? [];
+  const otherBlocked =
+    props.selectedReview?.issueFlags.some((flag) => flag.status === "blocked" && flag.type !== "unsupported-claim") ?? false;
+  const applyDisabled =
+    isPending || otherBlocked || verdict === "blocked" || (verdict === "needs-review" && !hasApproval);
+
+  useEffect(() => {
+    if (!reviewId) return;
+    let cancelled = false;
+    getClaimGateStatusAction(reviewId)
+      .then((status) => {
+        if (!cancelled) setGate(status);
+      })
+      .catch(() => {
+        if (!cancelled) setGate(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reviewId]);
 
   const createReview = () => {
     if (!props.selectedVersion) return;
@@ -57,6 +104,23 @@ export function PersuasionReviewWorkspace(props: Props) {
         router.refresh();
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Persuasion revision failed.");
+      }
+    });
+  };
+
+  const recordApproval = () => {
+    if (!props.selectedReview) return;
+    setError(null);
+    setMessage(null);
+    startTransition(async () => {
+      try {
+        await recordClaimApprovalAction(props.selectedReview!.id, "Operator approval recorded from the persuasion workspace.");
+        setMessage("Operator approval recorded. Attach evidence, then apply to create an editable revision. No publishing action occurred.");
+        const status = await getClaimGateStatusAction(props.selectedReview!.id);
+        setGate(status);
+        router.refresh();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Claim approval failed.");
       }
     });
   };
@@ -125,14 +189,74 @@ export function PersuasionReviewWorkspace(props: Props) {
                   <p className="text-muted-foreground">{flag.rationale}</p>
                 </div>
               ))}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Claim gate · {verdict}</Badge>
+                <Badge variant="outline">{gateForReview?.policyVersion ?? "claim-policy.v1"}</Badge>
+                {hasApproval ? <Badge variant="outline">Operator approval recorded</Badge> : null}
+              </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled={isPending || blocked} onClick={applyReview}>
+                <Button type="button" disabled={applyDisabled} onClick={applyReview}>
                   Create editable revision
                 </Button>
                 <Badge variant="outline">Never publishes or sends</Badge>
               </div>
             </CardContent>
           </Card>
+
+          {verdict === "blocked" ? (
+            <Card className="border-destructive/60">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldAlert className="size-5" />Blocked — apply refused
+                </CardTitle>
+                <CardDescription>
+                  This review carries banned claim content. The apply action refuses server-side and
+                  approval cannot authorize it. Remove the violating claims and create a fresh review.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <p>{gateForReview?.rationale ?? "Blocked claim content present."}</p>
+                <p className="text-muted-foreground">Policy {gateForReview?.policyVersion ?? "claim-policy.v1"} · fail-closed</p>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {verdict === "needs-review" ? (
+            <Card className="border-amber-400/60">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="size-5" />Approval required before apply
+                </CardTitle>
+                <CardDescription>
+                  Needs-proof claims require attached evidence plus a recorded operator approval.
+                  Neither this state nor a blocked state permits publication or apply.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <p>{gateForReview?.rationale ?? "Needs-proof claims require evidence and approval."}</p>
+                <div>
+                  <b>Evidence refs ({evidenceRefs.length})</b>
+                  {evidenceRefs.length ? (
+                    <ul className="mt-1 list-disc pl-5 text-muted-foreground">
+                      {evidenceRefs.map((ref) => <li key={ref}>{ref}</li>)}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground">Missing — attach provenance sources to the content version before applying.</p>
+                  )}
+                </div>
+                {hasApproval ? (
+                  <p className="font-medium">Operator approval recorded. Apply is permitted once evidence is attached.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" disabled={isPending} onClick={recordApproval}>
+                      Record operator approval
+                    </Button>
+                  </div>
+                )}
+                <p className="text-muted-foreground">Policy {gateForReview?.policyVersion ?? "claim-policy.v1"}</p>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <div className="grid gap-4 lg:grid-cols-2">
             {props.selectedReview.assessments.map((assessment) => (
@@ -160,6 +284,7 @@ export function PersuasionReviewWorkspace(props: Props) {
               <CardDescription>Immutable review creation and revision-attempt records.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              {gateForReview?.receipts.map((receipt) => <Evidence key={receipt.id} title={receipt.summary} detail={`claim-gate · ${receipt.kind}`} time={receipt.createdAt} />)}
               {props.applyRuns.map((run) => <Evidence key={run.id} title={run.summary} detail={`${run.status}${run.errorMessage ? ` · ${run.errorMessage}` : ""}`} time={run.completedAt} />)}
               {props.events.map((event) => <Evidence key={event.id} title={event.summary} detail={event.eventType} time={event.recordedAt} />)}
             </CardContent>

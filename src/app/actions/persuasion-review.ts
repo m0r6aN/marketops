@@ -13,15 +13,28 @@ import { getInitiativeBySlug, requireRowTenantMatch as requireInitiativeRowTenan
 import { listLibraryEntries, isRowVisibleToTenant as isLibraryRowVisible } from "@/lib/library/repository";
 import {
   createPersuasionReview,
+  getLatestClaimApprovalForReview,
   getPersuasionReview,
+  hasApprovedClaimApproval,
+  listClaimDecisionReceipts,
+  recordClaimApproval,
+  recordClaimDecisionReceipt,
   recordPersuasionApplyRun,
   requireRowTenantMatch as requirePersuasionRowTenant,
 } from "@/lib/persuasion-review/repository";
+import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
 import {
   assertReviewApplicable,
   buildPersuasionReview,
+  ClaimGateError,
+  claimEvidenceRefsForSources,
   createPersuasionRevisionInput,
+  decideClaimApply,
+  deriveReviewClaimVerdict,
+  rationaleForReviewClaimVerdict,
 } from "@/lib/persuasion-review/service";
+import type { ApprovalState } from "@/lib/marketops/entities";
+import type { ClaimDecisionVerdict } from "@/lib/persuasion-review/types";
 
 function paths(slug: string) {
   revalidatePath(`/initiatives/${slug}`);
@@ -90,6 +103,17 @@ export async function createPersuasionReviewAction(contentVersionId: string) {
   enforceEntitlement(sessionTenant, "claim-review", "create persuasion review");
   const { claimFindings } = reviewSource(version, tenantCtx);
   const review = createPersuasionReview(buildPersuasionReview(version, claimFindings));
+  // w2-claim-approval-wire: every review creation records the strict policy
+  // verdict as a decision receipt (fail-closed: a receipt-write failure fails
+  // the creation rather than leaving an ungated review).
+  recordClaimDecisionReceipt({
+    reviewId: review.id,
+    contentVersionId: review.contentVersionId,
+    initiativeSlug: review.initiativeSlug,
+    verdict: deriveReviewClaimVerdict(review),
+    rationale: rationaleForReviewClaimVerdict(review),
+    evidenceRefs: claimEvidenceRefsForSources(review.sourceMaterials),
+  });
   paths(version.initiativeSlug);
   return review;
 }
@@ -103,11 +127,28 @@ export async function applyPersuasionReviewAction(reviewId: string) {
   const currentSource = getContentVersion(review.contentVersionId);
   if (!currentSource) throw new Error("Source content version not found.");
   requireContentRowTenant(sessionTenant, currentSource, "apply persuasion review");
+  // Evidence for the gate = the current source's provenance refs (pure read).
+  const evidenceRefs = claimEvidenceRefsForSources(currentSource.sourceMaterials);
 
   try {
     const { initiative, voice } = reviewSource(currentSource, tenantCtx);
     const claimFindings = computeContentClaimFindings(initiative, review.suggestedBody, voice);
-    assertReviewApplicable(review, currentSource, claimFindings);
+    // w2-claim-approval-wire: server-side strict gate. The workspace UI
+    // disables apply independently, but this refusal is authoritative:
+    // blocked → CLAIM_BLOCKED; needs-review without a recorded approved
+    // ApprovalState (or without evidence) → APPROVAL_REQUIRED.
+    const gate = decideClaimApply({
+      review,
+      suggestedFindings: claimFindings,
+      evidenceRefs,
+      hasApproval: hasApprovedClaimApproval(review.id),
+    });
+    assertReviewApplicable(
+      review,
+      currentSource,
+      claimFindings,
+      gate.verdict === "needs-review" ? { approvedNeedsReview: true } : undefined,
+    );
     const input = validateContentVersionInput(
       {
         ...createPersuasionRevisionInput(review, claimFindings),
@@ -116,6 +157,15 @@ export async function applyPersuasionReviewAction(reviewId: string) {
       validationContext(review.initiativeSlug, tenantCtx)
     );
     const created = createContentVersion(currentSource.id, input);
+    // Approved-apply decision receipt (safe applies record a safe receipt).
+    recordClaimDecisionReceipt({
+      reviewId: review.id,
+      contentVersionId: currentSource.id,
+      initiativeSlug: review.initiativeSlug,
+      verdict: gate.verdict === "needs-review" ? "approved-apply" : gate.verdict,
+      rationale: gate.rationale,
+      evidenceRefs,
+    });
     recordPersuasionApplyRun({
       persuasionReviewId: review.id,
       sourceContentVersionId: currentSource.id,
@@ -127,6 +177,21 @@ export async function applyPersuasionReviewAction(reviewId: string) {
     return created;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "Persuasion revision failed.";
+    // Refused decisions also leave a readable receipt (blocked / needs-review).
+    try {
+      const refusalVerdict = deriveReviewClaimVerdict(review);
+      recordClaimDecisionReceipt({
+        reviewId: review.id,
+        contentVersionId: currentSource.id,
+        initiativeSlug: review.initiativeSlug,
+        verdict: refusalVerdict,
+        rationale: `Apply refused: ${message}`,
+        evidenceRefs,
+      });
+    } catch {
+      // Receipt writes are best-effort on the refusal path so the original
+      // denial (tenant/entitlement/claim-gate) always surfaces unchanged.
+    }
     recordPersuasionApplyRun({
       persuasionReviewId: review.id,
       sourceContentVersionId: currentSource.id,
@@ -137,4 +202,91 @@ export async function applyPersuasionReviewAction(reviewId: string) {
     paths(review.initiativeSlug);
     throw cause;
   }
+}
+
+// ── w2-claim-approval-wire: operator approval + gate status ─────────────────
+// No new routes/pages: the persuasion workspace calls these actions directly.
+// Tenant gates keep #23 precedence; no entitlement change here (deliberately
+// not decided in this parcel — see PR open decisions).
+
+/**
+ * Record an operator approval (approved ApprovalState) for a needs-review
+ * item. Blocked verdicts are refused with CLAIM_BLOCKED — approval can never
+ * authorize banned content.
+ */
+export async function recordClaimApprovalAction(
+  reviewId: string,
+  notes?: string,
+): Promise<ApprovalState> {
+  const sessionTenant = await requireSessionTenant({ action: "record claim approval" });
+  const review = getPersuasionReview(reviewId);
+  if (!review) throw new Error("Persuasion review not found.");
+  requirePersuasionRowTenant(sessionTenant, review, "record claim approval");
+  const verdict = deriveReviewClaimVerdict(review);
+  if (verdict === "blocked") {
+    throw new ClaimGateError(
+      "CLAIM_BLOCKED",
+      `Approval refused: this review carries blocked claim content under ${CLAIM_POLICY_VERSION}; remove the violating claims and create a fresh review.`,
+    );
+  }
+  const approval = recordClaimApproval({
+    reviewId: review.id,
+    contentVersionId: review.contentVersionId,
+    initiativeSlug: review.initiativeSlug,
+    requestedBy: sessionTenant,
+    requestedByDisplayName: sessionTenant,
+    reviewedBy: sessionTenant,
+    reviewedByDisplayName: sessionTenant,
+    notes: notes?.trim() || "Operator approval recorded from the persuasion workspace.",
+  });
+  recordClaimDecisionReceipt({
+    reviewId: review.id,
+    contentVersionId: review.contentVersionId,
+    initiativeSlug: review.initiativeSlug,
+    verdict,
+    rationale: `Operator approval recorded for this review; apply still requires attached evidence plus the apply step. [${CLAIM_POLICY_VERSION}]`,
+    evidenceRefs: claimEvidenceRefsForSources(review.sourceMaterials),
+  });
+  paths(review.initiativeSlug);
+  return approval;
+}
+
+export type ClaimGateStatus = {
+  reviewId: string;
+  verdict: ClaimDecisionVerdict;
+  policyVersion: typeof CLAIM_POLICY_VERSION;
+  rationale: string;
+  evidenceRefs: string[];
+  hasApproval: boolean;
+  approval: ApprovalState | undefined;
+  receipts: Array<{
+    id: string;
+    kind: string;
+    summary: string;
+    createdAt: string;
+  }>;
+};
+
+/** Gate status for the workspace approval-required UX (read-only). */
+export async function getClaimGateStatusAction(reviewId: string): Promise<ClaimGateStatus> {
+  const sessionTenant = await requireSessionTenant({ action: "read claim gate status" });
+  const review = getPersuasionReview(reviewId);
+  if (!review) throw new Error("Persuasion review not found.");
+  requirePersuasionRowTenant(sessionTenant, review, "read claim gate status");
+  const approval = getLatestClaimApprovalForReview(review.id);
+  return {
+    reviewId: review.id,
+    verdict: deriveReviewClaimVerdict(review),
+    policyVersion: CLAIM_POLICY_VERSION,
+    rationale: rationaleForReviewClaimVerdict(review),
+    evidenceRefs: claimEvidenceRefsForSources(review.sourceMaterials),
+    hasApproval: approval?.decision === "approved",
+    approval,
+    receipts: listClaimDecisionReceipts(review.id).map((receipt) => ({
+      id: receipt.id,
+      kind: receipt.kind,
+      summary: receipt.summary,
+      createdAt: receipt.createdAt ?? "",
+    })),
+  };
 }

@@ -1,5 +1,9 @@
 import type { ContentClaimFinding, ContentVersionInput, ContentVersionRecord } from "@/lib/content-workspace/types";
+import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
 import type {
+  ClaimDecisionVerdict,
+  ClaimGateDenialCode,
+  ClaimPolicyVerdict,
   PersuasionAssessment,
   PersuasionAssessmentStatus,
   PersuasionDimension,
@@ -240,7 +244,8 @@ export function buildPersuasionReview(
 export function assertReviewApplicable(
   review: PersuasionReviewRecord,
   currentSource: ContentVersionRecord,
-  suggestedClaimFindings: ContentClaimFinding[]
+  suggestedClaimFindings: ContentClaimFinding[],
+  opts?: { approvedNeedsReview?: boolean },
 ) {
   if (review.contentVersionId !== currentSource.id || review.initiativeSlug !== currentSource.initiativeSlug) {
     throw new Error("Persuasion reviews can only be applied to their same-initiative source version.");
@@ -248,11 +253,23 @@ export function assertReviewApplicable(
   if (review.sourceUpdatedAt !== currentSource.updatedAt) {
     throw new Error("This persuasion review is stale because the source version changed. Create a fresh review.");
   }
-  if (review.issueFlags.some((flag) => flag.status === "blocked")) {
+  // w2-claim-approval-wire: a recorded operator approval for a needs-review
+  // item waives ONLY the unsupported-claim refusals (the claim-gate decision
+  // in decideClaimApply has already refused blocked verdicts and missing
+  // evidence/approval by then). Every other blocked persuasion flag still
+  // refuses, and avoided claims in the suggested revision still refuse even
+  // when approved — approval can never authorize banned content.
+  const blockingFlags = opts?.approvedNeedsReview
+    ? review.issueFlags.filter((flag) => flag.status === "blocked" && flag.type !== "unsupported-claim")
+    : review.issueFlags.filter((flag) => flag.status === "blocked");
+  if (blockingFlags.length) {
     throw new Error("Resolve blocked persuasion issues before creating a revision draft.");
   }
-  if (suggestedClaimFindings.length) {
+  if (!opts?.approvedNeedsReview && suggestedClaimFindings.length) {
     throw new Error("The suggested revision still contains avoided or needs-proof claims.");
+  }
+  if (opts?.approvedNeedsReview && suggestedClaimFindings.some((finding) => finding.handling === "avoid")) {
+    throw new Error("The suggested revision still contains avoided claims; approval cannot authorize banned content.");
   }
 }
 
@@ -277,5 +294,155 @@ export function createPersuasionRevisionInput(
     authorship: review.authorship,
     claimFindings,
     notes: `Created from persuasion review ${review.id} of content version ${review.contentVersionNumber}. Operator review is required before approval.`,
+  };
+}
+
+// ── w2-claim-approval-wire: strict claim gate (server-side enforcement) ─────
+// Ruling (do not soften): blocked verdicts refuse apply with CLAIM_BLOCKED and
+// can never be approved; needs-review verdicts refuse apply with
+// APPROVAL_REQUIRED until a recorded approved ApprovalState exists for the
+// review id AND evidence refs are attached; safe verdicts apply normally. All
+// denials mirror the GateResult denial vocabulary (denialCode + failureStage
+// "decision") used by the tenant and entitlement guards.
+
+/** GateResult-mirrored denial for claim-gate refusals (HTTP 403). */
+export class ClaimGateError extends Error {
+  readonly httpStatus = 403 as const;
+  readonly denialCode: ClaimGateDenialCode;
+  readonly denialMessage: string;
+  readonly failureStage = "decision" as const;
+
+  constructor(denialCode: ClaimGateDenialCode, denialMessage: string) {
+    super(denialMessage);
+    this.name = "ClaimGateError";
+    this.denialCode = denialCode;
+    this.denialMessage = denialMessage;
+  }
+
+  toResponseBody(): {
+    error: string;
+    denialCode: ClaimGateDenialCode;
+    denialMessage: string;
+    failureStage: "decision";
+  } {
+    return {
+      error: "Forbidden",
+      denialCode: this.denialCode,
+      denialMessage: this.denialMessage,
+      failureStage: this.failureStage,
+    };
+  }
+}
+
+/**
+ * Policy verdict for a persisted review, derived from its claim findings and
+ * body. Avoided (banned) findings → blocked; needs-proof findings or an
+ * empty/unevaluable body → needs-review (fail-closed); otherwise safe.
+ * Evidence does not downgrade the verdict — it is a prerequisite for approval
+ * at the apply gate, not a substitute for it.
+ */
+export function deriveReviewClaimVerdict(
+  review: Pick<PersuasionReviewRecord, "body" | "claimFindings">,
+): ClaimPolicyVerdict {
+  const body = typeof review.body === "string" ? review.body : "";
+  if (!body.trim()) return "needs-review";
+  const findings = Array.isArray(review.claimFindings) ? review.claimFindings : [];
+  if (findings.some((finding) => finding?.handling === "avoid")) return "blocked";
+  if (findings.some((finding) => finding?.handling === "needs-proof")) return "needs-review";
+  return "safe";
+}
+
+/** Human-readable rationale for a review's claim verdict (receipt-grade). */
+export function rationaleForReviewClaimVerdict(
+  review: Pick<PersuasionReviewRecord, "body" | "claimFindings">,
+): string {
+  const verdict = deriveReviewClaimVerdict(review);
+  const findings = Array.isArray(review.claimFindings) ? review.claimFindings : [];
+  const statements = findings.map((finding) => finding.statement).filter(Boolean);
+  if (verdict === "blocked") {
+    return `Avoided claim finding(s) require removal before any apply: ${statements.join("; ") || "(unspecified)"}. [${CLAIM_POLICY_VERSION}]`;
+  }
+  if (verdict === "needs-review") {
+    if (typeof review.body !== "string" || !review.body.trim()) {
+      return `Empty or missing review body cannot be proven safe; evidence and operator approval are required. [${CLAIM_POLICY_VERSION}]`;
+    }
+    return `Needs-proof claim finding(s) require attached evidence and recorded operator approval: ${statements.join("; ") || "(unspecified)"}. [${CLAIM_POLICY_VERSION}]`;
+  }
+  return `No avoided or needs-proof claim findings on this review. [${CLAIM_POLICY_VERSION}]`;
+}
+
+/** Evidence refs carried by a review or content version (labels + refs). */
+export function claimEvidenceRefsForSources(
+  sourceMaterials: Array<{ label?: string; reference?: string }>,
+): string[] {
+  return (sourceMaterials ?? [])
+    .map((source) =>
+      [source?.label?.trim(), source?.reference?.trim()].filter(Boolean).join(" — "),
+    )
+    .filter((entry) => entry.length > 0);
+}
+
+/**
+ * Receipt-grade summary. Always embeds the policy version, the evidence refs,
+ * and the rationale so every decision receipt is self-describing.
+ */
+export function buildClaimDecisionSummary(input: {
+  verdict: ClaimDecisionVerdict;
+  rationale: string;
+  evidenceRefs: string[];
+}): string {
+  const refs = input.evidenceRefs.length > 0 ? input.evidenceRefs.join("; ") : "(none)";
+  return `[${CLAIM_POLICY_VERSION}] verdict=${input.verdict} evidenceRefs=${refs} rationale=${input.rationale}`;
+}
+
+/**
+ * Server-side apply gate. Throws ClaimGateError (fail-closed) unless the
+ * strict ruling permits apply:
+ * - review verdict blocked, or avoided claims in the suggested revision →
+ *   CLAIM_BLOCKED (no approval path exists).
+ * - needs-review (review or suggested) without a recorded approval, or
+ *   without attached evidence → APPROVAL_REQUIRED.
+ * - otherwise returns the governing verdict; callers pass
+ *   { approvedNeedsReview: true } to assertReviewApplicable exactly when the
+ *   returned verdict is needs-review.
+ */
+export function decideClaimApply(input: {
+  review: PersuasionReviewRecord;
+  suggestedFindings: ContentClaimFinding[];
+  evidenceRefs: string[];
+  hasApproval: boolean;
+}): { verdict: ClaimPolicyVerdict; rationale: string } {
+  const reviewVerdict = deriveReviewClaimVerdict(input.review);
+  const suggested = Array.isArray(input.suggestedFindings) ? input.suggestedFindings : [];
+  const suggestedHasAvoid = suggested.some((finding) => finding?.handling === "avoid");
+  const suggestedHasNeedsProof = suggested.some((finding) => finding?.handling === "needs-proof");
+
+  if (reviewVerdict === "blocked" || suggestedHasAvoid) {
+    throw new ClaimGateError(
+      "CLAIM_BLOCKED",
+      `Apply refused: this review carries blocked claim content under ${CLAIM_POLICY_VERSION}; remove the violating claims and create a fresh review. Approval cannot authorize banned content.`,
+    );
+  }
+  if (reviewVerdict === "needs-review" || suggestedHasNeedsProof || suggested.length > 0) {
+    if (!input.hasApproval) {
+      throw new ClaimGateError(
+        "APPROVAL_REQUIRED",
+        `Apply refused: this review needs proof under ${CLAIM_POLICY_VERSION}; record operator approval for this review before applying.`,
+      );
+    }
+    if (input.evidenceRefs.length === 0) {
+      throw new ClaimGateError(
+        "APPROVAL_REQUIRED",
+        `Apply refused: this review needs proof under ${CLAIM_POLICY_VERSION}; attach evidence references before applying even with approval recorded.`,
+      );
+    }
+    return {
+      verdict: "needs-review",
+      rationale: `Needs-review apply authorized: recorded operator approval plus ${input.evidenceRefs.length} evidence ref(s) present. [${CLAIM_POLICY_VERSION}]`,
+    };
+  }
+  return {
+    verdict: "safe",
+    rationale: `Safe apply: no avoided or needs-proof claim findings on the review or suggested revision. [${CLAIM_POLICY_VERSION}]`,
   };
 }
