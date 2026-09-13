@@ -19,3 +19,8 @@
 - All 5 rulings recorded (suppression per-tenant, consent mapped fail-closed, Ed25519 fail-close, per-tenant UNIQUEs, shared-read-only catalog).
 - W1 8/8 merged; w1-merged gate passing. w2-tenant-wire (#27, 35 paths) in review; fixed its migration-test drift via #28 (ordering test now addition-tolerant).
 - Queued H: h-consent-mapping, h-ed25519-failclosed, h-catalog-readonly. Next: merge #28+#27, dispatch w2-billing-wire (serialized).
+
+## 2026-09-12 — w2-billing-wire (coordinator)
+- w2-tenant-wire merged (#27). Billing wire (#30, 7 paths: gate + webhook + 3 chokepoints + 006 + 16 tests) in review; tenant-wire test drift fixed via #31.
+- Queued H: h-entitlement-store, h-webhook-signature. Remaining chokepoints exceed 3-budget — follow-up scope.
+- Next: merge #31 + #30, dispatch w2-claim-approval-wire (last assembly).

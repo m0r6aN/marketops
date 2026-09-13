@@ -16,3 +16,5 @@
 | d-ed25519-fallback | Fail-close in beta via Program.cs DI change; H parcel h-ed25519-failclosed | decided | coordinator |
 | d-unique-scope | Per-tenant composite UNIQUEs in #27 migration 004 | decided | product |
 | d-initiative-tenancy | Shared read-only catalog + tenant-scoped writes; enforcement in h-catalog-readonly | decided | product |
+| h-entitlement-store | DB-backed entitlement store (replace static roster) queued | open | coordinator |
+| h-webhook-signature | Live webhook signature verification queued | open | coordinator |
