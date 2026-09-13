@@ -24,4 +24,7 @@ Resolved by merge order (#25 then rebased #24). No residual collision.
 
 | w2-tenant-wire | W2 | feat/w2-tenant-wire | (pruned) | merged (#27) | High |
 | w2-billing-wire | W2 | feat/w2-billing-wire | (pruned) | merged (#30) | Medium |
-| w2-claim-approval-wire | W2 | feat/w2-claim-approval-wire | C:\Repos\MarketOps.w2-claim-approval-wire | in-review (#33) | Medium |
+| w2-claim-approval-wire | W2 | feat/w2-claim-approval-wire | (pruned) | merged (#33) | Medium |
+| int-a-isolation | Integration | feat/int-a-isolation | C:\Repos\MarketOps.int-a-isolation | in-review (#35) | Low |
+| int-b-claim-billing | Integration | feat/int-b-claim-billing | C:\Repos\MarketOps.int-b-claim-billing | in-review (#37) | Low |
+| int-c-email-receipt-mcp | Integration | feat/int-c-email-receipt-mcp | C:\Repos\MarketOps.int-c-email-receipt-mcp | in-review (#36) | Low |
