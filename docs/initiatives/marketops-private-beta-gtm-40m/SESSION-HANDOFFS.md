@@ -24,3 +24,8 @@
 - w2-tenant-wire merged (#27). Billing wire (#30, 7 paths: gate + webhook + 3 chokepoints + 006 + 16 tests) in review; tenant-wire test drift fixed via #31.
 - Queued H: h-entitlement-store, h-webhook-signature. Remaining chokepoints exceed 3-budget — follow-up scope.
 - Next: merge #31 + #30, dispatch w2-claim-approval-wire (last assembly).
+
+## 2026-09-12 — w2-claim-approval-wire (coordinator)
+- Billing merged (#30). Claim wire (#33, 8 paths: policy.v1 + service/repo/db/types + actions + workspace + 12 tests) in review; strict gate enforced server-side, receipts carry evidence + policy version + rationale.
+- Queued: db-migrate-claim-tables (blocks beta PG). Open: d-receipt-canon, d-approval-entitlement.
+- Next: merge #33 → w2-wired passing → INT integration parcels.
