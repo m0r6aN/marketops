@@ -1,0 +1,17 @@
+{
+  "scan": {
+    "mode": "raw",
+    "provenance": "caller_supplied",
+    "policyVersion": "browseahead-policy.v1"
+  },
+  "severity": "critical",
+  "ingestionHint": "fail_closed",
+  "sanitizedBundleHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "rawContentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "canonicalSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "signature": null,
+  "tenantId": "tenant-biostack",
+  "actorId": "user:3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "correlationId": "t:tenant-biostack|c:scan-001",
+  "scannedAtUtc": "2026-09-12T14:30:00Z"
+}

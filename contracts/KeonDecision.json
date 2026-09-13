@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KeonDecision",
+  "description": "Runtime authorization pair for S9 (contract-first): a DecisionRequest proposing a governed effect, plus the Disposition once Keon decides it. Mirrors BioStack IKeonRuntimeClient Decide-shape, ReceiptRequest (SubjectUri/TenantId/ActorId), and PolicyHash(Value, Version). Doctrine mirror: only non-effecting/commentary-only effects may take a degrading path; anything else (including unrecognised effects) is effect-bearing and fails closed (ReceiptEffectStatus allowlist; KeonRuntimeUnavailableException halts the effect, recorded here as a deny with failureStage). Local claim-policy.v1 stays proposal-side and never produces a Disposition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request"],
+  "properties": {
+    "request": { "$ref": "#/definitions/DecisionRequest" },
+    "disposition": { "$ref": "#/definitions/Disposition" }
+  },
+  "definitions": {
+    "PolicyHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "version"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Policy content hash. Unanchored rows carry 'unanchored-local'; locally-classified proposal-side evaluations carry the zeroed-hash marker (never a real policy version)."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Policy version, e.g. claim-policy.v1. Unanchored rows carry '0.0.0' (RuntimeReceiptFactory marker)."
+        }
+      },
+      "description": "Mirrors BioStack PolicyHash(Value, Version)."
+    },
+    "DecisionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subjectUri", "tenantId", "actorId", "capability", "effect", "context", "idempotencyKey"],
+      "properties": {
+        "subjectUri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What is governed, in kind:{id} form per ReceiptRefs, e.g. campaign:{id}/publish, claim:{id}, customer-finder-run:{id}."
+        },
+        "tenantId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Canonical tenant key. The governance boundary the actor operates within; cross-tenant access with a mismatched tenantId must be denied with a receipt."
+        },
+        "actorId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who initiated the effect. Mirrors ReceiptActor ActorId: user:{guid} for user-triggered work, system:{component} for genuinely system-initiated work only (never a stand-in for missing user context)."
+        },
+        "capability": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Governed capability requested, e.g. marketops.campaign.publish. Per-tool scopes (incl. keon:browseahead:scan) bind here at S8."
+        },
+        "effect": {
+          "type": "string",
+          "enum": ["effect-bearing", "non-effecting", "commentary-only"],
+          "description": "Effect class. Mirrors the ReceiptEffectStatus allowlist: only non-effecting/commentary-only may degrade when Keon is unavailable; effect-bearing (or any unrecognised value, rejected here) MUST fail closed."
+        },
+        "context": {
+          "type": "object",
+          "description": "Free-form governed context evaluated against policy (artifact refs, destinations, claim refs). Never carries secrets or keys."
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Dedupe key for this request. Replays with the same key never double-apply an effect."
+        }
+      }
+    },
+    "Disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "policyHash"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["authorize", "deny", "require-review"],
+          "description": "Runtime-signed outcome. Coarse mirror of BioStack PolicyDecision: Allowed/AllowedWithDisclaimer -> authorize, Blocked -> deny, RewriteRequired/EscalateToProviderReview -> require-review (see joint-review mapping)."
+        },
+        "policyHash": {
+          "$ref": "#/definitions/PolicyHash",
+          "description": "Policy version that decided. Mirrors BioStack PolicyHash."
+        },
+        "decisionReceiptUri": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9+.-]*://\\S+$",
+          "description": "Receipt URI for this disposition: keon://receipt/{id} when Keon-anchored, otherwise a distinct local unanchored scheme with the unanchored-local/0.0.0 policy marker (never keon://). Mirrors DecisionReceipt.ReceiptUri."
+        },
+        "receiptClass": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+){2}$",
+          "description": "Taxonomy class in family.subject.action form (mirrors ReceiptClass discipline). Only classes wired to implemented behavior are issued; legacy.unclassified is a backfill sentinel, never issued by new code. MarketOps-specific classes are reserved pending joint review."
+        },
+        "denialCode": {
+          "type": "string",
+          "description": "Machine-readable denial code, e.g. keon-offline. Required when decision is deny (mirrors GateResult.denialCode)."
+        },
+        "denialMessage": {
+          "type": "string",
+          "description": "Human-readable denial summary. Required when decision is deny (mirrors GateResult.denialMessage)."
+        },
+        "failureStage": {
+          "type": "string",
+          "enum": ["precheck", "decision", "hash", "audit", "evidence-pack", "verify", "exception"],
+          "description": "Pipeline stage that failed (mirrors the GateResult.failureStage enum)."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "decision": { "const": "deny" } } },
+          "then": { "required": ["denialCode", "denialMessage"] }
+        }
+      ]
+    }
+  }
+}

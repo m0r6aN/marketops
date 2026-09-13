@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeliberationCandidate",
+  "description": "S10 Collective deliberation intake (contract-first): a candidate branch with challenges, preserved dissent, calibrated confidence, and lineage lands in claim receipts as review EVIDENCE. Carries NO execution permission: no field in this schema authorizes, permits, or executes an effect, and consumers must treat every value here as advisory-only. Authority stays with the Runtime Disposition plus human approval. Mirrors the adversarial-review-required-to-candidate rule: challenges are preserved, and dissent is never empty-string-dropped.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidate", "challenges", "dissent", "confidence", "lineage", "tenantId"],
+  "properties": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "collapseRef", "rationale"],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Deliberation branch identifier for this candidate."
+        },
+        "collapseRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Collapse round that produced this candidate, e.g. collapse:round-014."
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Candidate rationale text. Evidence only; never an instruction to act."
+        }
+      }
+    },
+    "challenges": {
+      "type": "array",
+      "description": "Adversarial challenges raised against this candidate. Present even when empty; challenges are never silently dropped.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["challenge"],
+        "properties": {
+          "challenge": { "type": "string", "minLength": 1 },
+          "raisedBy": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "dissent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Dissenting view, preserved verbatim. When no dissent was voiced, record the literal marker 'none-voiced'. Dissent is never dropped and never stored as an empty string."
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "calibrationVersion"],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Calibrated confidence in [0,1]. Advisory weight only; never a decision threshold bypass."
+        },
+        "calibrationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Calibration version this value was produced under, e.g. calib.v3."
+        }
+      }
+    },
+    "heatRef": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional reference to the collective heat artifact for this round, e.g. heat:round-014."
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intentId", "collapseId", "reviewId"],
+      "properties": {
+        "intentId": { "type": "string", "minLength": 1 },
+        "collapseId": { "type": "string", "minLength": 1 },
+        "reviewId": { "type": "string", "minLength": 1 }
+      },
+      "description": "Deliberation lineage binding this candidate to its intent, collapse round, and review."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. Deliberation evidence is tenant-scoped; cross-tenant evidence must never leak into another tenant's review."
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "marketops.keon.evidence-index.v1",
+  "description": "Index of K0 Keon contract mirrors, versions, and fixture paths (parcel k0-contracts-keon, release gate k-contracts-aligned). Generated view aid; coordinator DB remains the source of truth.",
+  "contracts": [
+    { "id": "KeonEnvelope", "path": "contracts/KeonEnvelope.json", "version": "v1" },
+    { "id": "KeonDecision", "path": "contracts/KeonDecision.json", "version": "v1" },
+    { "id": "DeliberationCandidate", "path": "contracts/DeliberationCandidate.json", "version": "v1" },
+    { "id": "ScanReceipt", "path": "contracts/ScanReceipt.json", "version": "v1" },
+    { "id": "LedgerEntry", "path": "contracts/LedgerEntry.json", "version": "v1" }
+  ],
+  "alignmentSources": {
+    "note": "BioStack adapter vocabulary is READ ONLY (D:/Repos/BioStack/backend/src/BioStack.Infrastructure/Keon/). Field names and semantics mirrored; deviations listed in the PR joint-review checklist.",
+    "KeonEnvelope": ["IKeonRuntimeClient.cs (fail-closed doctrine, envelope shape)", "KeonRuntimeModels.cs (PolicyHash, DecisionReceipt.ReceiptUri)"],
+    "KeonDecision": ["IKeonRuntimeClient.cs (Decide shape, KeonRuntimeUnavailableException halts-effect)", "KeonRuntimeModels.cs (PolicyHash, ReceiptRequest, PolicyDecision)", "RuntimeReceiptFactory.cs (ReceiptEffectStatus allowlist, unanchored markers)"],
+    "DeliberationCandidate": ["KeonRuntimeModels.cs (DecisionReceipt, EvidenceRefs)", "ReceiptClass.cs (deliberation.stack-review.completed)", "ReceiptRefs.cs (collective-deliberation ref)"],
+    "ScanReceipt": ["RuntimeReceiptFactory.cs (HashSeed sha256: shape, unanchored markers)", "KeonRuntimeModels.cs (PolicyHash, DecisionReceipt stamps)"],
+    "LedgerEntry": ["RuntimeReceiptFactory.cs (Anchored/Unanchored/NotRecorded, unanchored URI + zeroed-hash markers)", "ReceiptActor.cs (ActorId/TenantId)", "ReceiptRefs.cs (kind:{id} subject form)"]
+  },
+  "typescriptMirrors": "src/lib/keon/types.ts",
+  "fixtures": [
+    "tests/contracts/fixtures/keon/keon-envelope.json",
+    "tests/contracts/fixtures/keon/keon-decision.json",
+    "tests/contracts/fixtures/keon/deliberation-candidate.json",
+    "tests/contracts/fixtures/keon/scan-receipt.json",
+    "tests/contracts/fixtures/keon/ledger-chain.json"
+  ],
+  "tests": "tests/contracts/keon-contracts.test.ts"
+}

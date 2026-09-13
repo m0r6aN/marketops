@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LedgerEntry",
+  "description": "S11 Cortex evidentiary mirror row (contract-first): one hash-chained ledger entry per decision receipt. Mirrors the governed-spine chain rule: entryHash covers the governed fields plus prevHash, and prevHash uniquely chains entries (anti-fork). The seq-0 entry's prevHash MUST be the genesis constant (64 zeros). receiptRef is required and MUST be a URI: keon://receipt/{id} when Keon-anchored, or a distinct local unanchored scheme (never keon://, never a bare id). epochRef stays null until S11 epoch anchoring lands.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["seq", "prevHash", "receiptRef", "correlationId", "entryHash", "epochRef", "tenantId"],
+  "properties": {
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic sequence number within this tenant's chain. Genesis entry is seq 0."
+    },
+    "prevHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Previous entry's entryHash. GENESIS: the seq-0 entry's prevHash MUST be the genesis constant 0000000000000000000000000000000000000000000000000000000000000000 (64 zeros)."
+    },
+    "receiptRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9+.-]*://\\S+$",
+      "description": "Anchored receipt reference (required). keon://receipt/{id} when Keon-anchored; a distinct local scheme such as marketops://unanchored-receipt/{id} for unanchored provenance rows (mirrors biostack://unanchored-receipt/)."
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "MarketOps correlation id threading this entry back to the gateway call and originating effect (PublishPacket.correlationId)."
+    },
+    "entryHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Chain hash for this entry, recomputed by the S11 verifier over the governed fields plus prevHash (mirrors SpineEntry EntryHash). Fixture values are illustrative placeholders, not verifier outputs."
+    },
+    "epochRef": {
+      "type": ["string", "null"],
+      "description": "Cortex epoch anchor reference. Null until S11 epoch anchoring lands; verifiers must accept null, not treat it as a broken chain."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. A ledger chain seals evidence for exactly one tenant; multi-tenant chains are forbidden."
+    }
+  }
+}

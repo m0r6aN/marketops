@@ -1,0 +1,24 @@
+{
+  "request": {
+    "subjectUri": "campaign:cmp-keon-launch-001/publish",
+    "tenantId": "tenant-keon",
+    "actorId": "user:3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "capability": "marketops.campaign.publish",
+    "effect": "effect-bearing",
+    "context": {
+      "artifactId": "cmp-keon-launch-001",
+      "destinations": ["email"],
+      "claimRefs": ["claim:proofpack-export-throughput"]
+    },
+    "idempotencyKey": "idem-cmp-keon-launch-001-publish-01"
+  },
+  "disposition": {
+    "decision": "require-review",
+    "policyHash": {
+      "value": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "version": "claim-policy.v1"
+    },
+    "decisionReceiptUri": "keon://receipt/req-rev-4b08c1d2e5",
+    "receiptClass": "deliberation.stack-review.completed"
+  }
+}
