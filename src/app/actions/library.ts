@@ -1,5 +1,6 @@
 "use server";
 import { requireSessionTenant } from "@/lib/auth/session";
+import { enforceEntitlement } from "@/lib/entitlements/gate";
 /**
  * Library Canon Foundry — server actions.
  *
@@ -149,6 +150,10 @@ export async function approveAsCanon(
   const entry = getLibraryEntry(entryId);
   if (!entry) throw new Error(`Entry ${entryId} not found`);
   requireRowTenantMatch(sessionTenant, entry, "approve as canon");
+  // w2-billing-wire: approval-workflow entitlement gate (lapsed/cancelled
+  // tenants deny with ENTITLEMENT_INACTIVE). Also covers the review-queue
+  // assistant path, which fans out through this action.
+  enforceEntitlement(sessionTenant, "approval-workflow", "approve as canon");
 
   updateLibraryEntry(entryId, {
     entryType: "canon",
@@ -483,6 +488,11 @@ export async function togglePublicAutomation(entryId: string, allowed: boolean) 
   requireRowTenantMatch(sessionTenant, entry, "toggle public automation");
 
   if (allowed) {
+    // w2-billing-wire: proofpack-export entitlement gate on the enable path
+    // only — revocation (allowed=false) always succeeds so a lapsed tenant is
+    // never trapped in a public/automated state. Tenant checks above keep
+    // precedence.
+    enforceEntitlement(sessionTenant, "proofpack-export", "toggle public automation");
     // Must pass all safety gates before enabling.
     // Exclude conditions that this action itself satisfies:
     //   - approved_for_automation  (set below)
