@@ -1,20 +1,20 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "KeonEnvelope",
-  "description": "Canonical MCP Gateway response envelope for Keon tool calls (S8, contract-first for S8-S13). Wire format uses snake_case gateway fields (correlation_id, policy_hash) mirroring MCPGW-008; isError mirrors the MCP CallToolResult boolean from the marketops-mcp tool surface. The gateway names the producing tool in `tool` (today the transport exposes docs_as_marketing_review; Keon tools arrive as keon.*). correlation_id threads into MarketOps receipts as correlationId (PublishPacket.correlationId). Policy denial is status=denied with denial fields (mirrors GateResult); transport failure is isError=true; effect-bearing paths fail closed on either.",
+  "description": "Canonical MCP Gateway response envelope for Keon tool calls (S8, contract-first for S8-S13). Contract fields are camelCase (correlationId, policyHash); the FUTURE S8 adapter maps them to the snake_case gateway wire form (correlation_id, policy_hash) — never the contracts. isError mirrors the MCP CallToolResult boolean from the marketops-mcp tool surface. The gateway names the producing tool in `tool` (today the transport exposes docs_as_marketing_review; Keon tools arrive as keon.* — e.g. keon.policy.check.v1, keon.browseahead.scan.v1). correlationId threads into MarketOps receipts as correlationId (PublishPacket.correlationId). Policy denial is status=denied with denial fields (mirrors GateResult); transport failure is isError=true; effect-bearing paths fail closed on either.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["correlation_id", "tool", "ok", "status", "decision", "receipts", "isError"],
+  "required": ["correlationId", "tool", "ok", "status", "decision", "receipts", "isError"],
   "properties": {
-    "correlation_id": {
+    "correlationId": {
       "type": "string",
       "minLength": 1,
-      "description": "Gateway wire id for this call. Threaded into MarketOps receipts as correlationId; every downstream receipt cites it."
+      "description": "Gateway id for this call. Threaded into MarketOps receipts as correlationId; every downstream receipt cites it."
     },
     "tool": {
       "type": "string",
       "minLength": 1,
-      "description": "Keon gateway tool that produced this envelope, e.g. keon.runtime.decide.v1, keon.browseahead.scan.v1."
+      "description": "Keon gateway tool that produced this envelope, e.g. keon.policy.check.v1, keon.browseahead.scan.v1."
     },
     "ok": {
       "type": "boolean",
@@ -28,36 +28,71 @@
     "decision": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "policy_hash"],
+      "required": ["policyDecision", "status", "policyHash"],
       "properties": {
+        "policyDecision": {
+          "type": "string",
+          "enum": ["allowed", "allowed-with-disclaimer", "rewrite-required", "blocked", "escalate-to-provider-review"],
+          "description": "Native BioStack PolicyDecision on the HTTP wire (PolicyGateEndpoints.DecisionString). REQUIRED: 'status' is derived from this field via the documented mapping, never substituted for it."
+        },
         "status": {
           "type": "string",
           "enum": ["authorize", "deny", "require-review"],
-          "description": "Gateway decision. Coarse mirror of BioStack PolicyDecision: Allowed/AllowedWithChecksumDisclaimer map to authorize, Blocked to deny, RewriteRequired/EscalateToProviderReview to require-review (see joint-review mapping)."
+          "description": "DERIVED gateway decision: allowed/allowed-with-disclaimer -> authorize; blocked -> deny; rewrite-required/escalate-to-provider-review -> require-review. Must equal the mapping for the accompanying policyDecision (enforced below)."
         },
-        "policy_hash": {
+        "policyHash": {
           "type": "object",
           "additionalProperties": false,
           "required": ["value", "version"],
           "properties": {
-            "value": { "type": "string", "minLength": 1 },
-            "version": { "type": "string", "minLength": 1 }
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Policy content hash. Zeroed-hash markers ('unanchored-local', 'local-classifier-v0', 'ERROR') are never real policy versions and never accompany an anchored keon:// receipt."
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Policy version, e.g. claim-policy.v1. Every zeroed-hash marker carries version '0.0.0' (marker identity lives in the value, never the version)."
+            }
           },
-          "description": "Mirrors BioStack PolicyHash(Value, Version). Unanchored rows carry the unmistakable marker value 'unanchored-local' version '0.0.0' (RuntimeReceiptFactory); never a real policy version."
+          "description": "Mirrors BioStack PolicyHash(Value, Version)."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "policyDecision": { "const": "allowed" } } },
+          "then": { "properties": { "status": { "const": "authorize" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "allowed-with-disclaimer" } } },
+          "then": { "properties": { "status": { "const": "authorize" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "rewrite-required" } } },
+          "then": { "properties": { "status": { "const": "require-review" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "blocked" } } },
+          "then": { "properties": { "status": { "const": "deny" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "escalate-to-provider-review" } } },
+          "then": { "properties": { "status": { "const": "require-review" } } }
+        }
+      ]
     },
     "result": {
       "type": "object",
-      "description": "Tool-specific result payload on authorize/require-review. Absent on denials and errors."
+      "description": "Tool-specific result payload on authorize/require-review. Absent on denials and errors. For allowed-with-disclaimer outcomes the disclaimer text travels here; the durable disclaimer record lives on the KeonDecision receipt shape."
     },
     "denialCode": {
       "type": "string",
-      "description": "Machine-readable denial code. Required when decision.status is deny (mirrors GateResult.denialCode)."
+      "description": "Machine-readable denial code. Required when decision.policyDecision is blocked (mirrors GateResult.denialCode)."
     },
     "denialMessage": {
       "type": "string",
-      "description": "Human-readable denial summary. Required when decision.status is deny (mirrors GateResult.denialMessage)."
+      "description": "Human-readable denial summary. Required when decision.policyDecision is blocked (mirrors GateResult.denialMessage)."
     },
     "failureStage": {
       "type": "string",
@@ -84,7 +119,7 @@
       "then": { "properties": { "ok": { "const": true } } }
     },
     {
-      "if": { "properties": { "decision": { "properties": { "status": { "const": "deny" } } } }, "required": ["decision"] },
+      "if": { "properties": { "decision": { "properties": { "policyDecision": { "const": "blocked" } } } }, "required": ["decision"] },
       "then": { "required": ["denialCode", "denialMessage"] }
     }
   ]

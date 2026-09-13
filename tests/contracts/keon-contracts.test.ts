@@ -4,12 +4,23 @@ import { describe, expect, test } from "vitest";
 import type {
   DeliberationCandidate,
   KeonDecisionPair,
-  KeonDisposition,
   KeonEnvelope,
+  KeonEnvelopeDecision,
+  KeonPolicyDecision,
+  KeonReceiptRequest,
   LedgerEntry,
   ScanReceipt,
 } from "@/lib/keon/types";
-import { LEDGER_GENESIS_PREV_HASH } from "@/lib/keon/types";
+import {
+  deriveKeonDispositionDecision,
+  KEON_DISPOSITION_DERIVATION,
+  KEON_MARKER_CLIENT_FAIL_CLOSED,
+  KEON_MARKER_LOCAL_CLASSIFIER,
+  KEON_MARKER_UNANCHORED,
+  KEON_POLICY_DECISIONS,
+  KEON_RECEIPT_CLASS_CATALOG,
+  LEDGER_GENESIS_PREV_HASH,
+} from "@/lib/keon/types";
 import deliberationCandidateSchema from "../../contracts/DeliberationCandidate.json";
 import keonDecisionSchema from "../../contracts/KeonDecision.json";
 import keonEnvelopeSchema from "../../contracts/KeonEnvelope.json";
@@ -30,12 +41,52 @@ function validate(schema: object, data: unknown): boolean {
   return ajv.validate(schema, data) as boolean;
 }
 
-const baseRequest = (keonDecision as KeonDecisionPair).request;
+const basePolicyCheck = (keonDecision as KeonDecisionPair).policyCheck;
+const baseReceiptRequest = (keonDecision as KeonDecisionPair)
+  .receiptRequest as KeonReceiptRequest;
+const baseEnvelope = keonEnvelope as KeonEnvelope;
 
-function validateDisposition(data: unknown): boolean {
-  // Validate through the root schema: the Disposition subschema refs a
+function validateReceiptRequest(data: unknown): boolean {
+  // Validate through the root schema: the ReceiptRequest subschema refs a
   // sibling definition (#/definitions/PolicyHash) that only resolves there.
-  return validate(keonDecisionSchema, { request: baseRequest, disposition: data });
+  return validate(keonDecisionSchema, {
+    policyCheck: basePolicyCheck,
+    receiptRequest: data,
+  });
+}
+
+/** Minimal valid receipt request per native decision (with required payloads). */
+function receiptFor(policyDecision: KeonPolicyDecision): KeonReceiptRequest {
+  const base = {
+    policyDecision,
+    decision: deriveKeonDispositionDecision(policyDecision),
+    policyHash: {
+      value:
+        "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      version: "claim-policy.v1",
+    },
+  };
+  switch (policyDecision) {
+    case "allowed-with-disclaimer":
+      return {
+        ...base,
+        disclaimerText: "Framed as early evidence; not a guarantee.",
+      };
+    case "rewrite-required":
+      return {
+        ...base,
+        rewrittenText: "Scoped rewrite replacing the proposed text.",
+      };
+    case "blocked":
+      return {
+        ...base,
+        denialCode: "keon-offline",
+        denialMessage: "Runtime unavailable; effect-bearing path halted.",
+        failureStage: "exception" as const,
+      };
+    default:
+      return base;
+  }
 }
 
 /** Recursively collect every object key in a JSON value. */
@@ -55,16 +106,95 @@ function allKeys(value: unknown, into: Set<string>): void {
 describe("KeonEnvelope contract", () => {
   test("authorize fixture satisfies the schema", () => {
     expect(validate(keonEnvelopeSchema, keonEnvelope as KeonEnvelope)).toBe(true);
+    expect(baseEnvelope.decision.policyDecision).toBe("allowed");
+    expect(baseEnvelope.decision.status).toBe("authorize");
   });
 
-  test("deny without denial fields is rejected (mirrors GateResult)", () => {
+  test("native policyDecision is required; invented tokens are rejected", () => {
+    const withoutNative: Record<string, unknown> = {
+      ...baseEnvelope.decision,
+    };
+    delete withoutNative.policyDecision;
+    expect(
+      validate(keonEnvelopeSchema, { ...baseEnvelope, decision: withoutNative })
+    ).toBe(false);
+    // The invented AllowedWithChecksumDisclaimer token is not a wire value.
+    expect(
+      validate(keonEnvelopeSchema, {
+        ...baseEnvelope,
+        decision: {
+          ...baseEnvelope.decision,
+          policyDecision: "AllowedWithChecksumDisclaimer",
+        },
+      })
+    ).toBe(false);
+    expect(
+      validate(keonEnvelopeSchema, {
+        ...baseEnvelope,
+        decision: { ...baseEnvelope.decision, policyDecision: "maybe" },
+      })
+    ).toBe(false);
+  });
+
+  test("all five native decisions validate with their derived status", () => {
+    const expected: Record<KeonPolicyDecision, KeonEnvelopeDecision["status"]> = {
+      allowed: "authorize",
+      "allowed-with-disclaimer": "authorize",
+      "rewrite-required": "require-review",
+      blocked: "deny",
+      "escalate-to-provider-review": "require-review",
+    };
+    for (const policyDecision of KEON_POLICY_DECISIONS) {
+      const decision = {
+        ...baseEnvelope.decision,
+        policyDecision,
+        status: expected[policyDecision],
+      };
+      const candidate =
+        policyDecision === "blocked"
+          ? {
+              ...baseEnvelope,
+              ok: false,
+              status: "denied",
+              decision,
+              denialCode: "policy-blocked",
+              denialMessage: "Claim lacks sealed proof.",
+              failureStage: "decision",
+            }
+          : { ...baseEnvelope, decision };
+      expect(validate(keonEnvelopeSchema, candidate)).toBe(true);
+    }
+  });
+
+  test("derived status must equal the native mapping (never substituted)", () => {
+    expect(
+      validate(keonEnvelopeSchema, {
+        ...baseEnvelope,
+        decision: { ...baseEnvelope.decision, status: "deny" },
+      })
+    ).toBe(false);
+    expect(
+      validate(keonEnvelopeSchema, {
+        ...baseEnvelope,
+        ok: false,
+        status: "denied",
+        decision: { ...baseEnvelope.decision, policyDecision: "blocked" },
+        denialCode: "policy-blocked",
+        denialMessage: "Claim lacks sealed proof.",
+        failureStage: "decision",
+      })
+    ).toBe(false);
+  });
+
+  test("blocked without denial fields is rejected (mirrors GateResult)", () => {
     const denied = {
-      ...(keonEnvelope as KeonEnvelope),
+      ...baseEnvelope,
       ok: false,
       status: "denied",
       decision: {
+        ...baseEnvelope.decision,
+        policyDecision: "blocked",
         status: "deny",
-        policy_hash: (keonEnvelope as KeonEnvelope).decision.policy_hash,
       },
     };
     expect(validate(keonEnvelopeSchema, denied)).toBe(false);
@@ -79,52 +209,215 @@ describe("KeonEnvelope contract", () => {
   });
 
   test("ok/status consistency is enforced both ways", () => {
-    const base = keonEnvelope as KeonEnvelope;
-    expect(validate(keonEnvelopeSchema, { ...base, ok: true, status: "denied" })).toBe(false);
-    expect(validate(keonEnvelopeSchema, { ...base, ok: false, status: "ok" })).toBe(false);
+    expect(validate(keonEnvelopeSchema, { ...baseEnvelope, ok: true, status: "denied" })).toBe(false);
+    expect(validate(keonEnvelopeSchema, { ...baseEnvelope, ok: false, status: "ok" })).toBe(false);
   });
 
   test("rejects non-URI receipts and non-boolean isError", () => {
-    const base = keonEnvelope as KeonEnvelope;
-    expect(validate(keonEnvelopeSchema, { ...base, receipts: ["bare-id-123"] })).toBe(false);
-    expect(validate(keonEnvelopeSchema, { ...base, isError: "false" })).toBe(false);
+    expect(validate(keonEnvelopeSchema, { ...baseEnvelope, receipts: ["bare-id-123"] })).toBe(false);
+    expect(validate(keonEnvelopeSchema, { ...baseEnvelope, isError: "false" })).toBe(false);
   });
 });
 
-describe("KeonDecision contract", () => {
-  test("require-review pair fixture satisfies the schema", () => {
+describe("KeonDecision contract (PolicyCheck + ReceiptRequest)", () => {
+  test("shapes use client vocabulary: policyCheck + receiptRequest only", () => {
+    const root = keonDecisionSchema as {
+      properties: Record<string, unknown>;
+      definitions: Record<string, unknown>;
+    };
+    expect(Object.keys(root.properties).sort()).toEqual([
+      "policyCheck",
+      "receiptRequest",
+    ]);
+    expect(Object.keys(root.definitions).sort()).toEqual([
+      "PolicyCheckRequest",
+      "PolicyHash",
+      "ReceiptRequest",
+    ]);
+  });
+
+  test("rewrite-required pair fixture satisfies the schema", () => {
     const pair = keonDecision as KeonDecisionPair;
     expect(validate(keonDecisionSchema, pair)).toBe(true);
-    expect(pair.disposition?.decision).toBe("require-review");
+    expect(pair.receiptRequest?.policyDecision).toBe("rewrite-required");
+    expect(pair.receiptRequest?.decision).toBe("require-review");
+    expect(pair.receiptRequest?.rewrittenText).toBeTruthy();
   });
 
-  test("deny disposition without denialCode/denialMessage is rejected", () => {
-    const base = (keonDecision as KeonDecisionPair).disposition as KeonDisposition;
-    expect(validateDisposition({ ...base, decision: "deny" })).toBe(false);
+  test("all five native decisions validate with their required payloads", () => {
+    for (const policyDecision of KEON_POLICY_DECISIONS) {
+      expect(validateReceiptRequest(receiptFor(policyDecision))).toBe(true);
+    }
+  });
+
+  test("coarse decision alone is rejected: native policyDecision is required", () => {
+    const coarseOnly: Record<string, unknown> = { ...baseReceiptRequest };
+    delete coarseOnly.policyDecision;
+    expect(validateReceiptRequest(coarseOnly)).toBe(false);
+    // The invented AllowedWithChecksumDisclaimer token is not a wire value.
     expect(
-      validateDisposition({
-        ...base,
-        decision: "deny",
-        denialCode: "keon-offline",
-        denialMessage: "Runtime unavailable; effect-bearing path halted.",
-        failureStage: "exception",
+      validateReceiptRequest({
+        ...baseReceiptRequest,
+        policyDecision: "AllowedWithChecksumDisclaimer",
+      })
+    ).toBe(false);
+    expect(
+      validateReceiptRequest({ ...baseReceiptRequest, policyDecision: "maybe" })
+    ).toBe(false);
+  });
+
+  test("disclaimer/rewritten/denial payloads are required by native value", () => {
+    const disclaimer = receiptFor("allowed-with-disclaimer");
+    const withoutDisclaimer: Record<string, unknown> = { ...disclaimer };
+    delete withoutDisclaimer.disclaimerText;
+    expect(validateReceiptRequest(withoutDisclaimer)).toBe(false);
+    expect(validateReceiptRequest(disclaimer)).toBe(true);
+
+    const rewritten = receiptFor("rewrite-required");
+    const withoutRewritten: Record<string, unknown> = { ...rewritten };
+    delete withoutRewritten.rewrittenText;
+    expect(validateReceiptRequest(withoutRewritten)).toBe(false);
+
+    const blocked = receiptFor("blocked");
+    const withoutDenial: Record<string, unknown> = { ...blocked };
+    delete withoutDenial.denialCode;
+    delete withoutDenial.denialMessage;
+    expect(validateReceiptRequest(withoutDenial)).toBe(false);
+    expect(validateReceiptRequest(blocked)).toBe(true);
+  });
+
+  test("derived decision must equal the native mapping (never substituted)", () => {
+    expect(
+      validateReceiptRequest({ ...receiptFor("allowed"), decision: "deny" })
+    ).toBe(false);
+    expect(
+      validateReceiptRequest({
+        ...receiptFor("escalate-to-provider-review"),
+        decision: "authorize",
+      })
+    ).toBe(false);
+  });
+
+  test("zeroed-hash markers are never conflated with anchored receipts", () => {
+    const blocked = receiptFor("blocked");
+    // Unanchored rows use a distinct local scheme, never keon://.
+    expect(
+      validateReceiptRequest({
+        ...blocked,
+        policyHash: { ...KEON_MARKER_UNANCHORED },
+        decisionReceiptUri: "keon://receipt/anchored-123",
+      })
+    ).toBe(false);
+    expect(
+      validateReceiptRequest({
+        ...blocked,
+        policyHash: { ...KEON_MARKER_UNANCHORED },
+        decisionReceiptUri: "marketops://unanchored-receipt/abc123",
       })
     ).toBe(true);
-  });
-
-  test("rejects unknown decision, unlisted effect, and missing idempotencyKey", () => {
-    const pair = keonDecision as KeonDecisionPair;
+    // Local-classifier and client-fail-closed markers never anchor either.
     expect(
-      validateDisposition({ ...pair.disposition, decision: "maybe" })
-    ).toBe(false);
-    expect(
-      validate(keonDecisionSchema, {
-        request: { ...pair.request, effect: "maybe-effecting" },
+      validateReceiptRequest({
+        ...blocked,
+        policyHash: { ...KEON_MARKER_LOCAL_CLASSIFIER },
+        decisionReceiptUri: "keon://receipt/anchored-123",
       })
     ).toBe(false);
-    const withoutKey: Record<string, unknown> = { ...pair.request };
+    expect(
+      validateReceiptRequest({
+        ...blocked,
+        policyHash: { ...KEON_MARKER_CLIENT_FAIL_CLOSED },
+        decisionReceiptUri: "keon://receipt/anchored-123",
+      })
+    ).toBe(false);
+    // Fail-closed checks carry no receipt at all.
+    const failClosed: Record<string, unknown> = {
+      ...blocked,
+      policyHash: { ...KEON_MARKER_CLIENT_FAIL_CLOSED },
+    };
+    delete failClosed.decisionReceiptUri;
+    expect(validateReceiptRequest(failClosed)).toBe(true);
+  });
+
+  test("rejects unknown effect and missing idempotencyKey", () => {
+    const pair = keonDecision as KeonDecisionPair;
+    expect(
+      validate(keonDecisionSchema, {
+        policyCheck: { ...pair.policyCheck, effect: "maybe-effecting" },
+      })
+    ).toBe(false);
+    const withoutKey: Record<string, unknown> = { ...pair.policyCheck };
     delete withoutKey.idempotencyKey;
-    expect(validate(keonDecisionSchema, { request: withoutKey })).toBe(false);
+    expect(validate(keonDecisionSchema, { policyCheck: withoutKey })).toBe(false);
+  });
+});
+
+describe("native decision derivation + zeroed-hash markers", () => {
+  test("derivation helper maps all five native values", () => {
+    expect(KEON_DISPOSITION_DERIVATION).toEqual({
+      allowed: "authorize",
+      "allowed-with-disclaimer": "authorize",
+      "rewrite-required": "require-review",
+      blocked: "deny",
+      "escalate-to-provider-review": "require-review",
+    });
+    for (const native of KEON_POLICY_DECISIONS) {
+      expect(deriveKeonDispositionDecision(native)).toBe(
+        KEON_DISPOSITION_DERIVATION[native]
+      );
+    }
+  });
+
+  test("the three markers are distinct pairs sharing version 0.0.0", () => {
+    const markers = [
+      KEON_MARKER_UNANCHORED,
+      KEON_MARKER_LOCAL_CLASSIFIER,
+      KEON_MARKER_CLIENT_FAIL_CLOSED,
+    ];
+    expect(new Set(markers.map((m) => JSON.stringify(m))).size).toBe(3);
+    expect(new Set(markers.map((m) => m.value)).size).toBe(3);
+    for (const marker of markers) {
+      expect(marker.version).toBe("0.0.0");
+    }
+    expect(KEON_MARKER_UNANCHORED.value).toBe("unanchored-local");
+    expect(KEON_MARKER_LOCAL_CLASSIFIER.value).toBe("local-classifier-v0");
+    expect(KEON_MARKER_CLIENT_FAIL_CLOSED.value).toBe("ERROR");
+  });
+});
+
+describe("receipt-class catalog", () => {
+  test("catalog reserves MarketOps families as reserved-not-wired", () => {
+    expect(KEON_RECEIPT_CLASS_CATALOG.status).toBe("reserved-not-wired");
+    expect([...KEON_RECEIPT_CLASS_CATALOG.families]).toEqual([
+      "campaign.publish.*",
+      "approval.*",
+      "billing.*",
+      "browseahead.scan.*",
+      "ledger.entry.*",
+    ]);
+    expect(KEON_RECEIPT_CLASS_CATALOG.sentinel).toBe("legacy.unclassified");
+  });
+
+  test("fixtures issue catalog classes, never foreign ones", () => {
+    const issued = [
+      (keonDecision as KeonDecisionPair).receiptRequest
+        ?.receiptClass as string,
+      ...((ledgerChain as LedgerEntry[]).map((e) => e.receiptClass)),
+    ];
+    expect(issued.length).toBeGreaterThan(0);
+    for (const receiptClass of issued) {
+      expect(receiptClass).toBeTruthy();
+      expect(receiptClass).not.toBe("deliberation.stack-review.completed");
+      const families = KEON_RECEIPT_CLASS_CATALOG.families.map((f) =>
+        f.replace(".*", "")
+      );
+      expect(
+        families.some(
+          (family) =>
+            receiptClass === family || receiptClass.startsWith(`${family}.`)
+        )
+      ).toBe(true);
+    }
   });
 });
 
@@ -229,11 +522,11 @@ describe("LedgerEntry contract", () => {
     }
   });
 
-  test("genesis prevHash equals the documented constant", () => {
+  test("genesis prevHash equals the BioStack genesis constant", () => {
     const chain = ledgerChain as LedgerEntry[];
     expect(chain[0].seq).toBe(0);
     expect(chain[0].prevHash).toBe(LEDGER_GENESIS_PREV_HASH);
-    expect(LEDGER_GENESIS_PREV_HASH).toBe("0".repeat(64));
+    expect(LEDGER_GENESIS_PREV_HASH).toBe("sha256:genesis");
   });
 
   test("chain prevHash linkage holds across entries", () => {
@@ -243,6 +536,49 @@ describe("LedgerEntry contract", () => {
     for (let i = 1; i < chain.length; i += 1) {
       expect(chain[i].prevHash).toBe(chain[i - 1].entryHash);
     }
+  });
+
+  test("hashes use sha256:<hex> encoding; bare hex is rejected", () => {
+    const base = (ledgerChain as LedgerEntry[])[1];
+    expect(
+      validate(ledgerEntrySchema, {
+        ...base,
+        entryHash:
+          "2222222222222222222222222222222222222222222222222222222222222222",
+      })
+    ).toBe(false);
+    expect(
+      validate(ledgerEntrySchema, {
+        ...base,
+        prevHash:
+          "1111111111111111111111111111111111111111111111111111111111111111",
+      })
+    ).toBe(false);
+  });
+
+  test("receiptClass, actorId, and timestamp are required", () => {
+    const base = (ledgerChain as LedgerEntry[])[0];
+    for (const field of ["receiptClass", "actorId", "timestamp"] as const) {
+      const without: Record<string, unknown> = { ...base };
+      delete without[field];
+      expect(validate(ledgerEntrySchema, without)).toBe(false);
+    }
+  });
+
+  test("legacy.unclassified is accepted; two-segment classes are rejected", () => {
+    const base = (ledgerChain as LedgerEntry[])[0];
+    expect(
+      validate(ledgerEntrySchema, {
+        ...base,
+        receiptClass: "legacy.unclassified",
+      })
+    ).toBe(true);
+    expect(
+      validate(ledgerEntrySchema, { ...base, receiptClass: "legacy.unclass" })
+    ).toBe(false);
+    expect(
+      validate(ledgerEntrySchema, { ...base, receiptClass: "Campaign.Publish" })
+    ).toBe(false);
   });
 
   test("missing receiptRef and bare-id refs are rejected", () => {
@@ -262,10 +598,31 @@ describe("LedgerEntry contract", () => {
   });
 });
 
+describe("contract casing (one casing per schema, no mixing)", () => {
+  test("no snake_case keys in any contract schema or keon fixture", () => {
+    const keys = new Set<string>();
+    for (const doc of [
+      keonEnvelopeSchema,
+      keonDecisionSchema,
+      deliberationCandidateSchema,
+      scanReceiptSchema,
+      ledgerEntrySchema,
+      keonEnvelope,
+      keonDecision,
+      deliberationCandidate,
+      scanReceipt,
+      ledgerChain,
+    ]) {
+      allKeys(doc, keys);
+    }
+    expect([...keys].filter((key) => key.includes("_"))).toEqual([]);
+  });
+});
+
 describe("cross-contract tenant integrity", () => {
   test("every keon fixture tenantId exists in the tenant roster", () => {
     const roster = new Set((tenants as { tenantId: string }[]).map((t) => t.tenantId));
-    expect(roster.has((keonDecision as KeonDecisionPair).request.tenantId)).toBe(true);
+    expect(roster.has((keonDecision as KeonDecisionPair).policyCheck.tenantId)).toBe(true);
     expect(roster.has((deliberationCandidate as DeliberationCandidate).tenantId)).toBe(true);
     expect(roster.has((scanReceipt as ScanReceipt).tenantId)).toBe(true);
     for (const entry of ledgerChain as LedgerEntry[]) {
@@ -281,7 +638,7 @@ describe("cross-contract tenant integrity", () => {
 
   test("fixtures cover both roster tenants (keon + biostack)", () => {
     const seen = new Set<string>([
-      (keonDecision as KeonDecisionPair).request.tenantId,
+      (keonDecision as KeonDecisionPair).policyCheck.tenantId,
       (deliberationCandidate as DeliberationCandidate).tenantId,
       (scanReceipt as ScanReceipt).tenantId,
       ...(ledgerChain as LedgerEntry[]).map((e) => e.tenantId),

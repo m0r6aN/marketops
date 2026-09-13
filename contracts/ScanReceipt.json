@@ -87,7 +87,7 @@
     "correlationId": {
       "type": "string",
       "minLength": 1,
-      "description": "MarketOps correlation id threading this scan into downstream receipts (PublishPacket.correlationId; gateway correlation_id on the wire)."
+      "description": "MarketOps correlation id threading this scan into downstream receipts (PublishPacket.correlationId; the FUTURE S8 adapter maps this to gateway correlation_id on the wire, never the contracts)."
     },
     "scannedAtUtc": {
       "type": "string",

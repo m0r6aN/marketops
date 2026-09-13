@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "KeonDecision",
-  "description": "Runtime authorization pair for S9 (contract-first): a DecisionRequest proposing a governed effect, plus the Disposition once Keon decides it. Mirrors BioStack IKeonRuntimeClient Decide-shape, ReceiptRequest (SubjectUri/TenantId/ActorId), and PolicyHash(Value, Version). Doctrine mirror: only non-effecting/commentary-only effects may take a degrading path; anything else (including unrecognised effects) is effect-bearing and fails closed (ReceiptEffectStatus allowlist; KeonRuntimeUnavailableException halts the effect, recorded here as a deny with failureStage). Local claim-policy.v1 stays proposal-side and never produces a Disposition.",
+  "description": "Runtime authorization pair for S9 (contract-first): a PolicyCheckRequest evaluated through the PolicyCheck path, plus the ReceiptRequest recorded once Keon answers. Mirrors BioStack IKeonRuntimeClient — PolicyCheckAsync (PolicyGateRequest Text/Context/TenantId/ActorId) and IssueReceiptAsync (ReceiptRequest SubjectUri/TenantId/ActorId/Decision/EffectStatus/ReceiptClass). IKeonRuntimeClient exposes NO Decide method: the check input and the receipt input are the only two shapes, and no field here invents a Decide API. subjectUri/capability/effect/idempotencyKey are MarketOps proposal-side extensions threaded into the receipt at issuance (subject/tenant/actor bind once on the check and are not repeated on the receipt). Doctrine mirror: only non-effecting/commentary-only effects may take a degrading path; anything else (including unrecognised effects) is effect-bearing and fails closed (ReceiptEffectStatus allowlist; KeonRuntimeUnavailableException halts the effect, recorded here as policyDecision blocked with failureStage). Local claim-policy.v1 stays proposal-side and never produces a receipt.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["request"],
+  "required": ["policyCheck"],
   "properties": {
-    "request": { "$ref": "#/definitions/DecisionRequest" },
-    "disposition": { "$ref": "#/definitions/Disposition" }
+    "policyCheck": { "$ref": "#/definitions/PolicyCheckRequest" },
+    "receiptRequest": { "$ref": "#/definitions/ReceiptRequest" }
   },
   "definitions": {
     "PolicyHash": {
@@ -18,17 +18,17 @@
         "value": {
           "type": "string",
           "minLength": 1,
-          "description": "Policy content hash. Unanchored rows carry 'unanchored-local'; locally-classified proposal-side evaluations carry the zeroed-hash marker (never a real policy version)."
+          "description": "Policy content hash. Zeroed-hash markers are never real policy versions and never accompany an anchored keon:// receipt (see the ReceiptRequest marker rule): 'unanchored-local' (RuntimeReceiptFactory unanchored provenance rows), 'local-classifier-v0' (PolicyGate local pre-classification), 'ERROR' (KeonRuntimeClient fail-closed)."
         },
         "version": {
           "type": "string",
           "minLength": 1,
-          "description": "Policy version, e.g. claim-policy.v1. Unanchored rows carry '0.0.0' (RuntimeReceiptFactory marker)."
+          "description": "Policy version, e.g. claim-policy.v1. Every zeroed-hash marker carries version '0.0.0' (marker identity lives in the value, never the version)."
         }
       },
       "description": "Mirrors BioStack PolicyHash(Value, Version)."
     },
-    "DecisionRequest": {
+    "PolicyCheckRequest": {
       "type": "object",
       "additionalProperties": false,
       "required": ["subjectUri", "tenantId", "actorId", "capability", "effect", "context", "idempotencyKey"],
@@ -36,17 +36,17 @@
         "subjectUri": {
           "type": "string",
           "minLength": 1,
-          "description": "What is governed, in kind:{id} form per ReceiptRefs, e.g. campaign:{id}/publish, claim:{id}, customer-finder-run:{id}."
+          "description": "What is governed, in kind:{id} form per ReceiptRefs, e.g. campaign:{id}/publish, claim:{id}, customer-finder-run:{id}. MarketOps proposal-side extension, threaded into the ReceiptRequest at issuance."
         },
         "tenantId": {
           "type": "string",
           "minLength": 1,
-          "description": "Canonical tenant key. The governance boundary the actor operates within; cross-tenant access with a mismatched tenantId must be denied with a receipt."
+          "description": "Canonical tenant key. The governance boundary the actor operates within; cross-tenant access with a mismatched tenantId must be denied with a receipt. Mirrors PolicyGateRequest.TenantId and ReceiptRequest.TenantId."
         },
         "actorId": {
           "type": "string",
           "minLength": 1,
-          "description": "Who initiated the effect. Mirrors ReceiptActor ActorId: user:{guid} for user-triggered work, system:{component} for genuinely system-initiated work only (never a stand-in for missing user context)."
+          "description": "Who initiated the effect. Mirrors ReceiptActor ActorId and PolicyGateRequest.ActorId: user:{guid} for user-triggered work, system:{component} for genuinely system-initiated work only (never a stand-in for missing user context)."
         },
         "capability": {
           "type": "string",
@@ -60,46 +60,61 @@
         },
         "context": {
           "type": "object",
-          "description": "Free-form governed context evaluated against policy (artifact refs, destinations, claim refs). Never carries secrets or keys."
+          "description": "Free-form governed context evaluated against policy (artifact refs, destinations, claim refs). Mirrors PolicyGateRequest.Context. Never carries secrets or keys."
         },
         "idempotencyKey": {
           "type": "string",
           "minLength": 1,
-          "description": "Dedupe key for this request. Replays with the same key never double-apply an effect."
+          "description": "Dedupe key for this check. Replays with the same key never double-apply an effect."
         }
       }
     },
-    "Disposition": {
+    "ReceiptRequest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["decision", "policyHash"],
+      "required": ["policyDecision", "decision", "policyHash"],
       "properties": {
+        "policyDecision": {
+          "type": "string",
+          "enum": ["allowed", "allowed-with-disclaimer", "rewrite-required", "blocked", "escalate-to-provider-review"],
+          "description": "Native BioStack PolicyDecision on the HTTP wire (PolicyGateEndpoints.DecisionString). REQUIRED: the coarse 'decision' below is derived from this field via the documented mapping, never substituted for it."
+        },
         "decision": {
           "type": "string",
           "enum": ["authorize", "deny", "require-review"],
-          "description": "Runtime-signed outcome. Coarse mirror of BioStack PolicyDecision: Allowed/AllowedWithDisclaimer -> authorize, Blocked -> deny, RewriteRequired/EscalateToProviderReview -> require-review (see joint-review mapping)."
+          "description": "DERIVED coarse disposition for MarketOps effect routing: allowed/allowed-with-disclaimer -> authorize; blocked -> deny; rewrite-required/escalate-to-provider-review -> require-review. Must equal the mapping for the accompanying policyDecision (enforced below)."
         },
         "policyHash": {
           "$ref": "#/definitions/PolicyHash",
           "description": "Policy version that decided. Mirrors BioStack PolicyHash."
         },
+        "disclaimerText": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Disclaimer that must accompany the effect. Required when policyDecision is allowed-with-disclaimer (mirrors PolicyGateResult.DisclaimerText)."
+        },
+        "rewrittenText": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Keon-rewritten text replacing the proposed text. Required when policyDecision is rewrite-required (mirrors PolicyGateResult.RewrittenText)."
+        },
         "decisionReceiptUri": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9+.-]*://\\S+$",
-          "description": "Receipt URI for this disposition: keon://receipt/{id} when Keon-anchored, otherwise a distinct local unanchored scheme with the unanchored-local/0.0.0 policy marker (never keon://). Mirrors DecisionReceipt.ReceiptUri."
+          "description": "Receipt URI for this receipt: keon://receipt/{id} when Keon-anchored, otherwise a distinct local unanchored scheme (never keon://). Absent while unissued. Mirrors DecisionReceipt.ReceiptUri. Never keon:// alongside a zeroed-hash marker (see the marker rule below)."
         },
         "receiptClass": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+){2}$",
-          "description": "Taxonomy class in family.subject.action form (mirrors ReceiptClass discipline). Only classes wired to implemented behavior are issued; legacy.unclassified is a backfill sentinel, never issued by new code. MarketOps-specific classes are reserved pending joint review."
+          "pattern": "^(legacy\\.unclassified|[a-z0-9]+(\\.[a-z0-9-]+){2})$",
+          "description": "Taxonomy class in family.subject.action form (mirrors ReceiptClass discipline; legacy.unclassified is accepted for backfilled rows only, never issued by new code). MarketOps reserved-not-wired catalog (see KEON_RECEIPT_CLASS_CATALOG in src/lib/keon/types.ts): campaign.publish.*, approval.*, billing.*, browseahead.scan.*, ledger.entry.* — reserved pending S8-S13 wiring; fixtures may illustrate reserved classes but live code issues none until wired."
         },
         "denialCode": {
           "type": "string",
-          "description": "Machine-readable denial code, e.g. keon-offline. Required when decision is deny (mirrors GateResult.denialCode)."
+          "description": "Machine-readable denial code, e.g. keon-offline. Required when policyDecision is blocked (mirrors GateResult.denialCode; BioStack carries the reason as PolicyGateResult.BlockReason)."
         },
         "denialMessage": {
           "type": "string",
-          "description": "Human-readable denial summary. Required when decision is deny (mirrors GateResult.denialMessage)."
+          "description": "Human-readable denial summary. Required when policyDecision is blocked (mirrors GateResult.denialMessage)."
         },
         "failureStage": {
           "type": "string",
@@ -109,8 +124,28 @@
       },
       "allOf": [
         {
-          "if": { "properties": { "decision": { "const": "deny" } } },
-          "then": { "required": ["denialCode", "denialMessage"] }
+          "if": { "properties": { "policyDecision": { "const": "allowed" } } },
+          "then": { "properties": { "decision": { "const": "authorize" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "allowed-with-disclaimer" } } },
+          "then": { "properties": { "decision": { "const": "authorize" } }, "required": ["disclaimerText"] }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "rewrite-required" } } },
+          "then": { "properties": { "decision": { "const": "require-review" } }, "required": ["rewrittenText"] }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "blocked" } } },
+          "then": { "properties": { "decision": { "const": "deny" } }, "required": ["denialCode", "denialMessage"] }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "escalate-to-provider-review" } } },
+          "then": { "properties": { "decision": { "const": "require-review" } } }
+        },
+        {
+          "if": { "properties": { "policyHash": { "properties": { "value": { "enum": ["unanchored-local", "local-classifier-v0", "ERROR"] } } } } },
+          "then": { "properties": { "decisionReceiptUri": { "not": { "pattern": "^keon://" } } } }
         }
       ]
     }
