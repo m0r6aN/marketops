@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "marketops.keon.evidence-index.v1",
+  "description": "Index of K0 Keon contract mirrors, versions, and fixture paths (parcel k0-contracts-keon, release gate k-contracts-aligned). Generated view aid; coordinator DB remains the source of truth.",
+  "contracts": [
+    { "id": "KeonEnvelope", "path": "contracts/KeonEnvelope.json", "version": "v1" },
+    { "id": "KeonDecision", "path": "contracts/KeonDecision.json", "version": "v1" },
+    { "id": "DeliberationCandidate", "path": "contracts/DeliberationCandidate.json", "version": "v1" },
+    { "id": "ScanReceipt", "path": "contracts/ScanReceipt.json", "version": "v1" },
+    { "id": "LedgerEntry", "path": "contracts/LedgerEntry.json", "version": "v1" }
+  ],
+  "alignmentSources": {
+    "note": "BioStack adapter vocabulary is READ ONLY (D:/Repos/BioStack/backend/src/BioStack.Infrastructure/Keon/, plus BioStack.Application/Governance/PolicyGate.cs for the local-classifier marker). Field names and semantics mirrored; IKeonRuntimeClient exposes NO Decide method — PolicyCheckAsync + IssueReceiptAsync are the only two shapes. Deviations listed in the PR joint-review checklist.",
+    "KeonEnvelope": ["IKeonRuntimeClient.cs (fail-closed doctrine; no Decide method)", "KeonRuntimeModels.cs (PolicyHash(Value, Version), DecisionReceipt.ReceiptUri)", "PolicyGateEndpoints.cs (DecisionString native wire strings; native policyDecision required, coarse status derived)"],
+    "KeonDecision": ["IKeonRuntimeClient.cs (PolicyCheckAsync + IssueReceiptAsync ONLY — no Decide method; KeonRuntimeUnavailableException halts-effect recorded as blocked + failureStage)", "KeonRuntimeModels.cs (PolicyHash, ReceiptRequest SubjectUri/TenantId/ActorId/Decision/EffectStatus/ReceiptClass, 5-value PolicyDecision)", "PolicyGateEndpoints.cs (native wire strings; DisclaimerText/RewrittenText/BlockReason payloads)", "RuntimeReceiptFactory.cs (ReceiptEffectStatus allowlist, UnanchoredPolicyHash unanchored-local/0.0.0, HashSeed sha256:<hex>)", "PolicyGate.cs (Application/Governance local-classifier-v0/0.0.0 marker) + KeonRuntimeClient.cs (ERROR/0.0.0 fail-closed marker): three distinct pairs, never conflated"],
+    "DeliberationCandidate": ["KeonRuntimeModels.cs (DecisionReceipt, EvidenceRefs)", "ReceiptClass.cs (family.subject.action pattern + legacy.unclassified sentinel; MarketOps classes reserved per KEON_RECEIPT_CLASS_CATALOG in types.ts)", "ReceiptRefs.cs (collective-deliberation ref)"],
+    "ScanReceipt": ["RuntimeReceiptFactory.cs (HashSeed sha256:<hex> shape, unanchored markers)", "KeonRuntimeModels.cs (PolicyHash, DecisionReceipt.TimestampUtc stamp)"],
+    "LedgerEntry": ["SpineChain.cs (GenesisPreviousHash sha256:genesis; ComputeEntryHash sha256:<hex> over ActorId/ReceiptClass/TimestampUtc + governed fields)", "SpineEntry.cs (ActorId + ReceiptClass + TimestampUtc required + hashed)", "RuntimeReceiptFactory.cs (Anchored/Unanchored/NotRecorded, unanchored URI + unanchored-local/0.0.0 marker)", "ReceiptActor.cs (ActorId/TenantId)", "ReceiptRefs.cs (kind:{id} subject form)", "ReceiptClass.cs (family.subject.action pattern + legacy.unclassified sentinel)"]
+  },
+  "typescriptMirrors": "src/lib/keon/types.ts",
+  "fixtures": [
+    "tests/contracts/fixtures/keon/keon-envelope.json",
+    "tests/contracts/fixtures/keon/keon-decision.json",
+    "tests/contracts/fixtures/keon/deliberation-candidate.json",
+    "tests/contracts/fixtures/keon/scan-receipt.json",
+    "tests/contracts/fixtures/keon/ledger-chain.json"
+  ],
+  "tests": "tests/contracts/keon-contracts.test.ts"
+}

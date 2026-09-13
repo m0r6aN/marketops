@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LedgerEntry",
+  "description": "S11 Cortex evidentiary mirror row (contract-first): one hash-chained ledger entry per decision receipt. Mirrors the governed-spine chain rule: entryHash covers the governed fields (including actorId, receiptClass, and timestamp) plus prevHash, and prevHash uniquely chains entries (anti-fork). The seq-0 entry's prevHash MUST be the BioStack genesis constant sha256:genesis (SpineChain.GenesisPreviousHash). receiptRef is required and MUST be a URI: keon://receipt/{id} when Keon-anchored, or a distinct local unanchored scheme (never keon://, never a bare id). epochRef stays null until S11 epoch anchoring lands.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["seq", "prevHash", "receiptRef", "correlationId", "entryHash", "epochRef", "tenantId", "receiptClass", "actorId", "timestamp"],
+  "properties": {
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic sequence number within this tenant's chain. Genesis entry is seq 0 (SpineChain.GenesisSequenceNumber)."
+    },
+    "prevHash": {
+      "type": "string",
+      "pattern": "^(sha256:[a-f0-9]{64}|sha256:genesis)$",
+      "description": "Previous entry's entryHash in sha256:<hex> form. GENESIS: the seq-0 entry's prevHash MUST be the BioStack genesis constant sha256:genesis (SpineChain.GenesisPreviousHash); every later entry's prevHash MUST equal its predecessor's entryHash."
+    },
+    "receiptRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9+.-]*://\\S+$",
+      "description": "Anchored receipt reference (required). keon://receipt/{id} when Keon-anchored; a distinct local scheme such as marketops://unanchored-receipt/{id} for unanchored provenance rows (mirrors biostack://unanchored-receipt/)."
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "MarketOps correlation id threading this entry back to the gateway call and originating effect (PublishPacket.correlationId)."
+    },
+    "entryHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Chain hash for this entry in sha256:<hex> form (mirrors the SpineChain.ComputeEntryHash / RuntimeReceiptFactory.HashSeed output shape), recomputed by the S11 verifier over the governed fields (including actorId, receiptClass, and timestamp) plus prevHash. Fixture values are illustrative placeholders, not verifier outputs."
+    },
+    "epochRef": {
+      "type": ["string", "null"],
+      "description": "Cortex epoch anchor reference. Null until S11 epoch anchoring lands; verifiers must accept null, not treat it as a broken chain."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. A ledger chain seals evidence for exactly one tenant; multi-tenant chains are forbidden."
+    },
+    "receiptClass": {
+      "type": "string",
+      "pattern": "^(legacy\\.unclassified|[a-z0-9]+(\\.[a-z0-9-]+){2})$",
+      "description": "Taxonomy class in family.subject.action form (mirrors SpineEntry.ReceiptClass, hashed into entryHash via SpineChain.ComputeEntryHash; legacy.unclassified is accepted for backfilled rows only, never issued by new code). MarketOps reserved-not-wired catalog (see KEON_RECEIPT_CLASS_CATALOG in src/lib/keon/types.ts): campaign.publish.*, approval.*, billing.*, browseahead.scan.*, ledger.entry.* — reserved pending S8-S13 wiring; fixtures may illustrate reserved classes but live code issues none until wired."
+    },
+    "actorId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who initiated the governed effect (user:{guid} or system:{component}). Mirrors ReceiptActor ActorId and SpineEntry.ActorId, hashed into entryHash via SpineChain.ComputeEntryHash."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp of the governed effect (ISO-8601). Mirrors DecisionReceipt.TimestampUtc and SpineEntry.TimestampUtc, hashed into entryHash via SpineChain.ComputeEntryHash."
+    }
+  }
+}

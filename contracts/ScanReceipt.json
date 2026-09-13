@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ScanReceipt",
+  "description": "S13 BrowseAhead scan receipt (contract-first, MVP raw-only): records a web-sourced scan over caller bytes with a severity band and an ingestion hint. Sanitized-bundle-only ingestion: only the sanitized bundle (sanitizedBundleHash) is eligible for ingestion; raw bytes (rawContentHash) are quarantine/forensics only and are never ingested. scan.mode is const raw until S13 wires further modes; signature is null until the live signer lands (deferred signing: null means unsigned, not invalid).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scan", "severity", "ingestionHint", "sanitizedBundleHash", "rawContentHash", "canonicalSha256", "signature", "tenantId", "actorId", "correlationId", "scannedAtUtc"],
+  "properties": {
+    "scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "provenance", "policyVersion"],
+      "properties": {
+        "mode": {
+          "const": "raw",
+          "description": "MVP raw-only scan mode. Any other mode is rejected until S13 wires it."
+        },
+        "provenance": {
+          "type": "string",
+          "enum": ["caller_supplied", "fetched"],
+          "description": "Byte provenance. caller_supplied: the scanned bytes came from the caller (customer-finder/citation path input). fetched: the gateway fetched the URL itself, in which case sourceUri is required. fetched-provenance on caller bytes is rejected: callers must declare caller_supplied."
+        },
+        "policyVersion": {
+          "type": "string",
+          "minLength": 1,
+          "description": "BrowseAhead policy version applied, e.g. browseahead-policy.v1."
+        },
+        "sourceUri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Where the bytes were fetched from. Required when provenance is fetched."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "provenance": { "const": "fetched" } } },
+          "then": { "required": ["sourceUri"] }
+        }
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high", "critical"],
+      "description": "Severity band for the scan finding."
+    },
+    "ingestionHint": {
+      "type": "string",
+      "enum": ["allow", "quarantine", "fail_closed"],
+      "description": "Downstream ingestion directive: allow (ingest sanitized bundle), quarantine (hold for review), fail_closed (block the dependent effect; beta stays fail-closed)."
+    },
+    "sanitizedBundleHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the sanitized bundle eligible for ingestion, in sha256:<hex> form (mirrors RuntimeReceiptFactory.HashSeed output shape). Only sanitized bytes ingest."
+    },
+    "rawContentHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the pre-sanitization bytes, in sha256:<hex> form. Quarantine/forensics only; never ingested."
+    },
+    "canonicalSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "MarketOps canonical hash (bare hex) of the canonical scan record."
+    },
+    "signature": {
+      "type": ["object", "null"],
+      "description": "Deferred-signing note: null in MVP (no live signer yet); null means unsigned, not invalid. Populated once S13 wires the live signer.",
+      "additionalProperties": false,
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 },
+        "signedAtUtc": { "type": "string", "format": "date-time" }
+      }
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical tenant key. Scan receipts are tenant-scoped; cross-tenant scan state must never leak."
+    },
+    "actorId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Actor the scan ran for (user:{guid} or system:{component}); tenant bind stays in tenantId."
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "MarketOps correlation id threading this scan into downstream receipts (PublishPacket.correlationId; the FUTURE S8 adapter maps this to gateway correlation_id on the wire, never the contracts)."
+    },
+    "scannedAtUtc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scan timestamp in UTC (ISO-8601)."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ingestionHint": { "const": "fail_closed" } } },
+      "then": { "properties": { "severity": { "enum": ["high", "critical"] } } }
+    }
+  ]
+}

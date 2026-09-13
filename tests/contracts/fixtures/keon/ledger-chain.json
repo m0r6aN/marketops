@@ -1,0 +1,38 @@
+[
+  {
+    "seq": 0,
+    "prevHash": "sha256:genesis",
+    "receiptRef": "keon://receipt/dec-9f02ab41c7",
+    "correlationId": "t:tenant-keon|c:publish-001",
+    "entryHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "epochRef": null,
+    "tenantId": "tenant-keon",
+    "receiptClass": "ledger.entry.appended",
+    "actorId": "user:3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "timestamp": "2026-09-12T14:30:00Z"
+  },
+  {
+    "seq": 1,
+    "prevHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "receiptRef": "keon://receipt/req-rev-4b08c1d2e5",
+    "correlationId": "t:tenant-keon|c:publish-002",
+    "entryHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "epochRef": null,
+    "tenantId": "tenant-keon",
+    "receiptClass": "campaign.publish.completed",
+    "actorId": "user:3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "timestamp": "2026-09-12T14:31:00Z"
+  },
+  {
+    "seq": 2,
+    "prevHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "receiptRef": "marketops://unanchored-receipt/7f3a9c1e5b2d4a8f9e0c1d3b5a69788",
+    "correlationId": "t:tenant-keon|c:safety-note-003",
+    "entryHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "epochRef": null,
+    "tenantId": "tenant-keon",
+    "receiptClass": "ledger.entry.appended",
+    "actorId": "system:safety-monitor",
+    "timestamp": "2026-09-12T14:32:00Z"
+  }
+]

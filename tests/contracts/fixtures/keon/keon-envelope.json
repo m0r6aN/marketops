@@ -1,0 +1,24 @@
+{
+  "correlationId": "gw-2026-09-13-0001",
+  "tool": "keon.policy.check.v1",
+  "ok": true,
+  "status": "ok",
+  "decision": {
+    "policyDecision": "allowed",
+    "status": "authorize",
+    "policyHash": {
+      "value": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "version": "claim-policy.v1"
+    }
+  },
+  "result": {
+    "tenantId": "tenant-keon",
+    "subjectUri": "campaign:cmp-keon-launch-001/publish",
+    "note": "authorized against claim-policy.v1; receipt cited downstream"
+  },
+  "receipts": [
+    "keon://receipt/dec-9f02ab41c7",
+    "keon://receipt/scan-7c11e0a9d2"
+  ],
+  "isError": false
+}

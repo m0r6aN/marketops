@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KeonEnvelope",
+  "description": "Canonical MCP Gateway response envelope for Keon tool calls (S8, contract-first for S8-S13). Contract fields are camelCase (correlationId, policyHash); the FUTURE S8 adapter maps them to the snake_case gateway wire form (correlation_id, policy_hash) — never the contracts. isError mirrors the MCP CallToolResult boolean from the marketops-mcp tool surface. The gateway names the producing tool in `tool` (today the transport exposes docs_as_marketing_review; Keon tools arrive as keon.* — e.g. keon.policy.check.v1, keon.browseahead.scan.v1). correlationId threads into MarketOps receipts as correlationId (PublishPacket.correlationId). Policy denial is status=denied with denial fields (mirrors GateResult); transport failure is isError=true; effect-bearing paths fail closed on either.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["correlationId", "tool", "ok", "status", "decision", "receipts", "isError"],
+  "properties": {
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Gateway id for this call. Threaded into MarketOps receipts as correlationId; every downstream receipt cites it."
+    },
+    "tool": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Keon gateway tool that produced this envelope, e.g. keon.policy.check.v1, keon.browseahead.scan.v1."
+    },
+    "ok": {
+      "type": "boolean",
+      "description": "True iff status is ok. Gateway-level success; distinct from transport isError."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "denied", "error"],
+      "description": "Outcome class: ok (authorized), denied (policy denial, denial fields required), error (transport/effect failure, fail-closed for effect-bearing paths)."
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyDecision", "status", "policyHash"],
+      "properties": {
+        "policyDecision": {
+          "type": "string",
+          "enum": ["allowed", "allowed-with-disclaimer", "rewrite-required", "blocked", "escalate-to-provider-review"],
+          "description": "Native BioStack PolicyDecision on the HTTP wire (PolicyGateEndpoints.DecisionString). REQUIRED: 'status' is derived from this field via the documented mapping, never substituted for it."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["authorize", "deny", "require-review"],
+          "description": "DERIVED gateway decision: allowed/allowed-with-disclaimer -> authorize; blocked -> deny; rewrite-required/escalate-to-provider-review -> require-review. Must equal the mapping for the accompanying policyDecision (enforced below)."
+        },
+        "policyHash": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "version"],
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Policy content hash. Zeroed-hash markers ('unanchored-local', 'local-classifier-v0', 'ERROR') are never real policy versions and never accompany an anchored keon:// receipt."
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Policy version, e.g. claim-policy.v1. Every zeroed-hash marker carries version '0.0.0' (marker identity lives in the value, never the version)."
+            }
+          },
+          "description": "Mirrors BioStack PolicyHash(Value, Version)."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "policyDecision": { "const": "allowed" } } },
+          "then": { "properties": { "status": { "const": "authorize" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "allowed-with-disclaimer" } } },
+          "then": { "properties": { "status": { "const": "authorize" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "rewrite-required" } } },
+          "then": { "properties": { "status": { "const": "require-review" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "blocked" } } },
+          "then": { "properties": { "status": { "const": "deny" } } }
+        },
+        {
+          "if": { "properties": { "policyDecision": { "const": "escalate-to-provider-review" } } },
+          "then": { "properties": { "status": { "const": "require-review" } } }
+        }
+      ]
+    },
+    "result": {
+      "type": "object",
+      "description": "Tool-specific result payload on authorize/require-review. Absent on denials and errors. For allowed-with-disclaimer outcomes the disclaimer text travels here; the durable disclaimer record lives on the KeonDecision receipt shape."
+    },
+    "denialCode": {
+      "type": "string",
+      "description": "Machine-readable denial code. Required when decision.policyDecision is blocked (mirrors GateResult.denialCode)."
+    },
+    "denialMessage": {
+      "type": "string",
+      "description": "Human-readable denial summary. Required when decision.policyDecision is blocked (mirrors GateResult.denialMessage)."
+    },
+    "failureStage": {
+      "type": "string",
+      "enum": ["precheck", "decision", "hash", "audit", "evidence-pack", "verify", "exception"],
+      "description": "Pipeline stage that failed (mirrors the GateResult.failureStage enum)."
+    },
+    "receipts": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9+.-]*://\\S+$" },
+      "description": "Decision/scan receipt URIs evidencing this call: keon://receipt/{id} when Keon-anchored, otherwise a distinct local unanchored scheme (never keon://). Mirrors DecisionReceipt.ReceiptUri."
+    },
+    "isError": {
+      "type": "boolean",
+      "description": "Mirrors the MCP CallToolResult isError boolean from the marketops-mcp tool surface (unknown_tool, invalid_input, llm_failure, ...). Transport-level failure; distinct from policy denial (status denied, ok false, isError false)."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": true } } },
+      "then": { "properties": { "status": { "const": "ok" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "ok" } } },
+      "then": { "properties": { "ok": { "const": true } } }
+    },
+    {
+      "if": { "properties": { "decision": { "properties": { "policyDecision": { "const": "blocked" } } } }, "required": ["decision"] },
+      "then": { "required": ["denialCode", "denialMessage"] }
+    }
+  ]
+}

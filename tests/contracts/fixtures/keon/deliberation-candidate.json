@@ -1,0 +1,31 @@
+{
+  "candidate": {
+    "branch": "branch-b",
+    "collapseRef": "collapse:round-014",
+    "rationale": "Branch B keeps the throughput claim but scopes it to dry_run proofpack exports, which the sealed fixtures support."
+  },
+  "challenges": [
+    {
+      "challenge": "Throughput figure lacks a prod-mode run; dry_run only.",
+      "raisedBy": "reviewer:adversarial-01",
+      "severity": "high"
+    },
+    {
+      "challenge": "Rationale assumes the tenant is public_safe; verify roster flag.",
+      "raisedBy": "reviewer:adversarial-02",
+      "severity": "medium"
+    }
+  ],
+  "dissent": "Reviewer 03 dissents: prefers withholding the claim until a prod-mode proofpack seals it, even scoped.",
+  "confidence": {
+    "value": 0.62,
+    "calibrationVersion": "calib.v3"
+  },
+  "heatRef": "heat:round-014",
+  "lineage": {
+    "intentId": "intent:throughput-claim-007",
+    "collapseId": "collapse:round-014",
+    "reviewId": "review:claim-007-r2"
+  },
+  "tenantId": "tenant-keon"
+}
