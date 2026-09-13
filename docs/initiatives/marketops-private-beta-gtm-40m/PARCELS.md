@@ -23,5 +23,5 @@ package.json/lockfile, next.config.ts, src/app/layout.tsx, src/components/app-sh
 Resolved by merge order (#25 then rebased #24). No residual collision.
 
 | w2-tenant-wire | W2 | feat/w2-tenant-wire | (pruned) | merged (#27) | High |
-| w2-billing-wire | W2 | feat/w2-billing-wire | C:\Repos\MarketOps.w2-billing-wire | in-review (#30) | Medium |
-| w2-claim-approval-wire | W2 | feat/w2-claim-approval-wire | pending | proposed (blocked on billing wire) | Medium |
+| w2-billing-wire | W2 | feat/w2-billing-wire | (pruned) | merged (#30) | Medium |
+| w2-claim-approval-wire | W2 | feat/w2-claim-approval-wire | C:\Repos\MarketOps.w2-claim-approval-wire | in-review (#33) | Medium |

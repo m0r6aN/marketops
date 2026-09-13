@@ -18,3 +18,6 @@
 | d-initiative-tenancy | Shared read-only catalog + tenant-scoped writes; enforcement in h-catalog-readonly | decided | product |
 | h-entitlement-store | DB-backed entitlement store (replace static roster) queued | open | coordinator |
 | h-webhook-signature | Live webhook signature verification queued | open | coordinator |
+| d-receipt-canon | Claim receipts live in additive persuasion tables mapped to Receipt/ApprovalState; needs canon confirmation | open | coordinator |
+| d-approval-entitlement | Whether claim approval sits behind approval-workflow entitlement | open | product |
+| db-migrate-claim-tables | PG migration for claim_decision_receipts + claim_approvals queued (blocks beta PG) | open | coordinator |
