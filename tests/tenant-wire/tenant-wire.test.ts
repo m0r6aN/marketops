@@ -4,7 +4,7 @@
  * - Guard: session↔row match allows, mismatch denies (401/403 vocabulary).
  * - Repository predicates: getRowTenantId / requireRowTenantMatch /
  *   isRowVisibleToTenant across the tenant-scoped repositories.
- * - Migrations: 001-005 apply in numeric order with checksums (migrate.ts
+ * - Migrations: all apply in numeric order with checksums (migrate.ts
  *   conventions); checksum divergence still refuses.
  * - Per-tenant UNIQUEs: 004 converts the exact global UNIQUEs audited from 002
  *   to composite UNIQUE(tenant_id, ...); sqlite-equivalent DDL proves
@@ -188,16 +188,14 @@ class MockExecutor implements MigrationExecutor {
 }
 
 describe("tenant-wire migrations", () => {
-  test("001-005 apply in numeric order with sha256 checksums", async () => {
+  test("migrations apply in numeric order with sha256 checksums", async () => {
     const files = listMigrationFiles(getMigrationsDir());
-    expect(files.map((file) => file.version)).toEqual([
-      "001",
-      "002",
-      "003",
-      "004",
-      "005",
-    ]);
-    expect(files.map((file) => file.fileName)).toEqual([
+    const versions = files.map((file) => file.version);
+    // Ordered, unique versions — tolerant of new migrations (006+) so
+    // billing-wire-style additions never break this (mirrors f9a5a6d).
+    expect(versions).toEqual([...versions].sort());
+    expect(new Set(versions).size).toBe(versions.length);
+    expect(files.slice(0, 5).map((file) => file.fileName)).toEqual([
       "001_tenants-and-bookkeeping.sql",
       "002_core-schema.sql",
       "003_rls-policies.sql",
@@ -211,11 +209,11 @@ describe("tenant-wire migrations", () => {
 
     const executor = new MockExecutor();
     const result = await applyMigrations(executor, getMigrationsDir());
-    expect(result).toEqual({ applied: ["001", "002", "003", "004", "005"] });
+    expect(result).toEqual({ applied: versions });
     const recorded = executor.queries
       .filter((query) => query.text.includes("INSERT INTO schema_migrations"))
       .map((query) => query.params?.[0]);
-    expect(recorded).toEqual(["001", "002", "003", "004", "005"]);
+    expect(recorded).toEqual(versions);
 
     // Re-run is a no-op while checksums match.
     await expect(applyMigrations(executor, getMigrationsDir())).resolves.toEqual({
