@@ -14,3 +14,8 @@
 - Open: d-consent-mapping, d-suppression-tenant, d-ed25519-fallback, d-unique-scope, d-initiative-tenancy. Collision: #24 vs #25 lockfile — merge #22→#23→#25→#24-with-rebase.
 - Next: merge batch, W2 assembly (tenant/billing/claim wires, serialized).
 - Do not touch: foreign edgeless-co-etsy-launch/, assets/, *.patch.
+
+## 2026-09-12 — rulings + w2-tenant-wire (coordinator)
+- All 5 rulings recorded (suppression per-tenant, consent mapped fail-closed, Ed25519 fail-close, per-tenant UNIQUEs, shared-read-only catalog).
+- W1 8/8 merged; w1-merged gate passing. w2-tenant-wire (#27, 35 paths) in review; fixed its migration-test drift via #28 (ordering test now addition-tolerant).
+- Queued H: h-consent-mapping, h-ed25519-failclosed, h-catalog-readonly. Next: merge #28+#27, dispatch w2-billing-wire (serialized).

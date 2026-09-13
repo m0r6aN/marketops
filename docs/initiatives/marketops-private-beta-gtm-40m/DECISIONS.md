@@ -11,8 +11,8 @@
 | d-lockfile | Lock synced via #17; W1 branches rebased as needed | decided | coordinator |
 | d-beta-hero-path | Hero at src/app/beta/page.tsx → /beta (#22); (beta)/ group unshippable | decided | coordinator |
 | d-pg-deps | pg/@types/pg (#25), @azure/* + KeyVault.Secrets (#24) approved; no other W1 package changes | decided | coordinator |
-| d-consent-mapping | Campaign consentBasis → ComplianceCheck consentBasis mapping unruled; callers supply explicitly | open | product |
-| d-suppression-tenant | Suppression store lacks tenant column vs contract non-leak requirement | open | coordinator |
-| d-ed25519-fallback | Ed25519Signer ephemeral-keypair fallback left as-is; needs Program.cs DI change | open | coordinator |
-| d-unique-scope | Global vs per-tenant UNIQUEs (slugs, fingerprints) | open | product |
-| d-initiative-tenancy | Shared catalog vs per-tenant initiative seeds | open | product |
+| d-consent-mapping | explicit-consent→opt-in; existing-relationship + legitimate-interest-reviewed→legitimate-interest; other-reviewed→none; encode in h-consent-mapping | decided | product |
+| d-suppression-tenant | Per-tenant: tenant_id + backfill + RLS in #27 migration 005 | decided | coordinator |
+| d-ed25519-fallback | Fail-close in beta via Program.cs DI change; H parcel h-ed25519-failclosed | decided | coordinator |
+| d-unique-scope | Per-tenant composite UNIQUEs in #27 migration 004 | decided | product |
+| d-initiative-tenancy | Shared read-only catalog + tenant-scoped writes; enforcement in h-catalog-readonly | decided | product |
