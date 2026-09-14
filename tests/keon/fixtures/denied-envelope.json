@@ -1,0 +1,19 @@
+{
+  "correlationId": "k1-fixture-corr-deny-0001",
+  "tool": "keon.policy.check.v1",
+  "ok": false,
+  "status": "denied",
+  "decision": {
+    "policyDecision": "blocked",
+    "status": "deny",
+    "policyHash": {
+      "value": "sha256:cfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf",
+      "version": "claim-policy.v1"
+    }
+  },
+  "denialCode": "STUB_POLICY_DENY",
+  "denialMessage": "Stub transport denied the effect at the decision stage.",
+  "failureStage": "decision",
+  "receipts": ["keon://receipt/fixturedeny01"],
+  "isError": false
+}

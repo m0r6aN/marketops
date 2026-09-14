@@ -1,0 +1,20 @@
+{
+  "correlationId": "k1-fixture-corr-ok-0001",
+  "tool": "keon.policy.check.v1",
+  "ok": true,
+  "status": "ok",
+  "decision": {
+    "policyDecision": "allowed",
+    "status": "authorize",
+    "policyHash": {
+      "value": "sha256:cfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf",
+      "version": "claim-policy.v1"
+    }
+  },
+  "result": {
+    "tenantId": "tenant-keon",
+    "note": "stub authorize"
+  },
+  "receipts": ["keon://receipt/fixture0k0001"],
+  "isError": false
+}

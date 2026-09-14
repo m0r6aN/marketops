@@ -1,0 +1,20 @@
+{
+  "correlationId": "k1-fixture-corr-rewrite-0001",
+  "tool": "keon.policy.check.v1",
+  "ok": true,
+  "status": "ok",
+  "decision": {
+    "policyDecision": "rewrite-required",
+    "status": "require-review",
+    "policyHash": {
+      "value": "sha256:cfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcf",
+      "version": "claim-policy.v1"
+    }
+  },
+  "result": {
+    "tenantId": "tenant-keon",
+    "rewrittenText": "Stub rewrite: dry-run proofpack exports averaged sealed throughput."
+  },
+  "receipts": ["keon://receipt/fixturerewr01"],
+  "isError": false
+}
