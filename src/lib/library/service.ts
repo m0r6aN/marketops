@@ -6,10 +6,18 @@
  * not the repository directly, when business rules apply.
  */
 import {
+  assembleContextBundle,
+  buildLibraryContextCacheKey,
+  hashAdvisoryContent,
+  type ContextBundle,
+  type ProvenanceUnit,
+} from "@/lib/keon/context";
+import {
     getImportBatch,
     getLatestMarketingReviewSummary,
     getLibraryCounts,
     getLibraryEntry,
+    isRowVisibleToTenant,
     listImportBatches,
     listLibraryEntries,
     listMarketingAssetOpportunitiesByDocument,
@@ -224,4 +232,123 @@ export function flagForPublicPromotion(entryId: string): LibraryEntry {
   // Mark as needs_review so it surfaces in the review queue
   updateLibraryEntry(entryId, { status: "needs_review" });
   return getLibraryEntry(entryId)!;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// k1-context-conformance: advisory-only provenance attachment (bundle boundaries)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Context-Fabric conformance WITHOUT assembly redesign: existing retrieval
+// (listLibraryEntries / listPublicAutomationApproved / getCanonView) is left
+// untouched; provenance units + advisory marking are attached HERE at bundle
+// boundaries via the pure keon/context harness.
+//
+// Provenance mapping (what entries carry today):
+// - sourceDocumentId, importBatchId, initiativeSlug, sourceQuote,
+//   sourceLocation ("chunk N of M"), modelUsed, createdAt/updatedAt;
+//   ingest-level contentHash lives on SourceDocument (parser.hashContent).
+// - Per-entry sha256: contentHash, retrievedAtUtc, tenantId, actorId are NOT
+//   stored rows — they are BOUND HERE at retrieval: tenantId is the caller's
+//   session tenant (rows predate tenant_id; isRowVisibleToTenant keeps legacy
+//   rows visible locally and PG rows predicate-scoped), retrievedAtUtc is now,
+//   contentHash binds the advisory excerpt, actorId mirrors reviewedBy when set.
+// - No dedicated cache exists on library paths (only Next revalidatePath);
+//   libraryContextCacheKey exposes the REQUIRED tenant-scoped shape for any
+//   future cache. Retrieval itself is tenant-scoped via the tenantId param +
+//   isRowVisibleToTenant filter before assembly (defense in depth: the harness
+//   re-checks tenant inside assembleContextBundle and throws cross-tenant).
+//
+// Bundles are advisory context only (advisoryOnly: true at TYPE level) and
+// must never be treated as authority: automation-approved entries pass the 8
+// public-safety gates but carry NO claim verdict — persuasion-review
+// decideClaimApply + content-workspace validation remain mandatory downstream.
+
+/** Canonical advisory text bound by a unit (canon statement preferred). */
+export function canonicalContentForLibraryEntry(entry: LibraryEntry): string {
+  return (
+    entry.canonicalStatement ??
+    entry.copyText ??
+    entry.content ??
+    ""
+  ).trim();
+}
+
+/**
+ * Bind a single LibraryEntry to a provenance unit for the given tenant.
+ * Pure + surgical: no schema change, no behavior change to existing callers.
+ */
+export function libraryEntryToProvenanceUnit(
+  entry: LibraryEntry,
+  tenantId: string,
+  opts?: { retrievedAtUtc?: string; actorId?: string; contentHash?: string },
+): ProvenanceUnit {
+  if (!tenantId || !tenantId.trim()) {
+    throw new Error("libraryEntryToProvenanceUnit requires a tenantId.");
+  }
+  const content = canonicalContentForLibraryEntry(entry);
+  const excerpt = (content || entry.title).slice(0, 1_000);
+  return {
+    sourceId: entry.id,
+    contentHash: opts?.contentHash ?? hashAdvisoryContent(content || entry.id),
+    retrievedAtUtc: opts?.retrievedAtUtc ?? new Date().toISOString(),
+    tenantId: tenantId.trim(),
+    ...(opts?.actorId ?? entry.reviewedBy
+      ? { actorId: (opts?.actorId ?? entry.reviewedBy) as string }
+      : {}),
+    kind: entry.entryType,
+    title: entry.title,
+    excerpt,
+    initiativeSlug: entry.initiativeSlug ?? null,
+  };
+}
+
+/** Tenant-scoped cache-key shape any future library-context cache must use. */
+export function libraryContextCacheKey(
+  tenantId: string,
+  scope: string,
+  correlationId?: string,
+): string {
+  return buildLibraryContextCacheKey(tenantId, scope, correlationId);
+}
+
+/**
+ * Canon bundle boundary: approved/listed canon entries as advisory context.
+ * Tenant-scoped (param + row-visibility filter), deterministically assembled,
+ * fail-closed on unverifiable/cross-tenant units.
+ */
+export function getCanonContextBundle(
+  tenantId: string,
+  correlationId: string,
+  filters: Omit<LibraryEntryFilters, "entryType"> = {},
+): ContextBundle {
+  const entries = getCanonView(filters).filter((entry) =>
+    isRowVisibleToTenant(tenantId, entry),
+  );
+  return assembleContextBundle({
+    candidates: entries.map((entry) =>
+      libraryEntryToProvenanceUnit(entry, tenantId),
+    ),
+    tenantId,
+    correlationId,
+  });
+}
+
+/**
+ * Automation-approved bundle boundary: public-safety-gated entries as
+ * ADVISORY context (NOT an authorization — claim gates still apply downstream).
+ */
+export function getAutomationApprovedContextBundle(
+  tenantId: string,
+  correlationId: string,
+): ContextBundle {
+  const entries = getAutomationApprovedEntries().filter((entry) =>
+    isRowVisibleToTenant(tenantId, entry),
+  );
+  return assembleContextBundle({
+    candidates: entries.map((entry) =>
+      libraryEntryToProvenanceUnit(entry, tenantId),
+    ),
+    tenantId,
+    correlationId,
+  });
 }

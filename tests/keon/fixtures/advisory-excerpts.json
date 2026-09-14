@@ -1,0 +1,23 @@
+{
+  "note": "Advisory-only fixture: sample excerpts bound by the k1 context-conformance harness. Hashes are computed at test time via hashAdvisoryContent (sha256:<hex>); no receipt/authorization fields appear here by design.",
+  "tenantA": "tenant-acme",
+  "tenantB": "tenant-other",
+  "correlationId": "corr-conformance-001",
+  "scope": "canon",
+  "excerpts": [
+    {
+      "sourceId": "entry-canon-001",
+      "kind": "canon",
+      "title": "Platform receipts",
+      "excerpt": "Canon statement: the platform records a receipt for every governed effect.",
+      "initiativeSlug": "keon-systems"
+    },
+    {
+      "sourceId": "entry-canon-002",
+      "kind": "canon",
+      "title": "Evidence before publish",
+      "excerpt": "Canon statement: no publish occurs without attributable evidence and review.",
+      "initiativeSlug": "keon-systems"
+    }
+  ]
+}
