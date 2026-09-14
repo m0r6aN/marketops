@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 
 import type { Initiative } from "@/lib/initiatives";
 import { getSourceDefinition } from "@/lib/customer-finder/sources";
+import type { ScanIntakeOutcome, ScannerPort } from "@/lib/keon/scan";
+import { isBlockedOutcome, requestScan, scanReceiptRefs, toIngestibleEvidence } from "@/lib/keon/scan";
+import type { ScanReceipt } from "@/lib/keon/types";
 import type {
   CandidateProvenance,
   DiscoveredCandidate,
@@ -385,12 +388,19 @@ export async function processCompanyWebsiteSeeds(params: {
   targetDescription: string;
   fetchImpl?: typeof fetch;
   nowIso: string;
-}): Promise<{ status: DiscoverySourceProcessingStatus; candidates: DiscoveredCandidate[]; errorMessage?: string }> {
+  scan?: ScanIntakeOptions;
+}): Promise<{
+  status: DiscoverySourceProcessingStatus;
+  candidates: DiscoveredCandidate[];
+  quarantined: QuarantinedCandidate[];
+  errorMessage?: string
+}> {
   const seeds = parseSeedLines(params.sourceRun.inputText);
   if (seeds.length === 0) {
     return {
       status: "failed",
       candidates: [],
+      quarantined: [],
       errorMessage: "Seed URLs are required for company website processing in this release.",
     };
   }
@@ -461,13 +471,38 @@ export async function processCompanyWebsiteSeeds(params: {
     return {
       status: failures.length > 0 ? "failed" : "empty",
       candidates,
+      quarantined: [],
+      errorMessage: failures.join("; ") || "No matching candidates were discovered from the supplied website seeds.",
+    };
+  }
+
+  // k1-browseahead-intake: optional sanitized-only scan gate. Scanned
+  // evidence persists as the sanitized bundle text plus receipt refs;
+  // high/critical findings quarantine (fail closed) instead of ingesting.
+  let ingestible = candidates;
+  let quarantined: QuarantinedCandidate[] = [];
+  if (params.scan) {
+    const screened = await applyScanIntakeToCandidates(candidates, params.scan);
+    ingestible = screened.ingestible;
+    quarantined = screened.quarantined;
+    for (const item of quarantined) {
+      failures.push(`Quarantined ${item.candidate.displayName}: ${item.reason}`);
+    }
+  }
+
+  if (ingestible.length === 0) {
+    return {
+      status: failures.length > 0 ? "failed" : "empty",
+      candidates: ingestible,
+      quarantined,
       errorMessage: failures.join("; ") || "No matching candidates were discovered from the supplied website seeds.",
     };
   }
 
   return {
     status: "completed",
-    candidates,
+    candidates: ingestible,
+    quarantined,
     errorMessage: failures.length > 0 ? failures.join("; ") : undefined,
   };
 }
@@ -477,7 +512,13 @@ export async function processGithubSource(params: {
   targetDescription: string;
   fetchImpl?: typeof fetch;
   nowIso: string;
-}): Promise<{ status: DiscoverySourceProcessingStatus; candidates: DiscoveredCandidate[]; errorMessage?: string }> {
+  scan?: ScanIntakeOptions;
+}): Promise<{
+  status: DiscoverySourceProcessingStatus;
+  candidates: DiscoveredCandidate[];
+  quarantined: QuarantinedCandidate[];
+  errorMessage?: string
+}> {
   const fetchImpl = params.fetchImpl ?? fetch;
   const seeds = parseSeedLines(params.sourceRun.inputText);
   const query = buildGithubQuery(params.targetDescription, seeds);
@@ -498,6 +539,7 @@ export async function processGithubSource(params: {
       return {
         status: "failed",
         candidates: [],
+        quarantined: [],
         errorMessage: `GitHub search returned ${response.status}.`,
       };
     }
@@ -522,6 +564,7 @@ export async function processGithubSource(params: {
       return {
         status: "empty",
         candidates: [],
+        quarantined: [],
         errorMessage: "GitHub returned no repository matches for this target description.",
       };
     }
@@ -569,11 +612,33 @@ export async function processGithubSource(params: {
       } satisfies DiscoveredCandidate;
     });
 
-    return { status: "completed", candidates };
+    // k1-browseahead-intake: optional sanitized-only scan gate (see
+    // processCompanyWebsiteSeeds). Quarantined candidates never ingest.
+    if (params.scan) {
+      const screened = await applyScanIntakeToCandidates(candidates, params.scan);
+      if (screened.quarantined.length === 0) {
+        return { status: "completed", candidates: screened.ingestible, quarantined: [] };
+      }
+      const reasons = screened.quarantined
+        .map((item) => `Quarantined ${item.candidate.displayName}: ${item.reason}`)
+        .join("; ");
+      if (screened.ingestible.length === 0) {
+        return { status: "failed", candidates: [], quarantined: screened.quarantined, errorMessage: reasons };
+      }
+      return {
+        status: "completed",
+        candidates: screened.ingestible,
+        quarantined: screened.quarantined,
+        errorMessage: reasons,
+      };
+    }
+
+    return { status: "completed", candidates, quarantined: [] };
   } catch (error) {
     return {
       status: "failed",
       candidates: [],
+      quarantined: [],
       errorMessage: error instanceof Error ? error.message : "GitHub processing failed.",
     };
   }
@@ -584,24 +649,52 @@ export async function processSelectedSource(params: {
   targetDescription: string;
   nowIso: string;
   fetchImpl?: typeof fetch;
+  scan?: ScanIntakeOptions;
 }) {
   if (!params.sourceRun.selected) {
-    return { status: "pending" as const, candidates: [] };
+    return { status: "pending" as const, candidates: [], quarantined: [] };
   }
 
   if (params.sourceRun.supportLevel === "unsupported") {
     return {
       status: "unsupported" as const,
       candidates: [],
+      quarantined: [],
       errorMessage: params.sourceRun.availabilityNote || "Source is approved but unavailable in this release.",
     };
   }
 
   if (params.sourceRun.sourceId === "manual_csv") {
     const candidates = mapCsvRowsToCandidates(params.sourceRun.inputText || "", params.nowIso);
+    // k1-browseahead-intake: CSV intake stays sync; the async scan gate
+    // applies here (shared helper) without redesigning the mapper.
+    if (params.scan) {
+      const screened = await applyScanIntakeToCandidates(candidates, params.scan);
+      if (screened.quarantined.length === 0) {
+        return {
+          status: screened.ingestible.length > 0 ? ("completed" as const) : ("empty" as const),
+          candidates: screened.ingestible,
+          quarantined: [],
+          errorMessage:
+            screened.ingestible.length === 0
+              ? "Manual CSV input was empty or did not contain candidate rows."
+              : undefined,
+        };
+      }
+      const reasons = screened.quarantined
+        .map((item) => `Quarantined ${item.candidate.displayName}: ${item.reason}`)
+        .join("; ");
+      return {
+        status: screened.ingestible.length > 0 ? ("completed" as const) : ("failed" as const),
+        candidates: screened.ingestible,
+        quarantined: screened.quarantined,
+        errorMessage: reasons,
+      };
+    }
     return {
       status: candidates.length > 0 ? ("completed" as const) : ("empty" as const),
       candidates,
+      quarantined: [],
       errorMessage:
         candidates.length === 0 ? "Manual CSV input was empty or did not contain candidate rows." : undefined,
     };
@@ -618,6 +711,7 @@ export async function processSelectedSource(params: {
   return {
     status: "unsupported" as const,
     candidates: [],
+    quarantined: [],
     errorMessage: params.sourceRun.availabilityNote || "Source is not yet supported.",
   };
 }
@@ -683,4 +777,93 @@ export function toSourceRun(params: {
     inputText: params.inputText,
     resultCount: 0,
   } satisfies DiscoverySourceRun;
+}
+
+// ── k1-browseahead-intake: sanitized-only scan gate ─────────────────────────
+// Minimal intake wiring: discovered candidates pass through requestScan via
+// the injected port (stub now, gateway later). Allowed findings ingest as
+// the sanitized bundle text plus hash-only receipt refs; high/critical
+// findings (or scan errors) quarantine fail-closed and never ingest. Raw
+// excerpts are never persisted on the scanned path: evidence fields are
+// replaced with toIngestibleEvidence(bundle), which accepts SanitizedBundle
+// only, and the raw bytes survive solely as the rawContentHash ref.
+
+export type ScanIntakeContext = {
+  tenantId: string;
+  actorId: string;
+  correlationId: string;
+  policyVersion?: string;
+};
+
+export type ScanIntakeOptions = {
+  port: ScannerPort;
+  context: ScanIntakeContext;
+};
+
+export type QuarantinedCandidate = {
+  candidate: DiscoveredCandidate;
+  /** Blocking receipt when the scan completed; null when the scan itself errored. */
+  receipt: ScanReceipt | null;
+  reason: string;
+};
+
+export type ScanScreenedCandidates = {
+  ingestible: DiscoveredCandidate[];
+  quarantined: QuarantinedCandidate[];
+};
+
+export async function applyScanIntakeToCandidates(
+  candidates: DiscoveredCandidate[],
+  scan: ScanIntakeOptions
+): Promise<ScanScreenedCandidates> {
+  const ingestible: DiscoveredCandidate[] = [];
+  const quarantined: QuarantinedCandidate[] = [];
+
+  for (const candidate of candidates) {
+    let outcome: ScanIntakeOutcome;
+    try {
+      outcome = await requestScan(
+        {
+          content: candidate.verifiedEvidence,
+          tenantId: scan.context.tenantId,
+          actorId: scan.context.actorId,
+          correlationId: scan.context.correlationId,
+          policyVersion: scan.context.policyVersion,
+        },
+        scan.port
+      );
+    } catch (error) {
+      // Fail closed per item: a scan error quarantines the candidate rather
+      // than ingesting unscanned evidence or inventing a replacement.
+      quarantined.push({
+        candidate,
+        receipt: null,
+        reason: error instanceof Error ? error.message : "Scan failed without a receipt.",
+      });
+      continue;
+    }
+
+    if (isBlockedOutcome(outcome) || outcome.bundle === null) {
+      quarantined.push({
+        candidate,
+        receipt: outcome.receipt,
+        reason: outcome.blockReason ?? "Scan blocked ingestion.",
+      });
+      continue;
+    }
+
+    const evidence = toIngestibleEvidence(outcome.bundle);
+    const refs = scanReceiptRefs(outcome.receipt);
+    ingestible.push({
+      ...candidate,
+      verifiedEvidence: evidence,
+      provenance: candidate.provenance.map((item) => ({
+        ...item,
+        evidenceText: evidence,
+        scanReceiptRefs: refs,
+      })),
+    });
+  }
+
+  return { ingestible, quarantined };
 }
