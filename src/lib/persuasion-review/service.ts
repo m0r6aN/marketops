@@ -1,5 +1,11 @@
 import type { ContentClaimFinding, ContentVersionInput, ContentVersionRecord } from "@/lib/content-workspace/types";
 import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
+import {
+  capClaimVerdictForDeliberation as capVerdictForDeliberationCandidate,
+  hasAdversarialReview as hasDeliberationReviewState,
+  toClaimEvidence as projectDeliberationClaimEvidence,
+} from "@/lib/keon/deliberation";
+import type { DeliberationCandidate } from "@/lib/keon/types";
 import type {
   ClaimDecisionVerdict,
   ClaimGateDenialCode,
@@ -445,4 +451,78 @@ export function decideClaimApply(input: {
     verdict: "safe",
     rationale: `Safe apply: no avoided or needs-proof claim findings on the review or suggested revision. [${CLAIM_POLICY_VERSION}]`,
   };
+}
+
+// ── k2-deliberation-evidence (S10): deliberation as claim-review EVIDENCE ───
+// Doctrine: deliberation produces CANDIDATES, never execution authority;
+// confidence is information, never authority. These helpers are ADDITIVE:
+// they let the persuasion-review creation path attach deliberation evidence
+// as uncertainty material (evidence refs for decideClaimApply inputs and
+// decision receipts). They never grant approval, never change thresholds,
+// and never substitute for the recorded human approval at the apply gate.
+
+/**
+ * Evidence-safe refs for an accepted deliberation candidate (branch
+ * rationale, challenge summaries, verbatim dissent, confidence + calibration
+ * version). Uncertainty material only — never an approval.
+ */
+export function deliberationEvidenceRefs(
+  candidate: DeliberationCandidate,
+): string[] {
+  return projectDeliberationClaimEvidence(candidate);
+}
+
+/**
+ * Merge base claim evidence refs (e.g. from source materials) with attached
+ * deliberation evidence refs for decideClaimApply inputs and receipt writes.
+ * Dedupes while preserving order; drops blank entries. Additive only.
+ */
+export function mergeClaimEvidenceRefs(
+  baseRefs: string[],
+  deliberationRefs: string[],
+): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const ref of [...(baseRefs ?? []), ...(deliberationRefs ?? [])]) {
+    if (typeof ref !== "string" || ref.trim().length === 0) continue;
+    if (seen.has(ref)) continue;
+    seen.add(ref);
+    merged.push(ref);
+  }
+  return merged;
+}
+
+/**
+ * Convenience for the creation path: source-material refs plus an optional
+ * attached deliberation candidate's evidence refs. A null candidate returns
+ * the base refs unchanged.
+ */
+export function claimEvidenceRefsWithDeliberation(
+  sourceMaterials: Array<{ label?: string; reference?: string }>,
+  candidate?: DeliberationCandidate | null,
+): string[] {
+  const base = claimEvidenceRefsForSources(sourceMaterials);
+  if (!candidate) return base;
+  return mergeClaimEvidenceRefs(base, deliberationEvidenceRefs(candidate));
+}
+
+/**
+ * Adversarial-review-required gate for the creation path: a candidate without
+ * demonstrated review state cannot advance past needs-review. Deliberation
+ * never upgrades a verdict and never approves — it only caps safe to
+ * needs-review when review is missing.
+ */
+export function resolveClaimVerdictWithDeliberation(
+  verdict: ClaimPolicyVerdict,
+  candidate?: DeliberationCandidate | null,
+): ClaimPolicyVerdict {
+  if (!candidate) return verdict;
+  return capVerdictForDeliberationCandidate(verdict, candidate);
+}
+
+/** Re-export of the deliberation review-state predicate for call sites. */
+export function hasDeliberationAdversarialReview(
+  candidate: DeliberationCandidate,
+): boolean {
+  return hasDeliberationReviewState(candidate);
 }

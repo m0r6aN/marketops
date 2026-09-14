@@ -36,6 +36,8 @@ export function isRowVisibleToTenant(sessionTenantId: string, row: unknown): boo
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/persuasion-review/db";
 import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
+import { toClaimEvidence } from "@/lib/keon/deliberation";
+import type { DeliberationCandidate } from "@/lib/keon/types";
 import { buildClaimDecisionSummary } from "@/lib/persuasion-review/service";
 import type {
   ClaimDecisionVerdict,
@@ -573,4 +575,55 @@ export function getLatestClaimApprovalForReview(
 export function hasApprovedClaimApproval(reviewId: string): boolean {
   const approval = getLatestClaimApprovalForReview(reviewId);
   return approval?.decision === "approved";
+}
+
+// ── k2-deliberation-evidence (S10): deliberation evidence on receipts ───────
+// Additive only: deliberation candidates attach as EVIDENCE refs on the review
+// path and decision receipts (uncertainty material for decideClaimApply
+// inputs, never approval). Receipt shape unchanged — deliberation refs merge
+// into the existing evidenceRefs array. Doctrine: candidates never carry
+// execution authority; confidence is information, never authority.
+
+/** Evidence-safe refs for a deliberation candidate (projection only). */
+export function deliberationEvidenceRefsForReceipt(
+  candidate: DeliberationCandidate,
+): string[] {
+  return toClaimEvidence(candidate);
+}
+
+/**
+ * Persist a claim decision receipt with attached deliberation evidence. Merges
+ * the caller's base evidenceRefs with the candidate's evidence-safe refs
+ * (dedupe, order-preserving) and delegates to recordClaimDecisionReceipt —
+ * no schema or shape change. Deliberation evidence never approves; the apply
+ * gate still requires recorded human approval.
+ */
+export function recordClaimDecisionReceiptWithDeliberation(input: {
+  reviewId: string;
+  contentVersionId: string;
+  initiativeSlug: string;
+  verdict: ClaimDecisionVerdict;
+  rationale: string;
+  evidenceRefs: string[];
+  deliberation?: DeliberationCandidate | null;
+}): Receipt {
+  const deliberationRefs = input.deliberation
+    ? toClaimEvidence(input.deliberation)
+    : [];
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const ref of [...(input.evidenceRefs ?? []), ...deliberationRefs]) {
+    if (typeof ref !== "string" || ref.trim().length === 0) continue;
+    if (seen.has(ref)) continue;
+    seen.add(ref);
+    merged.push(ref);
+  }
+  return recordClaimDecisionReceipt({
+    reviewId: input.reviewId,
+    contentVersionId: input.contentVersionId,
+    initiativeSlug: input.initiativeSlug,
+    verdict: input.verdict,
+    rationale: input.rationale,
+    evidenceRefs: merged,
+  });
 }
