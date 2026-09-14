@@ -37,6 +37,7 @@ import { randomUUID } from "node:crypto";
 import { db } from "@/lib/persuasion-review/db";
 import { CLAIM_POLICY_VERSION } from "@/lib/claims/policy";
 import { toClaimEvidence } from "@/lib/keon/deliberation";
+import { tryMirrorClaimDecisionReceipt } from "@/lib/keon/ledger";
 import type { DeliberationCandidate } from "@/lib/keon/types";
 import { buildClaimDecisionSummary } from "@/lib/persuasion-review/service";
 import type {
@@ -470,6 +471,36 @@ export function recordClaimDecisionReceipt(input: {
     input.rationale,
     now,
   );
+  // k2-cortex-mirror (S11, local-first): additive mirror hook — the ONLY
+  // ledger call site on the receipt write path (the WithDeliberation variant
+  // funnels through here, as do all server actions). The safety decision is
+  // already persisted above; mirror failures must never throw into it.
+  // Append failure yields an explicit Unappended outcome recorded as a
+  // visible review event (ledger.mirror-unappended) — visible degradation,
+  // never silent, never blocking safety. Chain gaps therefore break
+  // verifiability loudly (verifyChain refuses) instead of silently.
+  try {
+    const mirrorOutcome = tryMirrorClaimDecisionReceipt({
+      receiptId: id,
+      reviewId: input.reviewId,
+      contentVersionId: input.contentVersionId,
+      createdAt: now,
+    });
+    if (mirrorOutcome.status === "unappended") {
+      recordEvent({
+        persuasionReviewId: input.reviewId,
+        initiativeSlug: input.initiativeSlug,
+        contentVersionId: input.contentVersionId,
+        eventType: "ledger.mirror-unappended",
+        summary: `Ledger mirror unappended for claim receipt ${id}: ${mirrorOutcome.reason}`,
+        detail: { receiptId: id, reason: mirrorOutcome.reason },
+        recordedAt: now,
+      });
+    }
+  } catch {
+    // Mirror + event surfacing are best-effort: the persisted safety decision
+    // above always stands unchanged.
+  }
   return getClaimDecisionReceipt(id)!;
 }
 
