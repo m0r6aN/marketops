@@ -3,7 +3,10 @@
 | Parcel | Wave | Branch | Worktree | Status | Collision |
 |---|---|---|---|---|---|
 | k0-contracts-keon | K0 | feat/k0-contracts-keon | (pruned) | merged (#40, JOINT-REVIEW: PASS) | Low |
-| k0-spike-gateway-roundtrip | K0 | feat/k0-spike-gateway-roundtrip | C:\Repos\MarketOps.k0-spike-gateway-roundtrip | in-review (#42, 73 assertions pass, contracts FIT for K1) | Low |
+| k0-spike-gateway-roundtrip | K0 | feat/k0-spike-gateway-roundtrip | (pruned) | merged (#42, 73 assertions, FIT for K1) | Low |
+| k1-gateway-client | K1 | feat/k1-gateway-client | C:\Repos\MarketOps.k1-gateway-client | in-review (#44, 29 tests) | Low |
+| k1-browseahead-intake | K1 | feat/k1-browseahead-intake | C:\Repos\MarketOps.k1-browseahead-intake | in-review (#46, 9 tests, full green) | Low |
+| k1-context-conformance | K1 | feat/k1-context-conformance | C:\Repos\MarketOps.k1-context-conformance | in-review (#45, 8 tests) | Low |
 
 ## Dependency graph
 CHARTER (#39) → k0-contracts-keon → k0-spike → K1 (S8, S13, S12 parallel) → K2 (S10 → S11 → h-evidence-seal, serialized) → K3 (S9 beta-live → INT-keon) → Milestone-B packet.
