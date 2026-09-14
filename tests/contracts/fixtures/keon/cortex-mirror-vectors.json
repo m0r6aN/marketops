@@ -1,0 +1,15 @@
+{
+  "$comment": "k2-cortex-mirror (S11) canonical-hash pin vector. The canonicalBytes string below was written by hand (sorted keys, no whitespace) and the entryHash produced with plain node:crypto outside the implementation — the test asserts the implementation reproduces both byte-for-byte, guarding against accidental canonicalization drift. governed.timestamp is the caller-supplied governed effect time (hashed); recordedAtUtc rides alongside and never enters the hash.",
+  "governed": {
+    "seq": 0,
+    "prevHash": "sha256:genesis",
+    "receiptRef": "marketops://unanchored-receipt/fixture-1",
+    "correlationId": "claim-decision:fixture-1",
+    "tenantId": "tenant-keon",
+    "receiptClass": "ledger.entry.appended",
+    "actorId": "system:ledger-mirror",
+    "timestamp": "2026-09-12T14:30:00Z"
+  },
+  "canonicalBytes": "{\"actorId\":\"system:ledger-mirror\",\"correlationId\":\"claim-decision:fixture-1\",\"prevHash\":\"sha256:genesis\",\"receiptClass\":\"ledger.entry.appended\",\"receiptRef\":\"marketops://unanchored-receipt/fixture-1\",\"seq\":0,\"tenantId\":\"tenant-keon\",\"timestamp\":\"2026-09-12T14:30:00Z\"}",
+  "entryHash": "sha256:9eb2f33276ab84945095145813c2db5989e63dfaca8772d80c10d3bb2766e91a"
+}
