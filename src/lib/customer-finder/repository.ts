@@ -37,6 +37,7 @@ import { randomUUID } from "node:crypto";
 
 import { db } from "@/lib/customer-finder/db";
 import { buildDedupeKey } from "@/lib/customer-finder/service";
+import type { ScanReceipt } from "@/lib/keon/types";
 import type {
   DiscoveredCandidate,
   DiscoveryCampaignDetail,
@@ -112,6 +113,14 @@ type CandidateProvenanceRow = {
   contact_channel: string | null;
   contact_value: string | null;
   discovered_at: string;
+  scan_sanitized_hash: string | null;
+  scan_raw_hash: string | null;
+  scan_canonical_hash: string | null;
+  scan_tenant_id: string | null;
+  scan_correlation_id: string | null;
+  scan_severity: string | null;
+  scan_ingestion_hint: string | null;
+  scan_scanned_at: string | null;
 };
 
 type DraftRow = {
@@ -477,6 +486,7 @@ export function replaceCampaignCandidates(campaignId: string, candidates: Discov
     );
 
     for (const provenance of candidate.provenance) {
+      const scanRefs = provenance.scanReceiptRefs;
       db.prepare(
         `
           INSERT INTO customer_finder_candidate_provenance (
@@ -491,9 +501,17 @@ export function replaceCampaignCandidates(campaignId: string, candidates: Discov
             contact_channel,
             contact_value,
             discovered_at,
-            created_at
+            created_at,
+            scan_sanitized_hash,
+            scan_raw_hash,
+            scan_canonical_hash,
+            scan_tenant_id,
+            scan_correlation_id,
+            scan_severity,
+            scan_ingestion_hint,
+            scan_scanned_at
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
       ).run(
         randomUUID(),
@@ -507,7 +525,15 @@ export function replaceCampaignCandidates(campaignId: string, candidates: Discov
         provenance.contactChannel ?? null,
         provenance.contactValue ?? null,
         provenance.discoveredAt,
-        nowIso
+        nowIso,
+        scanRefs?.sanitizedBundleHash ?? null,
+        scanRefs?.rawContentHash ?? null,
+        scanRefs?.canonicalSha256 ?? null,
+        scanRefs?.tenantId ?? null,
+        scanRefs?.correlationId ?? null,
+        scanRefs?.severity ?? null,
+        scanRefs?.ingestionHint ?? null,
+        scanRefs?.scannedAtUtc ?? null
       );
     }
   }
@@ -528,7 +554,9 @@ export function listCandidateRecordsForCampaign(campaignId: string): DiscoveryCa
     .prepare(
       `
         SELECT candidate_id, source_id, source_label, source_url, reason, evidence_text,
-               confidence_score, contact_channel, contact_value, discovered_at
+               confidence_score, contact_channel, contact_value, discovered_at,
+               scan_sanitized_hash, scan_raw_hash, scan_canonical_hash, scan_tenant_id,
+               scan_correlation_id, scan_severity, scan_ingestion_hint, scan_scanned_at
         FROM customer_finder_candidate_provenance
         WHERE candidate_id IN (
           SELECT id FROM customer_finder_candidates WHERE campaign_id = ?
@@ -551,6 +579,28 @@ export function listCandidateRecordsForCampaign(campaignId: string): DiscoveryCa
         contactChannel: row.contact_channel ?? undefined,
         contactValue: row.contact_value ?? undefined,
         discoveredAt: row.discovered_at,
+        // k1-browseahead-intake: hash-only scan refs round-trip; legacy
+        // unscanned rows keep every scan column NULL -> refs absent.
+        scanReceiptRefs:
+          row.scan_sanitized_hash &&
+          row.scan_raw_hash &&
+          row.scan_canonical_hash &&
+          row.scan_tenant_id &&
+          row.scan_correlation_id &&
+          row.scan_severity &&
+          row.scan_ingestion_hint &&
+          row.scan_scanned_at
+            ? {
+                sanitizedBundleHash: row.scan_sanitized_hash,
+                rawContentHash: row.scan_raw_hash,
+                canonicalSha256: row.scan_canonical_hash,
+                tenantId: row.scan_tenant_id,
+                correlationId: row.scan_correlation_id,
+                severity: row.scan_severity as ScanReceipt["severity"],
+                ingestionHint: row.scan_ingestion_hint as ScanReceipt["ingestionHint"],
+                scannedAtUtc: row.scan_scanned_at,
+              }
+            : undefined,
       });
       map.set(row.candidate_id, existing);
       return map;

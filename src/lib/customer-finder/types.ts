@@ -1,3 +1,5 @@
+import type { ScanReceiptRefs } from "@/lib/keon/scan";
+
 export type DiscoverySourceId =
   | "manual_csv"
   | "company_websites"
@@ -69,6 +71,13 @@ export type CandidateProvenance = {
   contactChannel?: string;
   contactValue?: string;
   discoveredAt: string;
+  /**
+   * k1-browseahead-intake: hash-only scan receipt refs recorded alongside
+   * the sourced material (sanitized-bundle-only ingestion). Present only
+   * when the provenance evidence passed through requestScan; absent on
+   * legacy/unscanned rows. Never carries raw excerpts.
+   */
+  scanReceiptRefs?: ScanReceiptRefs;
 };
 
 export type DiscoveredCandidate = {

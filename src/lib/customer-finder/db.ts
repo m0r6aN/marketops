@@ -116,6 +116,30 @@ db.exec(`
   );
 `);
 
+// k1-browseahead-intake: hash-only scan receipt refs recorded alongside
+// sourced provenance (sanitized-bundle-only ingestion). Nullable additive
+// columns; legacy/unscanned rows keep NULLs. PRAGMA-guarded so pre-parcel
+// databases migrate in place without a redesign.
+const provenanceColumns = db
+  .prepare(`PRAGMA table_info(customer_finder_candidate_provenance)`)
+  .all() as Array<{ name: string }>;
+const provenanceColumnNames = new Set(provenanceColumns.map((column) => column.name));
+const scanRefColumns: Array<[string, string]> = [
+  ["scan_sanitized_hash", "TEXT"],
+  ["scan_raw_hash", "TEXT"],
+  ["scan_canonical_hash", "TEXT"],
+  ["scan_tenant_id", "TEXT"],
+  ["scan_correlation_id", "TEXT"],
+  ["scan_severity", "TEXT"],
+  ["scan_ingestion_hint", "TEXT"],
+  ["scan_scanned_at", "TEXT"],
+];
+for (const [column, type] of scanRefColumns) {
+  if (!provenanceColumnNames.has(column)) {
+    db.exec(`ALTER TABLE customer_finder_candidate_provenance ADD COLUMN ${column} ${type}`);
+  }
+}
+
 export { db };
 
 // Read-only suppression lookup for compliance gates (e.g. the email-campaigns
