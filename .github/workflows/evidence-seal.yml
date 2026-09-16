@@ -1,0 +1,98 @@
+name: Evidence Seal
+
+# Sealed-evidence gate: every bundle under evidence/bundles/* must verify
+# offline (recomputed hashes, required fields, fail-closed reasons), and
+# changed files under docs/ + evidence/ must use the canonical vocabulary
+# (sealed-claim wording only alongside a bundle reference).
+#
+# Scoping note (deliberate, do not "simplify" to a whole-tree scan): the
+# vocabulary gate diffs the PR against its base and scans only changed files
+# under docs/ + evidence/. The pre-existing working logs (evidence/INT-*.md,
+# evidence/proofpack-v1/**, docs/ROADMAP.md) legitimately describe
+# in-progress work with looser wording, and existing evidence files are
+# append-only history — a whole-tree scan would flag history on every PR
+# instead of gating new claims. Sealed bundles carry their own hashes, so
+# new claims are always checkable via the cited bundle version.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "evidence/bundles/**"
+      - "evidence/INT-*.md"
+      - "evidence/proofpack-v1/**"
+      - "tools/evidence/**"
+      - "tests/evidence/**"
+      - "docs/**"
+      - ".github/workflows/evidence-seal.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "evidence/bundles/**"
+      - "tools/evidence/**"
+      - "tests/evidence/**"
+      - ".github/workflows/evidence-seal.yml"
+
+jobs:
+  verify-bundles:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify every sealed bundle (offline verifier)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/evidence/verify-bundle.mjs --all
+
+  vocabulary-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with history (PR diff needs the base sha)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject sealed-claim wording without a bundle reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Whole-word match only: "provenance"/"proves"/"improve" must NOT
+          # trip the gate — only the sealed-claim words do.
+          WORDS_PATTERN='\bproven\b|\bProven\b|✅'
+          # Bundle reference pattern: a cited sealed bundle version.
+          BUNDLE_PATTERN='evidence/bundles/[A-Za-z0-9._-]+'
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          # On push events there is no PR base/head; fall back to the
+          # single pushed commit range so main stays gated too.
+          if [ -z "$BASE" ] || [ -z "$HEAD" ]; then
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.event.after }}"
+          fi
+          echo "Diffing $BASE...$HEAD"
+          VIOLATIONS=0
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            [ -f "$file" ] || continue
+            if rg -q --no-messages "$WORDS_PATTERN" "$file"; then
+              if rg -q --no-messages "$BUNDLE_PATTERN" "$file"; then
+                echo "OK (bundle-cited): $file"
+              else
+                echo "REJECTED: $file uses sealed-claim wording without citing a bundle ($BUNDLE_PATTERN)."
+                rg -n "$WORDS_PATTERN" "$file" || true
+                VIOLATIONS=1
+              fi
+            fi
+          done < <(git diff --name-only --diff-filter=ACMR "$BASE" "$HEAD" -- docs evidence || true)
+          if [ "$VIOLATIONS" -ne 0 ]; then
+            echo "Vocabulary gate failed: cite a sealed bundle version alongside sealed-claim wording."
+            exit 1
+          fi
+          echo "Vocabulary gate passed."

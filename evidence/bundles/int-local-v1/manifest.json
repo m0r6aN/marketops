@@ -1,0 +1,84 @@
+{
+  "bundle": "int-local",
+  "version": "v1",
+  "sealedAtUtc": "2026-09-16T16:27:17.477Z",
+  "commands": [
+    "npx vitest run tests/integration/isolation.test.ts",
+    "npx vitest run tests/integration/claim-billing.test.ts",
+    "npx vitest run tests/integration/email-receipt-mcp.test.ts",
+    "powershell -NoProfile -ExecutionPolicy Bypass -File evidence/proofpack-v1/VERIFY.ps1",
+    "npm run lint",
+    "npm run typecheck"
+  ],
+  "envPins": {
+    "node": "v24.7.0",
+    "packageLockHash": "sha256:2f27baedd87503e770a0da59f85ab0b41c21a0f6ad2b76b67122f49f964dc7db",
+    "gitCommit": "945488104b58f9eebe36895658109563e0e59dd4"
+  },
+  "artifacts": [
+    {
+      "path": "transcripts/int-a-isolation.txt",
+      "sha256": "sha256:5a0f0b5bd56e1a8f2824133cacc5b8556ee283cb34a54fdb6fb9ac1bf8ebd8c4"
+    },
+    {
+      "path": "transcripts/int-b-claim-billing.txt",
+      "sha256": "sha256:6d070c3c302bac85a78f441ef04be21f5726a26c05bbfcacc38cc6837623f28f"
+    },
+    {
+      "path": "transcripts/int-c-email-receipt-mcp.txt",
+      "sha256": "sha256:4bc2b00fded7e6d46645b59c2a7c43a983c1d6f650e6780d6ab894b21532ecc5"
+    },
+    {
+      "path": "transcripts/verify-proofpack.txt",
+      "sha256": "sha256:bce35ce98edae7b6bcfe6e576c2543ecac9c7a1debecd47edfcf14e6ec806d54"
+    },
+    {
+      "path": "transcripts/lint.txt",
+      "sha256": "sha256:c62f6a74578503d556396bca4b7580b13639753ba5fe34869afc4b247ae02612"
+    },
+    {
+      "path": "transcripts/typecheck.txt",
+      "sha256": "sha256:c3731a6f582446a30f99efbf3eb624a92fc0692cc7f531713e9b46d5afbd6cad"
+    },
+    {
+      "path": "working-logs/INT-a-isolation.md",
+      "sha256": "sha256:c6b0c66a208c092078cfacd3b3c386f6262ab96d53a3a0cb81b5b48f2184d4a5"
+    },
+    {
+      "path": "working-logs/INT-b-claim-billing.md",
+      "sha256": "sha256:ad36ce69382cb3c812058536b878b454c7f1fa5722c7e492724b6dc338dafb7a"
+    },
+    {
+      "path": "working-logs/INT-c-email-receipt-mcp.md",
+      "sha256": "sha256:2e80b9cf3a5a57fd7b5af7edfbf39be01cde23e6dca7ba3aee2150ad66705135"
+    },
+    {
+      "path": "NOTES.md",
+      "sha256": "sha256:6fada8b354eed6b6afa7d984883a566a6c7dc6e518ee3ff521aa114e948a9a1d"
+    }
+  ],
+  "negativeCases": [
+    "INT-a/deny-cross-tenant-initiatives: biostack session read+write on keon initiative rows refused 403 TENANT_MISMATCH",
+    "INT-a/deny-cross-tenant-library: biostack session read+write on keon library rows refused 403 TENANT_MISMATCH",
+    "INT-a/deny-cross-tenant-persuasion: biostack session read+write on keon persuasion-review rows refused 403 TENANT_MISMATCH",
+    "INT-a/deny-tampered-token: tampered keon token refused on all 3 lanes 401 UNAUTHENTICATED",
+    "INT-a/deny-null-session: null session refused 401 per lane; unknown resource/session tenant refused fail-closed 403/401",
+    "INT-b/deny-lapsed-entitlement: biostack (lapsed) refused ENTITLEMENT_INACTIVE 403 at all three S3 chokepoints",
+    "INT-b/block-banned-claim: entitled keon plus banned body stays CLAIM_BLOCKED 403 (money does not override trust)",
+    "INT-b/deny-apply-without-approval: needs-proof review without approval refused APPROVAL_REQUIRED 403",
+    "INT-b/deny-composed-lapsed-banned: both denials observable, neither gate masks the other",
+    "INT-b/deny-cross-tenant-leak: tenant-mismatch denial leaks no banned and no needs-proof phrase",
+    "INT-c/block-email-send: compliant plan still not-sent (outcome blocked, sent false); no send/adapter/deliver export exists",
+    "INT-c/deny-email-gaps: none-consent, missing-unsub and failed-sender-auth each blocked with reason; all 5 fail shapes refuse send",
+    "INT-c/reject-tampered-receipt: tampered packSha256 and empty runs rejected by contract",
+    "INT-c/quarantine-mcp: secret-bearing and pricing-leak docs quarantined before the writer; persisted output carries no secret or pricing tokens"
+  ],
+  "chainHead": null,
+  "chainHeadNote": "S11-live composition: the Evidence Ledger receipt chain is composed live at runtime, so this offline file bundle pins no static chain head.",
+  "supersedes": null,
+  "notes": [
+    "VERIFY.ps1 is 56/58: the EdVerify .NET binary is not published locally, so the per-run Ed25519 signature check cannot execute (environmental, recorded honestly).",
+    "No live Postgres, Stripe, network, or model execution in this campaign; see NOTES.md for the full limits list.",
+    "source tree not clean at seal time (recorded honestly, never blocks the seal): ?? .github/workflows/evidence-seal.yml; ?? tests/evidence/; ?? tools/evidence/README.md; ?? tools/evidence/seal.mjs; ?? tools/evidence/verify-bundle.mjs"
+  ]
+}
