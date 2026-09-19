@@ -1,0 +1,87 @@
+
+========================================
+  MarketOps Proof Pack Verifier v1.3
+========================================
+
+EdVerify:    NOT FOUND (Ed25519 checks will FAIL)
+
+Pack ID:     pack-20260212-042111
+Created:     2026-02-12T04:21:11.2287956+00:00
+Runs:        2
+Pack Seal:   b28e253fb8485e3d6c2bf6d95cd9ee60dae3cee0560530768a9e3b154a26a5cc
+
+--- Run: 00b61575-e041-42a5-aba9-dce48e7d9d80 (unknown) ---
+  --- Ed25519 Signature ---
+  PASS: Public key found at keys/proofpack_signing_public.ed25519
+  PASS: keyId fingerprint verified (1e7291d07b0f5085)
+  FAIL: EdVerify tool not found - cannot verify Ed25519
+  PASS: RUN_MANIFEST.json hash matches
+  PASS: publication-plan.json (311B)
+  PASS: proof-ledger.json (410B)
+  PASS: judge-advisory-receipt.json (1282B)
+  PASS: approver-summary.json (1140B)
+  PASS: approver-summary.md (904B)
+  PASS: fc-binding.json (2141B)
+  --- FC Binding ---
+  PASS: FC binding verdict = fc_bound
+  PASS: Advisory receipt is present
+  PASS: Receipt minted by Federation Core
+  PASS: receipt.runId matches run
+  PASS: receipt.planSha256 matches hash(publication-plan)
+  PASS: receipt.ledgerSha256 matches hash(proof-ledger)
+  PASS: HMAC-SHA256 signature valid
+  PASS: Ledger references receipt (receiptId + receiptDigest)
+  PASS: tenantId consistent across plan, ledger, receipt.subject
+  PASS: receipt.runId == manifest.runId
+  PASS: receipt contains planSha256 binding
+  --- Tenant Consistency ---
+  PASS: manifest.tenantId = 'tenant-demo'
+  PASS: scope.tenantId matches manifest
+  PASS: plan.tenantId matches manifest
+  PASS: ledger.tenantId matches manifest
+  PASS: receipt.subject.tenantId matches manifest
+  PASS: summary.tenantId matches manifest
+
+--- Run: 5a94c079-3caa-44cb-b257-bcb77b853727 (unknown) ---
+  --- Ed25519 Signature ---
+  PASS: Public key found at keys/proofpack_signing_public.ed25519
+  PASS: keyId fingerprint verified (1e7291d07b0f5085)
+  FAIL: EdVerify tool not found - cannot verify Ed25519
+  PASS: RUN_MANIFEST.json hash matches
+  PASS: publication-plan.json (311B)
+  PASS: proof-ledger.json (411B)
+  PASS: judge-advisory-receipt.json (1282B)
+  PASS: approver-summary.json (1140B)
+  PASS: approver-summary.md (904B)
+  PASS: fc-binding.json (2141B)
+  --- FC Binding ---
+  PASS: FC binding verdict = fc_bound
+  PASS: Advisory receipt is present
+  PASS: Receipt minted by Federation Core
+  PASS: receipt.runId matches run
+  PASS: receipt.planSha256 matches hash(publication-plan)
+  PASS: receipt.ledgerSha256 matches hash(proof-ledger)
+  PASS: HMAC-SHA256 signature valid
+  PASS: Ledger references receipt (receiptId + receiptDigest)
+  PASS: tenantId consistent across plan, ledger, receipt.subject
+  PASS: receipt.runId == manifest.runId
+  PASS: receipt contains planSha256 binding
+  --- Tenant Consistency ---
+  PASS: manifest.tenantId = 'tenant-demo'
+  PASS: scope.tenantId matches manifest
+  PASS: plan.tenantId matches manifest
+  PASS: ledger.tenantId matches manifest
+  PASS: receipt.subject.tenantId matches manifest
+  PASS: summary.tenantId matches manifest
+
+--- Pack Seal Verification ---
+  PASS: Pack seal verified
+
+--- Pack Tenant Verification ---
+  PASS: PACK_INDEX.tenantId = 'tenant-demo'
+  PASS: Run 00b61575-e041-42a5-aba9-dce48e7d9d80 tenantId matches pack
+  PASS: Run 5a94c079-3caa-44cb-b257-bcb77b853727 tenantId matches pack
+
+========================================
+  RESULT: 2 of 58 CHECKS FAILED
+========================================
