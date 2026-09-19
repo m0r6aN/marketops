@@ -18,11 +18,19 @@
  * sync: payload { v: 1, tenantId, iat, exp, jti }, roster check against
  * src/lib/auth/roster.ts, 60s iat-skew, exp > now. Fail-closed: missing key,
  * malformed token, bad signature, expiry, or non-roster tenant => denied.
+ *
+ * RP-02 NOTE: every response this middleware returns carries SECURITY_HEADERS
+ * (src/lib/security/headers.ts, also applied globally via next.config.ts
+ * headers()). /api/* additionally passes an Edge-safe in-memory fixed-window
+ * limiter (120 req/min per forwarded-IP, 429 RATE_LIMITED) before session
+ * verification. Both helpers are importable without node: statics.
  */
 
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BETA_ROSTER_TENANT_IDS, SESSION_COOKIE_NAME } from "@/lib/auth/roster";
+import { SECURITY_HEADERS } from "@/lib/security/headers";
+import { createRateLimiter } from "@/lib/security/rate-limit";
 
 export const config = {
   matcher: [
@@ -35,6 +43,27 @@ export const config = {
 
 const MIN_HMAC_KEY_CHARS = 16;
 const ISSUED_AT_SKEW_SEC = 60;
+
+// rp-02-headers-ratelimit — abuse control for /api/* (Edge-safe, in-memory,
+// per-isolate). Auth stays the decision boundary; this only bounds request
+// volume before session verification runs.
+const API_RATE_LIMIT = 120;
+const API_RATE_WINDOW_MS = 60_000;
+const apiRateLimiter = createRateLimiter({ limit: API_RATE_LIMIT, windowMs: API_RATE_WINDOW_MS });
+
+/** Client key for rate limiting: first x-forwarded-for hop, else unknown. */
+export function getRateLimitKey(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  const first = forwarded?.split(",")[0]?.trim() ?? "";
+  return first.length > 0 ? first : "unknown";
+}
+
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 function b64urlToBytes(input: string): Uint8Array | null {
   if (!input || input.length > 8192 || !/^[A-Za-z0-9_-]+$/.test(input)) return null;
@@ -106,22 +135,44 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApi = pathname === "/api" || pathname.startsWith("/api/");
 
+  if (isApi) {
+    const decision = apiRateLimiter.check(getRateLimitKey(request));
+    if (!decision.allowed) {
+      return withSecurityHeaders(
+        NextResponse.json(
+          {
+            error: "Too Many Requests",
+            denialCode: "RATE_LIMITED",
+            denialMessage: "API rate limit exceeded. Retry after the current window resets.",
+            failureStage: "decision",
+          },
+          {
+            status: 429,
+            headers: { "Retry-After": String(Math.max(1, Math.ceil(decision.resetMs / 1000))) },
+          },
+        ),
+      );
+    }
+  }
+
   const deny = () => {
     if (isApi) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          denialCode: "UNAUTHENTICATED",
-          denialMessage: "API access denied: no authenticated tenant session.",
-          failureStage: "decision",
-        },
-        { status: 401 },
+      return withSecurityHeaders(
+        NextResponse.json(
+          {
+            error: "Unauthorized",
+            denialCode: "UNAUTHENTICATED",
+            denialMessage: "API access denied: no authenticated tenant session.",
+            failureStage: "decision",
+          },
+          { status: 401 },
+        ),
       );
     }
     const url = request.nextUrl.clone();
     url.pathname = "/waitlist";
     url.search = "";
-    return NextResponse.redirect(url);
+    return withSecurityHeaders(NextResponse.redirect(url));
   };
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value ?? null;
@@ -137,5 +188,5 @@ export async function middleware(request: NextRequest) {
   );
   if (!tenantId) return deny();
 
-  return NextResponse.next();
+  return withSecurityHeaders(NextResponse.next());
 }
