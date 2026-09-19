@@ -6,13 +6,13 @@
  * LlmReviewClient to do the review, then validates the response. Provider
  * choice and review heuristics live in src/llm/.
  */
-import Ajv, { type ValidateFunction } from "ajv";
-// ajv-formats is CJS-only; under NodeNext+ESM the default export lives at `.default`.
-import * as ajvFormatsModule from "ajv-formats";
-const addFormats = (
-  ajvFormatsModule as unknown as {
-    default: (ajv: Ajv) => Ajv;
-  }
+import { Ajv, type ValidateFunction } from "ajv";
+import type { FormatsPlugin } from "ajv-formats";
+import * as addFormatsModule from "ajv-formats";
+
+// ajv-formats is CJS-only; under NodeNext+ESM the callable lives at `.default`.
+const addFormats: FormatsPlugin = (
+  addFormatsModule as unknown as { default: FormatsPlugin }
 ).default;
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
